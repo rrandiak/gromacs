@@ -61,7 +61,6 @@ target_link_libraries(tools INTERFACE
 #target_link_libraries(tools PRIVATE legacy_modules)
 
 
-
 if (BUILD_TESTING)
     add_subdirectory(tests)
 endif()

@@ -6,6 +6,8 @@
 #include <vector>
 #include <variant>
 
+#include "gromacs/tools/dump_component.h"
+
 #define INDENT 2
 
 class JsonObjectComponent;

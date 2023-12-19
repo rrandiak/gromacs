@@ -1,6 +1,8 @@
 #ifndef GMX_TOOLS_DUMP_COMPONENT_H
 #define GMX_TOOLS_DUMP_COMPONENT_H
 
+#include <cstdio>
+
 class DumpComponent {
 protected:
     FILE* fp;

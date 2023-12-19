@@ -44,7 +44,7 @@ JsonArrayComponent* JsonDumpComponent::addJsonArray(const std::string& name) {
 void JsonDumpComponent::addJsonLeaf(const std::string& key, const Value& value) {
     cleanLastChild();
     printSeparator();
-    fprintf(fp, "\n%*s\"%s\": ", indent + INDENT, "", key.c_str());
+    fprintf(fp, "\n%*s\"%s\": ", this->indent + INDENT, "", key.c_str());
     printValue(value);
 }
 
