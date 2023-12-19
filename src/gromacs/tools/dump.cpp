@@ -84,13 +84,26 @@ namespace gmx
 namespace
 {
 
+enum class OutputFormat : int
+{
+    PlainText,
+    Json,
+    Yaml,
+    Count
+};
+
+const gmx::EnumerationArray<OutputFormat, const char*> c_outputFormatNames = {
+    { "text", "json", "yml" }
+};
+
 //! Dump a TPR file
 void list_tpr(const char* fn,
               gmx_bool    bShowNumbers,
               gmx_bool    bShowParameters,
               const char* mdpfn,
               gmx_bool    bSysTop,
-              gmx_bool    bOriginalInputrec)
+              gmx_bool    bOriginalInputrec,
+              OutputFormat outputFormat_)
 {
     FILE*      gp;
     int        indent, atot;
@@ -638,6 +651,7 @@ private:
     std::string inputMatrixFilename_;
     std::string outputMdpFilename_;
     //! \}
+    OutputFormat outputFormat_;
 };
 
 void Dump::initOptions(IOptionsContainer* options, ICommandLineOptionsModuleSettings* settings)
@@ -694,6 +708,8 @@ void Dump::initOptions(IOptionsContainer* options, ICommandLineOptionsModuleSett
             BooleanOption("sys").store(&bShowParams_).defaultValue(false).description("List the atoms and bonded interactions for the whole system instead of for each molecule type"));
     options->addOption(
             BooleanOption("orgir").store(&bShowParams_).defaultValue(false).description("Show input parameters from tpr as they were written by the version that produced the file, instead of how the current version reads them"));
+    options->addOption(
+            EnumOption<OutputFormat>("format").enumValue(c_outputFormatNames).store(&outputFormat_).defaultValue(OutputFormat::PlainText).description("Output format"));
 }
 
 void Dump::optionsFinished()
@@ -712,7 +728,8 @@ int Dump::run()
                  bShowParams_,
                  outputMdpFilename_.empty() ? nullptr : outputMdpFilename_.c_str(),
                  bSysTop_,
-                 bOriginalInputrec_);
+                 bOriginalInputrec_,
+                 outputFormat_);
     }
     else if (!inputTrajectoryFilename_.empty())
     {
