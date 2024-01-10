@@ -7,7 +7,7 @@ class DumpBuilder {
 public:
     virtual ~DumpBuilder() = default;
 
-    virtual void build(DumpStrategy* strategy, FILE* outputFile) = 0;
+    virtual void build(DumpStrategy* strategy) = 0;
 };
 
 #endif

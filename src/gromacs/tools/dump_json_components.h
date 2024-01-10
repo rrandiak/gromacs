@@ -9,7 +9,7 @@
 #include "gromacs/tools/dump_component.h"
 
 #define INDENT 2
-
+    
 class JsonObjectComponent;
 class JsonArrayComponent;
 
@@ -28,6 +28,7 @@ public:
     JsonDumpComponent(FILE* fp, int indent) : DumpComponent(fp, indent) {}
 
     ~JsonDumpComponent() {
+        printf("---cleaning last child %p\n", lastChild);
         cleanLastChild();
     }
 

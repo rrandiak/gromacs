@@ -1,19 +1,42 @@
 #include "gromacs/tools/dump_builder_tpr.h"
 
-void DumpBuilderTpr::build(DumpStrategy* strategy, FILE* outputFile) {
+void DumpBuilderTpr::build(DumpStrategy* strategy) {
     FILE*      gp;
-    // int        indent, atot;
-    // t_state    state;
-    // gmx_mtop_t mtop;
-    // t_topology top;
+    int        indent, atot;
+    t_state    state;
+    gmx_mtop_t mtop;
+    t_topology top;
 
-    // TpxFileHeader tpx = readTpxHeader(fn, true);
-    // t_inputrec    ir;
+    TpxFileHeader tpx = readTpxHeader(fileName, true);
+    t_inputrec    ir;
 
-    // read_tpx_state(fn, tpx.bIr ? &ir : nullptr, &state, tpx.bTop ? &mtop : nullptr);
-    // if (tpx.bIr && !bOriginalInputrec) {
-    //     MDModules().adjustInputrecBasedOnModules(&ir);
-    // }
+    read_tpx_state(fileName, tpx.bIr ? &ir : nullptr, &state, tpx.bTop ? &mtop : nullptr);
+    if (tpx.bIr && !originalInputrec) {
+        gmx::MDModules().adjustInputrecBasedOnModules(&ir);
+    }
+
+    if (mdpFileName && tpx.bIr) {
+        gp = gmx_fio_fopen(mdpFileName, "w");
+        pr_inputrec(gp, 0, nullptr, &ir, TRUE);
+        gmx_fio_fclose(gp);
+    }
+
+    if (!mdpFileName) {
+        if (sysTop) {
+            top = gmx_mtop_t_to_t_topology(&mtop, false);
+        }
+
+        if (strategy->available(&tpx, fileName)) {
+            strategy->pr_filename(fileName);
+
+            DumpBuilderInputRec inputrec = DumpBuilderInputRec(tpx.bIr ? &ir : nullptr, FALSE);
+            inputrec.build(strategy);
+
+            fprintf(stdout, "\n\n-----\n");
+            pr_title(stdout, indent, fileName);
+            pr_inputrec(stdout, 0, "inputrec", tpx.bIr ? &ir : nullptr, FALSE);
+        }
+    }
 }
     // FILE*      gp;
     // int        indent, atot;
@@ -30,14 +53,14 @@ void DumpBuilderTpr::build(DumpStrategy* strategy, FILE* outputFile) {
     //     MDModules().adjustInputrecBasedOnModules(&ir);
     // }
 
-    // if (mdpfn && tpx.bIr)
+    // if (mdpFileName && tpx.bIr)
     // {
-    //     gp = gmx_fio_fopen(mdpfn, "w");
+    //     gp = gmx_fio_fopen(mdpFileName, "w");
     //     pr_inputrec(gp, 0, nullptr, &ir, TRUE);
     //     gmx_fio_fclose(gp);
     // }
 
-    // if (!mdpfn)
+    // if (!mdpFileName)
     // {
     //     if (bSysTop)
     //     {

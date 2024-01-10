@@ -1,18 +1,20 @@
 #ifndef GMX_TOOLS_DUMP_COMPONENT_H
 #define GMX_TOOLS_DUMP_COMPONENT_H
 
+#include "gromacs/utility/real.h"
+
 #include <cstdio>
+#include <variant>
+#include <string>
 
 class DumpComponent {
 protected:
     FILE* fp;
     int indent = 0;
 public:
-    using Value = std::variant<int, double, std::string>;
+    using Value = std::variant<std::string, int, int64_t, double, real>;
 
     DumpComponent(FILE* fp, int indent) : fp(fp), indent(indent) {}
-
-    virtual ~DumpComponent() = default;
 };
 
 #endif

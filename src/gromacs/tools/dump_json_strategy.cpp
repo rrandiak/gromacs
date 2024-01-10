@@ -1,56 +1,38 @@
-#include "gromacs/tools/dump_strategy_text.h"
+#include "gromacs/tools/dump_json_strategy.h"
 
-bool DumpStrategyText::available(const void* p, const char* title) {
+bool DumpJsonStrategy::available(const void* p, const char* title) {
     if (!p) {
-        componentsStack.top()->addTextLeaf(title, "not available");
+        componentsStack.top()->addJsonLeaf(title, "not_available");
     }
     return (p != nullptr);
 }
 
-void DumpStrategyText::pr_filename(const char* filename) {
-    componentsStack.top()->addTextSection(filename);
+void DumpJsonStrategy::pr_filename(const char* filename) {
+    componentsStack.top()->addJsonLeaf("filename", filename);
 }
 
-void DumpStrategyText::pr_title(const char* title) {
-    TextDumpComponent* comp = componentsStack.top()->addTextSection(title);
+void DumpJsonStrategy::pr_title(const char* title) {
+    JsonDumpComponent* comp = componentsStack.top()->addJsonObject(title);
     componentsStack.push(comp);
 }
 
-void DumpStrategyText::pr_title_n(const char* title, int n) {
+void DumpJsonStrategy::pr_title_n(const char* title, int n) {
     // fprintf(fp, "%s (%d):\n", title, n);
 }
 
-void DumpStrategyText::pr_title_nxn(const char* title, int n1, int n2) {
-    int bufferSize = snprintf(nullptr, 0, "%s (%dx%d)", title, n1, n2) + 1;
-    std::string formattedString(bufferSize, '\0');
-    snprintf(&formattedString[0], bufferSize, "%s (%dx%d)", title, n1, n2);
+void DumpJsonStrategy::pr_title_nxn(const char* title, int n1, int n2) {
+    // fprintf(fp, "%s (%dx%d):\n", title, n1, n2);
 
-    TextDumpComponent* comp = componentsStack.top()->addTextObject(formattedString.c_str());
-    componentsStack.push(comp);
 }
 
-void DumpStrategyText::pr_named_value(const char* name, const Value& value) {
-    componentsStack.top()->addTextLeaf(name, value);
+void DumpJsonStrategy::pr_named_value(const char* name, const Value& value) {
+    componentsStack.top()->addJsonLeaf(name, value);
 }
 
-void DumpStrategyText::pr_matrix(const char* title, const rvec* m, gmx_bool bMDPformat) {
-    if (bMDPformat) {
-        // fprintf(fp,
-        //         "%-10s    = %g %g %g %g %g %g\n",
-        //         title,
-        //         m[XX][XX],
-        //         m[YY][YY],
-        //         m[ZZ][ZZ],
-        //         m[XX][YY],
-        //         m[XX][ZZ],
-        //         m[YY][ZZ]);
-    } else {
-        pr_rvecs(title, m, DIM);
-    }
+void DumpJsonStrategy::pr_matrix(const char* title, const rvec* m, gmx_bool bMDPformat) {
 }
 
-void DumpStrategyText::pr_rvecs(const char* title, const rvec vec[], int n)
-{
+void DumpJsonStrategy::pr_rvecs(const char* title, const rvec vec[], int n) {
     const char* fshort = "%12.5e";
     const char* flong  = "%15.8e";
     const char* format = (getenv("GMX_PRINT_LONGFORMAT") != nullptr) ? flong : fshort;
@@ -58,29 +40,46 @@ void DumpStrategyText::pr_rvecs(const char* title, const rvec vec[], int n)
 
     if (available(vec, title)) {
         pr_title_nxn(title, n, DIM);
-        TextDumpComponent* comp = componentsStack.top();
 
         for (i = 0; i < n; i++) {
-            comp->addFormattedTextLeaf("%s[%5d]=", title, i);
-            comp->addTextVectorLeaf(vec[i], DIM);
-            // fprintf(fp, "%s[%5d]={", title, i);
-            // for (j = 0; j < DIM; j++)
-            // {
-            //     if (j != 0)
-            //     {
-            //         fprintf(fp, ", ");
-            //     }
-            //     fprintf(fp, format, vec[i][j]);
-            // }
-            // fprintf(fp, "}\n");
         }
-
-        componentsStack.pop();
     }
+    // const char* fshort = "%12.5e";
+    // const char* flong  = "%15.8e";
+    // const char* format;
+    // int         i, j;
+
+    // if (getenv("GMX_PRINT_LONGFORMAT") != nullptr)
+    // {
+    //     format = flong;
+    // }
+    // else
+    // {
+    //     format = fshort;
+    // }
+
+    // if (available(fp, vec, indent, title))
+    // {
+    //     indent = pr_title_nxn(fp, indent, title, n, DIM);
+    //     for (i = 0; i < n; i++)
+    //     {
+    //         pr_indent(fp, indent);
+    //         fprintf(fp, "%s[%5d]={", title, i);
+    //         for (j = 0; j < DIM; j++)
+    //         {
+    //             if (j != 0)
+    //             {
+    //                 fprintf(fp, ", ");
+    //             }
+    //             fprintf(fp, format, vec[i][j]);
+    //         }
+    //         fprintf(fp, "}\n");
+    //     }
+    // }
 }
 
 
-// void DumpStrategyText::pr_reals(const char* title, const real* vec, int n)
+// void DumpJsonStrategy::pr_reals(const char* title, const real* vec, int n)
 // {
 //     // if (available(fp, vec, indent, title))
 //     // {
@@ -94,7 +93,7 @@ void DumpStrategyText::pr_rvecs(const char* title, const rvec vec[], int n)
 //     // }
 // }
 
-// void DumpStrategyText::pr_doubles(const char* title, const double* vec, int n)
+// void DumpJsonStrategy::pr_doubles(const char* title, const double* vec, int n)
 // {
 //     // if (available(fp, vec, indent, title))
 //     // {
@@ -108,7 +107,7 @@ void DumpStrategyText::pr_rvecs(const char* title, const rvec vec[], int n)
 //     // }
 // }
 
-// void DumpStrategyText::pr_reals_of_dim(const char* title, const real* vec, int n, int dim)
+// void DumpJsonStrategy::pr_reals_of_dim(const char* title, const real* vec, int n, int dim)
 // {
 //     // const char* fshort = "%12.5e";
 //     // const char* flong  = "%15.8e";
@@ -134,13 +133,13 @@ void DumpStrategyText::pr_rvecs(const char* title, const rvec vec[], int n)
 //     // }
 // }
 
-// void DumpStrategyText::pr_int(const char* title, int i)
+// void DumpJsonStrategy::pr_int(const char* title, int i)
 // {
 //     // pr_indent(fp, indent);
 //     // fprintf(fp, "%-30s = %d\n", title, i);
 // }
 
-// void DumpStrategyText::pr_int64(const char* title, int64_t i)
+// void DumpJsonStrategy::pr_int64(const char* title, int64_t i)
 // {
 //     // char buf[STEPSTRSIZE];
 
@@ -148,26 +147,26 @@ void DumpStrategyText::pr_rvecs(const char* title, const rvec vec[], int n)
 //     // fprintf(fp, "%-30s = %s\n", title, gmx_step_str(i, buf));
 // }
 
-// void DumpStrategyText::pr_real(const char* title, real r)
+// void DumpJsonStrategy::pr_real(const char* title, real r)
 // {
 //     // pr_indent(fp, indent);
 //     // fprintf(fp, "%-30s = %g\n", title, r);
 // }
 
-// void DumpStrategyText::pr_double(const char* title, double d)
+// void DumpJsonStrategy::pr_double(const char* title, double d)
 // {
 //     // pr_indent(fp, indent);
 //     // fprintf(fp, "%-30s = %g\n", title, d);
 // }
 
-// void DumpStrategyText::pr_str(const char* title, const char* s)
+// void DumpJsonStrategy::pr_str(const char* title, const char* s)
 // {
 //     // pr_indent(fp, indent);
 //     // fprintf(fp, "%-30s = %s\n", title, s);
 //     componentsStack.top()->addFormattedTextLeaf("%-30s = %s\n", title, s);
 // }
 
-// void DumpStrategyText::pr_strings(const char* title, const char* const* const* nm, int n, gmx_bool bShowNumbers)
+// void DumpJsonStrategy::pr_strings(const char* title, const char* const* const* nm, int n, gmx_bool bShowNumbers)
 // {
 //     // if (available(fp, nm, indent, title))
 //     // {
@@ -179,3 +178,4 @@ void DumpStrategyText::pr_rvecs(const char* title, const rvec vec[], int n)
 //     //     }
 //     // }
 // }
+

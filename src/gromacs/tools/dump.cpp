@@ -79,6 +79,7 @@
 #include "gromacs/utility/txtdump.h"
 
 #include "gromacs/tools/dump_builder_tpr.h"
+#include "gromacs/tools/dump_json_strategy.h"
 #include "gromacs/tools/dump_strategy_text.h"
 
 namespace gmx
@@ -114,9 +115,16 @@ void list_tpr(const char* fn,
                                                 mdpfn,
                                                 bSysTop,
                                                 bOriginalInputrec);
+    DumpStrategy* strategy = nullptr;
     if (outputFormat_ == OutputFormat::PlainText) {
-        // dumpBuilder.build(nullptr, stdout);
-        // dumpBuilder.build(new DumpStrategyText(), stdout);
+        strategy = new DumpStrategyText(stdout);
+    } else if (outputFormat_ == OutputFormat::Json) {
+        strategy = new DumpJsonStrategy(stdout);
+    }
+
+    if (strategy != nullptr) {
+        dumpBuilder.build(strategy);
+        delete strategy;
     }
 }
 

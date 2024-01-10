@@ -1,20 +1,31 @@
-#ifndef GMX_TOOLS_DUMP_STRATEGY_TEXT_H
-#define GMX_TOOLS_DUMP_STRATEGY_TEXT_H
+#ifndef GMX_TOOLS_DUMP_STRATEGY_JSON_H
+#define GMX_TOOLS_DUMP_STRATEGY_JSON_H
 
 #include <stack>
 
 #include "gromacs/utility/basedefinitions.h"
 #include "gromacs/utility/real.h"
 #include "gromacs/tools/dump_strategy.h"
-#include "gromacs/tools/dump_text_components.h"
+#include "gromacs/tools/dump_json_components.h"
 
-class DumpStrategyText : public DumpStrategy {
+class DumpJsonStrategy : public DumpStrategy {
 private:
-    std::stack<TextDumpComponent*> componentsStack;
+    std::stack<JsonDumpComponent*> componentsStack;
 public:
-    DumpStrategyText(FILE* fp) {
-        TextDumpComponent* root = new TextRootComponent(fp);
+    DumpJsonStrategy(FILE* fp) {
+        JsonDumpComponent* root = new JsonRootComponent(fp);
         componentsStack.push(root);
+    }
+
+    ~DumpJsonStrategy() {
+        while (componentsStack.size() > 1) {
+            componentsStack.pop();
+        }
+        if (!componentsStack.empty()) {
+            JsonDumpComponent* comp = componentsStack.top();
+            componentsStack.pop();
+            delete comp;
+        }
     }
 
     bool available(const void* p, const char* title) override;

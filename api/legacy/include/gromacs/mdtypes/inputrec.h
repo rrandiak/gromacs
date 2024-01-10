@@ -41,8 +41,12 @@
 
 #include "gromacs/math/vectypes.h"
 #include "gromacs/mdtypes/md_enums.h"
+#include "gromacs/utility/basedefinitions.h"
 #include "gromacs/utility/enumerationhelpers.h"
 #include "gromacs/utility/real.h"
+
+#include "gromacs/utility/strconvert.h"
+#include "gromacs/tools/dump_builder.h"
 
 #define EGP_EXCL (1 << 0)
 #define EGP_TABLE (1 << 1)
@@ -747,5 +751,29 @@ bool fepLambdasChangeAtSameRate(
 
 //! Return whether the box is continuously deformed
 bool ir_haveBoxDeformation(const t_inputrec& ir);
+
+class DumpBuilderInputRec : public DumpBuilder {
+private:
+    const t_inputrec* ir;
+    gmx_bool bMDPformat;
+
+public:
+    DumpBuilderInputRec(const t_inputrec* ir,
+                        gmx_bool bMDPformat)
+        : ir(ir),
+          bMDPformat(bMDPformat) {}
+    
+    void build(DumpStrategy* strategy) override;
+};
+
+class DumpBuilderMts : public DumpBuilder {
+private:
+    const bool useMts;
+
+public:
+    DumpBuilderMts(const bool useMts) : useMts(useMts) {}
+    
+    void build(DumpStrategy* strategy) override;
+};
 
 #endif /* GMX_MDTYPES_INPUTREC_H */
