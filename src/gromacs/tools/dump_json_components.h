@@ -46,6 +46,7 @@ public:
     }
 
     virtual ~JsonObjectComponent() {
+        cleanLastChild();
         fprintf(fp, "\n%*s}", indent, "");
     }
 };
@@ -58,6 +59,7 @@ public:
     }
 
     virtual ~JsonArrayComponent() {
+        cleanLastChild();
         fprintf(fp, "\n%*s]", indent, "");
     }
 };
@@ -70,6 +72,7 @@ public:
     }
 
     virtual ~JsonRootComponent() {
+        cleanLastChild();
         fprintf(fp, "\n}\n");
     }
 };

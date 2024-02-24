@@ -1904,6 +1904,7 @@ void DumpBuilderPull::pr_pull_group(DumpStrategy* strategy, int g, const t_pull_
     // strategy->pr_ivec_block(fp, indent, "atom", pgrp->ind.data(), pgrp->ind.size(), TRUE);
     strategy->pr_rvec("weight", pgrp->weight.data(), pgrp->weight.size(), TRUE);
     strategy->pr_named_value("pbcatom", pgrp->pbcatom);
+    strategy->close_section();
 }
 
 void DumpBuilderPull::pr_pull_coord(DumpStrategy* strategy, int c, const t_pull_coord* pcrd)
@@ -1929,6 +1930,7 @@ void DumpBuilderPull::pr_pull_coord(DumpStrategy* strategy, int c, const t_pull_
     strategy->pr_named_value("rate", pcrd->rate);
     strategy->pr_named_value("k", pcrd->k);
     strategy->pr_named_value("kB", pcrd->kB);
+    strategy->close_section();
 }
 
 void DumpBuilderPull::build(DumpStrategy* strategy)
@@ -1968,6 +1970,7 @@ void DumpBuilderAwh::pr_awh_bias_dim(DumpStrategy* strategy, const gmx::AwhDimPa
     strategy->pr_named_value("force-constant", awhDimParams.forceConstant());
     strategy->pr_named_value("diffusion", awhDimParams.diffusion());
     strategy->pr_named_value("cover-diameter", awhDimParams.coverDiameter());
+    strategy->close_section();
 }
 
 void DumpBuilderAwh::pr_awh_bias(DumpStrategy* strategy, const gmx::AwhBiasParams& awhBiasParams, const char* prefix)
@@ -2046,6 +2049,7 @@ void DumpBuilderRot::pr_rotgrp(DumpStrategy* strategy, int g, const t_rotgrp* ro
     strategy->pr_named_value("rot-fit-method", enumValueToString(rotg->eFittype));
     strategy->pr_named_value("rot-potfit-nstep", rotg->PotAngle_nstep);
     strategy->pr_named_value("rot-potfit-step", rotg->PotAngle_step);
+    strategy->close_section();
 }
 
 void DumpBuilderRot::build(DumpStrategy* strategy)
@@ -2351,6 +2355,8 @@ void DumpBuilderQmOpts::build(DumpStrategy* strategy) {
         // writer.wrapperSettings().setIndent(indent);
         // gmx::dumpKeyValueTree(&writer, *ir->params);
     }
+
+    strategy->close_section();
 }
 
 void DumpBuilderGrpOpts::build(DumpStrategy* strategy) {
@@ -2467,6 +2473,10 @@ void DumpBuilderGrpOpts::build(DumpStrategy* strategy) {
     strategy->pr_ivec("energygrp-flags", opts->egp_flags, opts->ngener, bMDPformat);
 
     // fflush(out);
+    if (!bMDPformat)
+    {
+        strategy->close_section();
+    }
 }
 
 void DumpBuilderInputRec::build(DumpStrategy* strategy) {
@@ -2598,5 +2608,7 @@ void DumpBuilderInputRec::build(DumpStrategy* strategy) {
         DumpBuilderQmOpts(ir, bMDPformat).build(strategy);
 
         DumpBuilderGrpOpts(&(ir->opts), bMDPformat).build(strategy);
+    
+        strategy->close_section();
     }
 }

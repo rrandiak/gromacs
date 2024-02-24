@@ -50,6 +50,11 @@ void DumpJsonStrategy::pr_title_nxn(const char* title, int n1, int n2) {
     componentsStack.push(comp);
 }
 
+void DumpJsonStrategy::close_section() {
+    // delete componentsStack.top();
+    componentsStack.pop();
+}
+
 void DumpJsonStrategy::pr_named_value(const char* name, const Value& value) {
     componentsStack.top()->addJsonLeaf(name, value);
 }

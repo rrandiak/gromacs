@@ -29,12 +29,11 @@ void DumpBuilderTpr::build(DumpStrategy* strategy) {
         if (strategy->available(&tpx, fileName)) {
             strategy->pr_filename(fileName);
 
-            DumpBuilderInputRec inputrec = DumpBuilderInputRec(tpx.bIr ? &ir : nullptr, FALSE);
-            inputrec.build(strategy);
+            DumpBuilderInputRec(tpx.bIr ? &ir : nullptr, FALSE).build(strategy);
 
-            fprintf(stdout, "\n\n-----\n");
-            pr_title(stdout, indent, fileName);
-            pr_inputrec(stdout, 0, "inputrec", tpx.bIr ? &ir : nullptr, FALSE);
+            // fprintf(stdout, "\n\n-----\n");
+            // pr_title(stdout, indent, fileName);
+            // pr_inputrec(stdout, 0, "inputrec", tpx.bIr ? &ir : nullptr, FALSE);
         }
     }
 }

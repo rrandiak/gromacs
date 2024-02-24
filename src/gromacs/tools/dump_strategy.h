@@ -35,6 +35,8 @@ public:
     //! Prints a title for a dumped section with 2D dimension suffixed (in NxM format).
     virtual void pr_title_nxn(const char* title, int n1, int n2) = 0;
 
+    virtual void close_section() = 0;
+
     //! Prints a named value.
     virtual void pr_named_value(const char* name, const Value& value) = 0;
 

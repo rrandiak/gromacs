@@ -33,6 +33,10 @@ void DumpStrategyText::pr_title_nxn(const char* title, int n1, int n2) {
     componentsStack.push(comp);
 }
 
+void DumpStrategyText::close_section() {
+    componentsStack.pop();
+}
+
 void DumpStrategyText::pr_named_value(const char* name, const Value& value) {
     componentsStack.top()->addTextLeaf(name, value);
 }
