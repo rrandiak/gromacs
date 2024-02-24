@@ -16,6 +16,10 @@ void DumpStrategyText::pr_title(const char* title) {
     componentsStack.push(comp);
 }
 
+void DumpStrategyText::pr_title_i(const char* title, int i) {
+    // fprintf(fp, "%s (%d):\n", title, n);
+}
+
 void DumpStrategyText::pr_title_n(const char* title, int n) {
     // fprintf(fp, "%s (%d):\n", title, n);
 }
@@ -49,6 +53,9 @@ void DumpStrategyText::pr_matrix(const char* title, const rvec* m, gmx_bool bMDP
     }
 }
 
+void DumpStrategyText::pr_rvec(const char* title, const rvec vec, int n, gmx_bool bShowNumbers) {
+}
+
 void DumpStrategyText::pr_rvecs(const char* title, const rvec vec[], int n)
 {
     const char* fshort = "%12.5e";
@@ -79,6 +86,17 @@ void DumpStrategyText::pr_rvecs(const char* title, const rvec vec[], int n)
     }
 }
 
+void DumpStrategyText::pr_ivec(const char* title, const int vec[], int n, gmx_bool bShowNumbers)
+{
+}
+    
+void DumpStrategyText::pr_ivecs(const char* title, const ivec vec[], int n)
+{
+}
+
+void DumpStrategyText::pr_ivec_block(const char* title, const int vec[], int n, gmx_bool bShowNumbers)
+{
+}
 
 // void DumpStrategyText::pr_reals(const char* title, const real* vec, int n)
 // {

@@ -10,7 +10,8 @@
 
 #define DIM 3
 
-using Value = std::variant<std::string, int, int64_t, double, real>;
+using Value = std::variant<std::string, int, int64_t, long unsigned int, double, real>;
+using vec = Value[DIM];
 
 class DumpStrategy {
 public:
@@ -25,10 +26,13 @@ public:
     //! Prints a title for a dumped section.
     virtual void pr_title(const char* title) = 0;
 
-    //! Prints a title for a dumped section with a number suffixed.
+    //! Prints a title for a dumped section with a index suffixed.
+    virtual void pr_title_i(const char* title, int i) = 0;
+
+    //! Prints a title for a dumped section with a dimension suffixed.
     virtual void pr_title_n(const char* title, int n) = 0;
 
-    //! Prints a title for a dumped section with two numbers suffixed (in NxM format).
+    //! Prints a title for a dumped section with 2D dimension suffixed (in NxM format).
     virtual void pr_title_nxn(const char* title, int n1, int n2) = 0;
 
     //! Prints a named value.
@@ -36,7 +40,15 @@ public:
 
     virtual void pr_matrix(const char* title, const rvec* m, gmx_bool bMDPformat) = 0;
 
+    virtual void pr_rvec(const char* title, const rvec vec, int n, gmx_bool bShowNumbers) = 0;
+
     virtual void pr_rvecs(const char* title, const rvec vec[], int n) = 0;
+
+    virtual void pr_ivec(const char* title, const int vec[], int n, gmx_bool bShowNumbers) = 0;
+    
+    virtual void pr_ivecs(const char* title, const ivec vec[], int n) = 0;
+
+    virtual void pr_ivec_block(const char* title, const int vec[], int n, gmx_bool bShowNumbers) = 0;
 
     // //! Prints a string value.
     // virtual void pr_str(const char* title, const char* s) = 0;

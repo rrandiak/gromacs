@@ -27,8 +27,8 @@ protected:
 public:
     JsonDumpComponent(FILE* fp, int indent) : DumpComponent(fp, indent) {}
 
-    ~JsonDumpComponent() {
-        printf("---cleaning last child %p\n", lastChild);
+    virtual ~JsonDumpComponent() {
+        // printf("---cleaning last child %p\n", lastChild);
         cleanLastChild();
     }
 
@@ -45,8 +45,7 @@ public:
         fprintf(fp, "\n%*s\"%s\": {", indent, "", name.c_str());
     }
 
-    ~JsonObjectComponent() {
-        cleanLastChild();
+    virtual ~JsonObjectComponent() {
         fprintf(fp, "\n%*s}", indent, "");
     }
 };
@@ -58,8 +57,7 @@ public:
         fprintf(fp, "\n%*s\"%s\": [", indent, "", name.c_str());
     }
 
-    ~JsonArrayComponent() {
-        cleanLastChild();
+    virtual ~JsonArrayComponent() {
         fprintf(fp, "\n%*s]", indent, "");
     }
 };
@@ -71,8 +69,7 @@ public:
         fprintf(fp, "{");
     }
 
-    ~JsonRootComponent() {
-        cleanLastChild();
+    virtual ~JsonRootComponent() {
         fprintf(fp, "\n}\n");
     }
 };

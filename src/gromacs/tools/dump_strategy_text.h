@@ -20,11 +20,16 @@ public:
     bool available(const void* p, const char* title) override;
     void pr_filename(const char* filename) override;
     void pr_title(const char* title) override;
+    void pr_title_i(const char* title, int i) override;
     void pr_title_n(const char* title, int n) override;
     void pr_title_nxn(const char* title, int n1, int n2) override;
     void pr_named_value(const char* name, const Value& value) override;
     void pr_matrix(const char* title, const rvec* m, gmx_bool bMDPformat) override;
+    void pr_rvec(const char* title, const rvec vec, int n, gmx_bool bShowNumbers) override;
     void pr_rvecs(const char* title, const rvec vec[], int n) override;
+    void pr_ivec(const char* title, const int vec[], int n, gmx_bool bShowNumbers) override;
+    void pr_ivecs(const char* title, const ivec vec[], int n) override;
+    void pr_ivec_block(const char* title, const int vec[], int n, gmx_bool bShowNumbers) override;
     // void pr_int(const char* title, int i);
     // void pr_int64(const char* title, int64_t i);
     // void pr_real(const char* title, real r);

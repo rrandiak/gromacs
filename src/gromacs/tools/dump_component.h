@@ -12,7 +12,8 @@ protected:
     FILE* fp;
     int indent = 0;
 public:
-    using Value = std::variant<std::string, int, int64_t, double, real>;
+    using Value = std::variant<std::string, int, int64_t, long unsigned int, double, real>;
+    using vec = Value[];
 
     DumpComponent(FILE* fp, int indent) : fp(fp), indent(indent) {}
 };
