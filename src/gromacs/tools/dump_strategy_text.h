@@ -24,6 +24,7 @@ public:
     void pr_title_n(const char* title, int n) override;
     void pr_title_nxn(const char* title, int n1, int n2) override;
     void close_section() override;
+    void pr_is_present(const char* title, gmx_bool b) override;
     void pr_named_value(const char* name, const Value& value) override;
     void pr_matrix(const char* title, const rvec* m, gmx_bool bMDPformat) override;
     void pr_rvec(const char* title, const rvec vec, int n, gmx_bool bShowNumbers) override;

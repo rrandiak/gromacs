@@ -55,6 +55,10 @@ void DumpJsonStrategy::close_section() {
     componentsStack.pop();
 }
 
+void DumpJsonStrategy::pr_is_present(const char* title, gmx_bool b) {
+    componentsStack.top()->addJsonLeaf(title, b);
+}
+
 void DumpJsonStrategy::pr_named_value(const char* name, const Value& value) {
     componentsStack.top()->addJsonLeaf(name, value);
 }

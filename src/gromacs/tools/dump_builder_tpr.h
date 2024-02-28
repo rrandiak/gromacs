@@ -44,6 +44,7 @@
 #include "gromacs/tools/dump_strategy.h"
 
 #include "gromacs/mdtypes/inputrec.h"
+#include "gromacs/fileio/tpxio.h"
 
 class DumpBuilderTpr : public DumpBuilder {
 private:

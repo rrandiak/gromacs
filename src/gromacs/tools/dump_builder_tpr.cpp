@@ -30,6 +30,7 @@ void DumpBuilderTpr::build(DumpStrategy* strategy) {
             strategy->pr_filename(fileName);
 
             DumpBuilderInputRec(tpx.bIr ? &ir : nullptr, FALSE).build(strategy);
+            DumpBuilderTpxHeader(&(tpx)).build(strategy);
 
             // fprintf(stdout, "\n\n-----\n");
             // pr_title(stdout, indent, fileName);

@@ -3,6 +3,7 @@
 
 #include "gromacs/utility/real.h"
 #include "gromacs/utility/iserializer.h"
+#include "gromacs/utility/basedefinitions.h"
 
 #include <cstdio>
 
@@ -10,7 +11,7 @@
 
 #define DIM 3
 
-using Value = std::variant<std::string, int, int64_t, long unsigned int, double, real>;
+using Value = std::variant<std::string, int, int64_t, long unsigned int, double, real, gmx_bool>;
 using vec = Value[DIM];
 
 class DumpStrategy {
@@ -36,6 +37,8 @@ public:
     virtual void pr_title_nxn(const char* title, int n1, int n2) = 0;
 
     virtual void close_section() = 0;
+
+    virtual void pr_is_present(const char* title, gmx_bool b) = 0;
 
     //! Prints a named value.
     virtual void pr_named_value(const char* name, const Value& value) = 0;

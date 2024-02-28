@@ -7,6 +7,7 @@
 #include <variant>
 
 #include "gromacs/tools/dump_component.h"
+#include "gromacs/tools/dump_value_component.h"
 
 #define INDENT 2
     
@@ -17,19 +18,23 @@ class JsonDumpComponent : public DumpComponent {
 private:
     bool isEmpty = true;
     JsonDumpComponent* lastChild = nullptr;
+    DumpValueComponent* valueComponent = nullptr;
 
-    void printSeparator();
     void printValue(const Value& value);
+    void printSeparator();
 
 protected:
     void cleanLastChild();
 
 public:
-    JsonDumpComponent(FILE* fp, int indent) : DumpComponent(fp, indent) {}
+    JsonDumpComponent(FILE* fp, int indent) : DumpComponent(fp, indent) {
+        valueComponent = new DumpValueComponent(fp);
+    }
 
     virtual ~JsonDumpComponent() {
         // printf("---cleaning last child %p\n", lastChild);
         cleanLastChild();
+        delete valueComponent;
     }
 
     JsonObjectComponent* addJsonObject(const std::string& name);

@@ -9,12 +9,10 @@ void JsonDumpComponent::printSeparator() {
 }
 
 void JsonDumpComponent::printValue(const Value& value) {
-    if (std::holds_alternative<int>(value)) {
-        fprintf(fp, "%d", std::get<int>(value));
-    } else if (std::holds_alternative<double>(value)) {
-        fprintf(fp, "%f", std::get<double>(value));
-    } else if (std::holds_alternative<std::string>(value)) {
+    if (std::holds_alternative<std::string>(value)) {
         fprintf(fp, "\"%s\"", std::get<std::string>(value).c_str());
+    } else {
+        valueComponent->printValue(value);
     }
 }
 

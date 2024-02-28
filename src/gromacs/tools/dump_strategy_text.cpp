@@ -36,6 +36,10 @@ void DumpStrategyText::pr_title_nxn(const char* title, int n1, int n2) {
 void DumpStrategyText::close_section() {
     componentsStack.pop();
 }
+    
+void DumpStrategyText::pr_is_present(const char* title, gmx_bool b) {
+    componentsStack.top()->addTextLeaf(title, b ? "present" : "not present");
+}
 
 void DumpStrategyText::pr_named_value(const char* name, const Value& value) {
     componentsStack.top()->addTextLeaf(name, value);
