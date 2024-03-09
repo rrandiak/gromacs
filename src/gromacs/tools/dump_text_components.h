@@ -1,14 +1,17 @@
 #ifndef GMX_TOOLS_DUMP_TEXT_COMPONENTS_H
 #define GMX_TOOLS_DUMP_TEXT_COMPONENTS_H
 
-#define INDENT 3
+#define TEXT_INDENT 3
 
 #include <cstdio>
 #include <cstdarg>
 #include <string>
+#include <vector>
 
 #include "gromacs/utility/cstringutil.h"
 #include "gromacs/tools/dump_component.h"
+#include "gromacs/utility/enumerationhelpers.h"
+#include "gromacs/topology/topology_enums.h"
 
 class TextObjectComponent;
 class TextArrayComponent;
@@ -28,6 +31,7 @@ public:
     void addTextLeaf(const Value& value);
     void addTextVectorLeaf(const float values[3], int size);
     void addFormattedTextLeaf(const char* format, ...);
+    void addGroupStats(gmx::EnumerationArray<SimulationAtomGroupType, std::vector<int>>* gcount);
 };
 
 class TextObjectComponent : public TextDumpComponent {

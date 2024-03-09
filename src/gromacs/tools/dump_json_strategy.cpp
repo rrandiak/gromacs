@@ -161,6 +161,10 @@ void DumpJsonStrategy::pr_ivec_block(const char* title, const int vec[], int n, 
 {
 }
 
+void DumpJsonStrategy::pr_group_stats(gmx::EnumerationArray<SimulationAtomGroupType, std::vector<int>>* gcount)
+{
+}
+
 // void DumpJsonStrategy::pr_reals(const char* title, const real* vec, int n)
 // {
 //     // if (available(fp, vec, indent, title))

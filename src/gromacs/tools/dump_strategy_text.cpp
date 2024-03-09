@@ -29,7 +29,8 @@ void DumpStrategyText::pr_title_nxn(const char* title, int n1, int n2) {
     std::string formattedString(bufferSize, '\0');
     snprintf(&formattedString[0], bufferSize, "%s (%dx%d)", title, n1, n2);
 
-    TextDumpComponent* comp = componentsStack.top()->addTextObject(formattedString.c_str());
+    fprintf(stderr, "%s: %d\n", title, componentsStack.top()->getIndent());
+    TextDumpComponent* comp = componentsStack.top()->addTextSection(formattedString.c_str());
     componentsStack.push(comp);
 }
 
@@ -104,6 +105,11 @@ void DumpStrategyText::pr_ivecs(const char* title, const ivec vec[], int n)
 
 void DumpStrategyText::pr_ivec_block(const char* title, const int vec[], int n, gmx_bool bShowNumbers)
 {
+}
+
+void DumpStrategyText::pr_group_stats(gmx::EnumerationArray<SimulationAtomGroupType, std::vector<int>>* gcount)
+{
+    componentsStack.top()->addGroupStats(gcount);
 }
 
 // void DumpStrategyText::pr_reals(const char* title, const real* vec, int n)

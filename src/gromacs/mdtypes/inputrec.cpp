@@ -2492,7 +2492,7 @@ void DumpBuilderInputRec::build(DumpStrategy* strategy) {
          * the same user-exposed names to facilitate debugging.
          */
         strategy->pr_named_value("integrator", enumValueToString(ir->eI));
-        strategy->pr_named_value("tinit", ir->init_t);
+        strategy->pr_named_value("tinit", (real) (ir->init_t));
         strategy->pr_named_value("dt", ir->delta_t);
         strategy->pr_named_value("nsteps", ir->nsteps);
         strategy->pr_named_value("init-step", ir->init_step);

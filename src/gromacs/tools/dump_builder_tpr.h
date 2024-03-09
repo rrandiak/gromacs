@@ -72,4 +72,15 @@ public:
     void build(DumpStrategy* strategy) override;
 };
 
+class DumpBuilderGroupStats : public DumpBuilder {
+private:
+    const SimulationGroups* groups;
+    const int natoms;
+
+public:
+    DumpBuilderGroupStats(const SimulationGroups* groups, const int natoms) : groups(groups), natoms(natoms) {}
+
+    void build(DumpStrategy* strategy) override;
+};
+
 #endif

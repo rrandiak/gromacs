@@ -17,6 +17,11 @@ public:
     using vec = Value[];
 
     DumpComponent(FILE* fp, int indent) : fp(fp), indent(indent) {}
+
+    int getIndent() const
+    {
+        return indent;
+    }
 };
 
 #endif

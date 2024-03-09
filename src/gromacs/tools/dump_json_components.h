@@ -9,7 +9,7 @@
 #include "gromacs/tools/dump_component.h"
 #include "gromacs/tools/dump_value_component.h"
 
-#define INDENT 2
+#define JSON_INDENT 2
     
 class JsonObjectComponent;
 class JsonArrayComponent;

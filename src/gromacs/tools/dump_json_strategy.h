@@ -47,6 +47,7 @@ public:
     void pr_ivec(const char* title, const int vec[], int n, gmx_bool bShowNumbers) override;
     void pr_ivecs(const char* title, const ivec vec[], int n) override;
     void pr_ivec_block(const char* title, const int vec[], int n, gmx_bool bShowNumbers) override;
+    void pr_group_stats(gmx::EnumerationArray<SimulationAtomGroupType, std::vector<int>>* gcount) override;
     // void pr_int(const char* title, int i);
     // void pr_int64(const char* title, int64_t i);
     // void pr_real(const char* title, real r);

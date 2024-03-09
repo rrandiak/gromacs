@@ -26,7 +26,7 @@ void JsonDumpComponent::cleanLastChild() {
 JsonObjectComponent* JsonDumpComponent::addJsonObject(const std::string& name) {
     cleanLastChild();
     printSeparator();
-    JsonObjectComponent* jsonObject = new JsonObjectComponent(fp, indent + INDENT, name);
+    JsonObjectComponent* jsonObject = new JsonObjectComponent(fp, indent + JSON_INDENT, name);
     lastChild = jsonObject;
     return jsonObject;
 }
@@ -34,7 +34,7 @@ JsonObjectComponent* JsonDumpComponent::addJsonObject(const std::string& name) {
 JsonArrayComponent* JsonDumpComponent::addJsonArray(const std::string& name) {
     cleanLastChild();
     printSeparator();
-    JsonArrayComponent* jsonArray = new JsonArrayComponent(fp, indent + INDENT, name);
+    JsonArrayComponent* jsonArray = new JsonArrayComponent(fp, indent + JSON_INDENT, name);
     lastChild = jsonArray;
     return jsonArray;
 }
@@ -42,13 +42,13 @@ JsonArrayComponent* JsonDumpComponent::addJsonArray(const std::string& name) {
 void JsonDumpComponent::addJsonLeaf(const std::string& key, const Value& value) {
     cleanLastChild();
     printSeparator();
-    fprintf(fp, "\n%*s\"%s\": ", indent + INDENT, "", key.c_str());
+    fprintf(fp, "\n%*s\"%s\": ", indent + JSON_INDENT, "", key.c_str());
     printValue(value);
 }
 
 void JsonDumpComponent::addJsonLeaf(const Value& value) {
     cleanLastChild();
     printSeparator();
-    fprintf(fp, "\n%*s", indent + INDENT, "");
+    fprintf(fp, "\n%*s", indent + JSON_INDENT, "");
     printValue(value);
 }

@@ -4,8 +4,11 @@
 #include "gromacs/utility/real.h"
 #include "gromacs/utility/iserializer.h"
 #include "gromacs/utility/basedefinitions.h"
+#include "gromacs/utility/enumerationhelpers.h"
+#include "gromacs/topology/topology_enums.h"
 
 #include <cstdio>
+#include <vector>
 
 #include "gromacs/tools/dump_component.h"
 
@@ -54,6 +57,8 @@ public:
     virtual void pr_ivecs(const char* title, const ivec vec[], int n) = 0;
 
     virtual void pr_ivec_block(const char* title, const int vec[], int n, gmx_bool bShowNumbers) = 0;
+
+    virtual void pr_group_stats(gmx::EnumerationArray<SimulationAtomGroupType, std::vector<int>>* gcount) = 0;
 
     // //! Prints a string value.
     // virtual void pr_str(const char* title, const char* s) = 0;
