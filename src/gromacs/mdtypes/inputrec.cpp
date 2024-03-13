@@ -2351,7 +2351,8 @@ void DumpBuilderQmOpts::build(DumpStrategy* strategy) {
 
     if (!bMDPformat)
     {
-        DumpBuilderKVTree(*ir->params).build(strategy);
+        // DumpBuilderKVTree(*ir->params).build(strategy);
+        strategy->pr_kvtree(*ir->params);
     }
 
     strategy->close_section();
@@ -2373,7 +2374,7 @@ void DumpBuilderGrpOpts::build(DumpStrategy* strategy) {
     //     fprintf(out, "  %10g", opts->nrdf[i]);
     // }
     // fprintf(out, "\n");
-    strategy->pr_rvec("nrdf", opts->nrdf, opts->ngtc, bMDPformat);
+    strategy->pr_rvec_row("nrdf", opts->nrdf, opts->ngtc, bMDPformat);
 
     // pr_indent(out, indent);
     // fprintf(out, "ref-t%s", bMDPformat ? " = " : ":");
@@ -2382,7 +2383,7 @@ void DumpBuilderGrpOpts::build(DumpStrategy* strategy) {
     //     fprintf(out, "  %10g", opts->ref_t[i]);
     // }
     // fprintf(out, "\n");
-    strategy->pr_rvec("ref-t", opts->ref_t, opts->ngtc, bMDPformat);
+    strategy->pr_rvec_row("ref-t", opts->ref_t, opts->ngtc, bMDPformat);
 
     // pr_indent(out, indent);
     // fprintf(out, "tau-t%s", bMDPformat ? " = " : ":");
@@ -2391,7 +2392,12 @@ void DumpBuilderGrpOpts::build(DumpStrategy* strategy) {
     //     fprintf(out, "  %10g", opts->tau_t[i]);
     // }
     // fprintf(out, "\n");
-    strategy->pr_rvec("tau-t", opts->tau_t, opts->ngtc, bMDPformat);
+    strategy->pr_rvec_row("tau-t", opts->tau_t, opts->ngtc, bMDPformat);
+    
+    if (!bMDPformat)
+    {
+        strategy->close_section();
+    }
 
     /* Pretty-print the simulated annealing info */
     // fprintf(out, "annealing%s", bMDPformat ? " = " : ":");
@@ -2400,7 +2406,7 @@ void DumpBuilderGrpOpts::build(DumpStrategy* strategy) {
     //     fprintf(out, "  %10s", enumValueToString(opts->annealing[i]));
     // }
     // fprintf(out, "\n");
-    // strategy->pr_vec("annealing", opts->annealing, opts->ngtc, bMDPformat);
+    strategy->pr_sim_annealing("annealing", opts->annealing, opts->ngtc, bMDPformat);
 
     // fprintf(out, "annealing-npoints%s", bMDPformat ? " = " : ":");
     // for (i = 0; (i < opts->ngtc); i++)
@@ -2408,7 +2414,7 @@ void DumpBuilderGrpOpts::build(DumpStrategy* strategy) {
     //     fprintf(out, "  %10d", opts->anneal_npoints[i]);
     // }
     // fprintf(out, "\n");
-    strategy->pr_ivec("annealing-npoints", opts->anneal_npoints, opts->ngtc, bMDPformat);
+    strategy->pr_ivec_row("annealing-npoints", opts->anneal_npoints, opts->ngtc, bMDPformat);
 
     for (i = 0; (i < opts->ngtc); i++)
     {
@@ -2421,7 +2427,7 @@ void DumpBuilderGrpOpts::build(DumpStrategy* strategy) {
             // }
             // fprintf(out, "\n");
             // strategy->pr_title_i("annealing-time", i);
-            strategy->pr_rvec("annealing-time", opts->anneal_time[i], opts->anneal_npoints[i], bMDPformat);
+            strategy->pr_rvec_row("annealing-time", opts->anneal_time[i], opts->anneal_npoints[i], bMDPformat);
             // fprintf(out, "annealing-temp [%d]:\t", i);
             // for (j = 0; (j < opts->anneal_npoints[i]); j++)
             // {
@@ -2429,7 +2435,7 @@ void DumpBuilderGrpOpts::build(DumpStrategy* strategy) {
             // }
             // fprintf(out, "\n");
             // strategy->pr_title_i("annealing-temp", i);
-            strategy->pr_rvec("annealing-temp", opts->anneal_temp[i], opts->anneal_npoints[i], bMDPformat);
+            strategy->pr_rvec_row("annealing-temp", opts->anneal_temp[i], opts->anneal_npoints[i], bMDPformat);
         }
     }
 
@@ -2471,10 +2477,6 @@ void DumpBuilderGrpOpts::build(DumpStrategy* strategy) {
     strategy->pr_ivec("energygrp-flags", opts->egp_flags, opts->ngener, bMDPformat);
 
     // fflush(out);
-    if (!bMDPformat)
-    {
-        strategy->close_section();
-    }
 }
 
 void DumpBuilderInputRec::build(DumpStrategy* strategy) {

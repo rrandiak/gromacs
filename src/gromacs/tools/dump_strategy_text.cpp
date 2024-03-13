@@ -1,5 +1,13 @@
 #include "gromacs/tools/dump_strategy_text.h"
 
+int DumpComponent::indentValue = 3;
+
+DumpStrategyText::DumpStrategyText(FILE* fp)
+{
+    TextDumpComponent* root = new TextRootComponent(fp);
+    componentsStack.push(root);
+}
+
 bool DumpStrategyText::available(const void* p, const char* title) {
     if (!p) {
         componentsStack.top()->addTextLeaf(title, "not available");
@@ -8,7 +16,7 @@ bool DumpStrategyText::available(const void* p, const char* title) {
 }
 
 void DumpStrategyText::pr_filename(const char* filename) {
-    // componentsStack.top()->addTextSection(filename);
+    componentsStack.top()->printFilename(filename);
 }
 
 void DumpStrategyText::pr_title(const char* title) {
@@ -43,7 +51,7 @@ void DumpStrategyText::close_section() {
 }
     
 void DumpStrategyText::pr_is_present(const char* title, gmx_bool b) {
-    componentsStack.top()->addTextLeaf(title, b ? "present" : "not present");
+    componentsStack.top()->addAlignedTextLeaf(title, b ? "present" : "not present", 6);
 }
 
 void DumpStrategyText::pr_named_value(const char* name, const Value& value) {
@@ -70,6 +78,26 @@ void DumpStrategyText::pr_matrix(const char* title, const rvec* m, gmx_bool bMDP
     }
 }
 
+void DumpStrategyText::pr_sim_annealing(const char* title, const SimulatedAnnealing sa[], int n, gmx_bool bMDPformat)
+{
+    // fprintf(out, "annealing%s", bMDPformat ? " = " : ":");
+    // for (i = 0; (i < opts->ngtc); i++)
+    // {
+    //     fprintf(out, "  %10s", enumValueToString(opts->annealing[i]));
+    // }
+    // fprintf(out, "\n");
+    TextDumpComponent* comp = componentsStack.top();
+    comp->addFormattedTextLeaf("%s%s", title, bMDPformat ? " = " : ":");
+    for (int i = 0; i < n; i++)
+    {
+        comp->printFormattedText("  %10s", enumValueToString(sa[i]));
+    }
+}
+
+void DumpStrategyText::pr_vec_row(const char* title, const Value vec[], int n, gmx_bool bShowNumbers)
+{
+}
+
 void DumpStrategyText::pr_rvec(const char* title, const real vec[], int n, gmx_bool bShowNumbers) {
     if (available(vec, title))
     {
@@ -80,6 +108,18 @@ void DumpStrategyText::pr_rvec(const char* title, const real vec[], int n, gmx_b
             comp->addFormattedTextLeaf("%s[%d]=%12.5e", title, i, vec[i]);
         }
         close_section();
+    }
+}
+
+void DumpStrategyText::pr_rvec_row(const char* title, const real vec[], int n, gmx_bool bMDPformat) {
+    if (available(vec, title))
+    {
+        TextDumpComponent* comp = componentsStack.top();
+        comp->addFormattedTextLeaf("%s%s", title, bMDPformat ? " = " : ":");
+        for (int i = 0; i < n; i++)
+        {
+            comp->printFormattedText("  %10g", vec[i]);
+        }
     }
 }
 
@@ -115,14 +155,17 @@ void DumpStrategyText::pr_rvecs(const char* title, const rvec vec[], int n)
 
 void DumpStrategyText::pr_ivec_row(const char* title, const int vec[], int n, gmx_bool bMDPformat)
 {
-    if (available(vec, title))
+    // fprintf(out, "annealing-npoints%s", bMDPformat ? " = " : ":");
+    // for (i = 0; (i < opts->ngtc); i++)
+    // {
+    //     fprintf(out, "  %10d", opts->anneal_npoints[i]);
+    // }
+    // fprintf(out, "\n");
+    TextDumpComponent* comp = componentsStack.top();
+    comp->addFormattedTextLeaf("%s%s", title, bMDPformat ? " = " : ":");
+    for (int i = 0; i < n; i++)
     {
-        componentsStack.top()->addFormattedTextLeaf("annealing-npoints%s", bMDPformat ? " = " : ":");
-        for (int i = 0; i < n; i++)
-        {
-            componentsStack.top()->addFormattedTextLeaf("  %10d", vec[i]);
-        }
-        componentsStack.top()->addFormattedTextLeaf("\n");
+        comp->printFormattedText("  %10d", vec[i]);
     }
 }
 
@@ -136,6 +179,58 @@ void DumpStrategyText::pr_ivecs(const char* title, const ivec vec[], int n)
 
 void DumpStrategyText::pr_ivec_block(const char* title, const int vec[], int n, gmx_bool bShowNumbers)
 {
+}
+
+void DumpStrategyText::pr_kvtree(const gmx::KeyValueTreeObject kvTree)
+{
+    for (const auto& prop : kvTree.properties())
+    {
+        const auto& value = prop.value();
+        if (value.isObject())
+        {
+            DumpComponent::setIndent(2);
+            pr_title(prop.key().c_str());
+            pr_kvtree(value.asObject());
+            close_section();
+            DumpComponent::setIndent(3);
+        }
+        else if (value.isArray()
+                 && std::all_of(value.asArray().values().begin(),
+                                value.asArray().values().end(),
+                                [](const auto& elem) { return elem.isObject(); }))
+        {
+            DumpComponent::setIndent(2);
+            pr_title(prop.key().c_str());
+            for (const auto& elem : value.asArray().values())
+            {
+                pr_kvtree(elem.asObject());
+            }
+            close_section();
+            DumpComponent::setIndent(3);
+        } else {
+            if (value.isArray())
+            {
+                // TODO: implement
+                // writer->writeString("[");
+                // for (const auto& elem : value.asArray().values())
+                // {
+                //     GMX_RELEASE_ASSERT(
+                //             !elem.isObject() && !elem.isArray(),
+                //             "Only arrays of simple types and array of objects are implemented. "
+                //             "Arrays of arrays and mixed arrays are not supported.");
+                //     writer->writeString(" ");
+                //     writer->writeString(simpleValueToString(elem));
+                // }
+                // writer->writeString(" ]");
+            }
+            else
+            {
+                int spacing = 33 - componentsStack.top()->getIndent();
+                componentsStack.top()->addAlignedTextLeaf(prop.key().c_str(), simpleValueToString(value), spacing);
+            }
+
+        }
+    }
 }
 
 // void DumpStrategyText::pr_group_nr()

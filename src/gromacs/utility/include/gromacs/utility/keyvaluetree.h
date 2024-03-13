@@ -73,9 +73,6 @@
 #include "gromacs/utility/any.h"
 #include "gromacs/utility/real.h"
 
-#include "gromacs/tools/dump_builder.h"
-#include "gromacs/tools/dump_strategy.h"
-
 namespace gmx
 {
 
@@ -358,14 +355,5 @@ static inline std::string simpleValueToString(const KeyValueTreeValue& value)
 //! \endcond
 
 } // namespace gmx
-
-class DumpBuilderKVTree : DumpBuilder {
-private:
-    const gmx::KeyValueTreeObject kvTree;
-public:
-    DumpBuilderKVTree(const gmx::KeyValueTreeObject& kvTree) : kvTree(kvTree) {}
-
-    void build(DumpStrategy* strategy) override;
-};
 
 #endif

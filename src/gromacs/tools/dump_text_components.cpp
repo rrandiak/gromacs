@@ -15,7 +15,22 @@ void TextDumpComponent::printValue(const Value& value) {
     }
 }
 
+void TextDumpComponent::printFilename(const std::string& filename)
+{
+    fprintf(fp, "%s:", filename.c_str());
+}
+
+void TextDumpComponent::printFormattedText(const char* format, ...) {
+    va_list args;
+    va_start(args, format);
+    
+    vfprintf(fp, format, args);
+    
+    va_end(args);
+}
+
 TextObjectComponent* TextDumpComponent::addTextSection(const std::string& name) {
+    fprintf(fp, "\n%*s%s:", indent, "", name.c_str());
     return (TextObjectComponent*) this;
 }
 
@@ -45,6 +60,11 @@ void TextDumpComponent::addTextLeaf(const std::string& key, const Value& value) 
 
 void TextDumpComponent::addTextLeaf(const Value& value) {
     fprintf(fp, "\n%*s", indent, "");
+    printValue(value);
+}
+
+void TextDumpComponent::addAlignedTextLeaf(const std::string& key, const Value& value, int align) {
+    fprintf(fp, "\n%*s%-*s = ", indent, "", align, key.c_str());
     printValue(value);
 }
     

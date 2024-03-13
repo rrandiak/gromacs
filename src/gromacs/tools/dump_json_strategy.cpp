@@ -81,6 +81,14 @@ void DumpJsonStrategy::pr_matrix(const char* title, const rvec* m, gmx_bool bMDP
         pr_rvecs(title, m, DIM);
     }
 }
+    
+void DumpJsonStrategy::pr_sim_annealing(const char* title, const SimulatedAnnealing sa[], int n, gmx_bool bMDPformat)
+{
+}
+
+void DumpJsonStrategy::pr_vec_row(const char* title, const Value vec[], int n, gmx_bool bShowNumbers)
+{
+}
 
 void DumpJsonStrategy::pr_rvec(const char* title, const real vec[], int n, gmx_bool bShowNumbers) {
     if (available(vec, title)) {
@@ -94,6 +102,10 @@ void DumpJsonStrategy::pr_rvec(const char* title, const real vec[], int n, gmx_b
         }
         componentsStack.pop();
     }
+}
+
+void DumpJsonStrategy::pr_rvec_row(const char* title, const real vec[], int n, gmx_bool bShowNumbers)
+{
 }
 
 void DumpJsonStrategy::pr_rvecs(const char* title, const rvec vec[], int n) {
@@ -166,6 +178,10 @@ void DumpJsonStrategy::pr_ivecs(const char* title, const ivec vec[], int n)
 }
 
 void DumpJsonStrategy::pr_ivec_block(const char* title, const int vec[], int n, gmx_bool bShowNumbers)
+{
+}
+
+void DumpJsonStrategy::pr_kvtree(const gmx::KeyValueTreeObject kvTree)
 {
 }
 

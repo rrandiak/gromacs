@@ -1,8 +1,6 @@
 #ifndef GMX_TOOLS_DUMP_TEXT_COMPONENTS_H
 #define GMX_TOOLS_DUMP_TEXT_COMPONENTS_H
 
-#define TEXT_INDENT 3
-
 #include <cstdio>
 #include <cstdarg>
 #include <string>
@@ -29,21 +27,23 @@ public:
     virtual TextArrayComponent* addTextArray(const std::string& name);
     void addTextLeaf(const std::string& key, const Value& value);
     void addTextLeaf(const Value& value);
+    void addAlignedTextLeaf(const std::string& key, const Value& value, int align);
     void addTextVectorLeaf(const float values[3], int size);
     void addFormattedTextLeaf(const char* format, ...);
     void addGroupStats(gmx::EnumerationArray<SimulationAtomGroupType, std::vector<int>>* gcount);
     void printFilename(const std::string& filename);
+    void printFormattedText(const char* format, ...);
 };
 
 class TextObjectComponent : public TextDumpComponent {
 public:
     TextObjectComponent(FILE* fp, int indent, const std::string& name)
-            : TextDumpComponent(fp, indent + TEXT_INDENT) {
+            : TextDumpComponent(fp, indent + indentValue) {
         fprintf(fp, "\n%*s%s:", indent, "", name.c_str());
     }
 
     TextObjectComponent(FILE* fp, int indent, const char* format, ...)
-            : TextDumpComponent(fp, indent + TEXT_INDENT) {
+            : TextDumpComponent(fp, indent + indentValue) {
         va_list args;
         va_start(args, format);
 
@@ -58,7 +58,7 @@ public:
 class TextArrayComponent : public TextDumpComponent {
 public:
     TextArrayComponent(FILE* fp, int indent, const std::string& name)
-            : TextDumpComponent(fp, indent + TEXT_INDENT) {
+            : TextDumpComponent(fp, indent + indentValue) {
         fprintf(fp, "\n%*s%s:", indent, "", name.c_str());
     }
 };

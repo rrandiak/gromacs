@@ -43,12 +43,16 @@ public:
     void pr_named_value(const char* name, const Value& value) override;
     void pr_name(const char* name) override;
     void pr_matrix(const char* title, const rvec* m, gmx_bool bMDPformat) override;
+    void pr_sim_annealing(const char* title, const SimulatedAnnealing sa[], int n, gmx_bool bMDPformat) override;
+    void pr_vec_row(const char* title, const Value vec[], int n, gmx_bool bShowNumbers) override;
     void pr_rvec(const char* title, const real vec[], int n, gmx_bool bShowNumbers) override;
+    void pr_rvec_row(const char* title, const real vec[], int n, gmx_bool bShowNumbers) override;
     void pr_rvecs(const char* title, const rvec vec[], int n) override;
     void pr_ivec(const char* title, const int vec[], int n, gmx_bool bShowNumbers) override;
     void pr_ivec_row(const char* title, const int vec[], int n, gmx_bool bShowNumbers) override;
     void pr_ivecs(const char* title, const ivec vec[], int n) override;
     void pr_ivec_block(const char* title, const int vec[], int n, gmx_bool bShowNumbers) override;
+    void pr_kvtree(const gmx::KeyValueTreeObject kvTree) override;
     void pr_grps(gmx::ArrayRef<const AtomGroupIndices> grps, const char* const* const* grpname) override;
     void pr_group_stats(gmx::EnumerationArray<SimulationAtomGroupType, std::vector<int>>* gcount) override;
     // void pr_int(const char* title, int i);

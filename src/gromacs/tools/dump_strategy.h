@@ -6,6 +6,8 @@
 #include "gromacs/utility/basedefinitions.h"
 #include "gromacs/utility/enumerationhelpers.h"
 #include "gromacs/utility/arrayref.h"
+#include "gromacs/utility/keyvaluetree.h"
+#include "gromacs/mdtypes/md_enums.h"
 #include "gromacs/topology/topology_enums.h"
 
 #include <cstdio>
@@ -17,7 +19,7 @@
 
 using Value = std::variant<std::string, int, int64_t, long unsigned int, double, real, gmx_bool>;
 using AtomGroupIndices = std::vector<int>;
-using vec = Value[DIM];
+// using vec = Value[DIM];
 
 class DumpStrategy {
 public:
@@ -52,7 +54,13 @@ public:
 
     virtual void pr_matrix(const char* title, const rvec* m, gmx_bool bMDPformat) = 0;
 
+    virtual void pr_sim_annealing(const char* title, const SimulatedAnnealing sa[], int n, gmx_bool bMDPformat) = 0;
+
+    virtual void pr_vec_row(const char* title, const Value vec[], int n, gmx_bool bMDPformat) = 0;
+
     virtual void pr_rvec(const char* title, const real vec[], int n, gmx_bool bShowNumbers) = 0;
+
+    virtual void pr_rvec_row(const char* title, const real vec[], int n, gmx_bool bShowNumbers) = 0;
 
     virtual void pr_rvecs(const char* title, const rvec vec[], int n) = 0;
 
@@ -65,6 +73,8 @@ public:
     virtual void pr_ivec_block(const char* title, const int vec[], int n, gmx_bool bShowNumbers) = 0;
 
     virtual void pr_grps(gmx::ArrayRef<const AtomGroupIndices> grps, const char* const* const* grpname) = 0;
+
+    virtual void pr_kvtree(const gmx::KeyValueTreeObject kvTree) = 0;
 
     virtual void pr_group_stats(gmx::EnumerationArray<SimulationAtomGroupType, std::vector<int>>* gcount) = 0;
 

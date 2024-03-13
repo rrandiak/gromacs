@@ -10,8 +10,10 @@
 
 class DumpComponent {
 protected:
+    static int indentValue;
     FILE* fp;
     int indent = 0;
+
 public:
     using Value = std::variant<std::string, int, int64_t, long unsigned int, double, real, gmx_bool>;
     using vec = Value[];
@@ -22,6 +24,8 @@ public:
     {
         return indent;
     }
+
+    static void setIndent(int indent) { indentValue = indent; }
 };
 
 #endif
