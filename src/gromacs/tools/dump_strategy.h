@@ -5,6 +5,7 @@
 #include "gromacs/utility/iserializer.h"
 #include "gromacs/utility/basedefinitions.h"
 #include "gromacs/utility/enumerationhelpers.h"
+#include "gromacs/utility/arrayref.h"
 #include "gromacs/topology/topology_enums.h"
 
 #include <cstdio>
@@ -15,6 +16,7 @@
 #define DIM 3
 
 using Value = std::variant<std::string, int, int64_t, long unsigned int, double, real, gmx_bool>;
+using AtomGroupIndices = std::vector<int>;
 using vec = Value[DIM];
 
 class DumpStrategy {
@@ -46,17 +48,23 @@ public:
     //! Prints a named value.
     virtual void pr_named_value(const char* name, const Value& value) = 0;
 
+    virtual void pr_name(const char* name) = 0;
+
     virtual void pr_matrix(const char* title, const rvec* m, gmx_bool bMDPformat) = 0;
 
-    virtual void pr_rvec(const char* title, const rvec vec, int n, gmx_bool bShowNumbers) = 0;
+    virtual void pr_rvec(const char* title, const real vec[], int n, gmx_bool bShowNumbers) = 0;
 
     virtual void pr_rvecs(const char* title, const rvec vec[], int n) = 0;
 
     virtual void pr_ivec(const char* title, const int vec[], int n, gmx_bool bShowNumbers) = 0;
+
+    virtual void pr_ivec_row(const char* title, const int vec[], int n, gmx_bool bShowNumbers) = 0;
     
     virtual void pr_ivecs(const char* title, const ivec vec[], int n) = 0;
 
     virtual void pr_ivec_block(const char* title, const int vec[], int n, gmx_bool bShowNumbers) = 0;
+
+    virtual void pr_grps(gmx::ArrayRef<const AtomGroupIndices> grps, const char* const* const* grpname) = 0;
 
     virtual void pr_group_stats(gmx::EnumerationArray<SimulationAtomGroupType, std::vector<int>>* gcount) = 0;
 

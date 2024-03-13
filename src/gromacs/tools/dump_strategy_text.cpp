@@ -8,11 +8,11 @@ bool DumpStrategyText::available(const void* p, const char* title) {
 }
 
 void DumpStrategyText::pr_filename(const char* filename) {
-    componentsStack.top()->addTextSection(filename);
+    // componentsStack.top()->addTextSection(filename);
 }
 
 void DumpStrategyText::pr_title(const char* title) {
-    TextDumpComponent* comp = componentsStack.top()->addTextSection(title);
+    TextDumpComponent* comp = componentsStack.top()->addTextObject(title);
     componentsStack.push(comp);
 }
 
@@ -21,7 +21,12 @@ void DumpStrategyText::pr_title_i(const char* title, int i) {
 }
 
 void DumpStrategyText::pr_title_n(const char* title, int n) {
-    // fprintf(fp, "%s (%d):\n", title, n);
+    int bufferSize = snprintf(nullptr, 0, "%s (%d)", title, n) + 1;
+    std::string formattedString(bufferSize, '\0');
+    snprintf(&formattedString[0], bufferSize, "%s (%d)", title, n);
+
+    TextDumpComponent* comp = componentsStack.top()->addTextObject(formattedString.c_str());
+    componentsStack.push(comp);
 }
 
 void DumpStrategyText::pr_title_nxn(const char* title, int n1, int n2) {
@@ -29,8 +34,7 @@ void DumpStrategyText::pr_title_nxn(const char* title, int n1, int n2) {
     std::string formattedString(bufferSize, '\0');
     snprintf(&formattedString[0], bufferSize, "%s (%dx%d)", title, n1, n2);
 
-    fprintf(stderr, "%s: %d\n", title, componentsStack.top()->getIndent());
-    TextDumpComponent* comp = componentsStack.top()->addTextSection(formattedString.c_str());
+    TextDumpComponent* comp = componentsStack.top()->addTextObject(formattedString.c_str());
     componentsStack.push(comp);
 }
 
@@ -44,6 +48,10 @@ void DumpStrategyText::pr_is_present(const char* title, gmx_bool b) {
 
 void DumpStrategyText::pr_named_value(const char* name, const Value& value) {
     componentsStack.top()->addTextLeaf(name, value);
+}
+
+void DumpStrategyText::pr_name(const char* name) {
+    componentsStack.top()->addFormattedTextLeaf("name=\"%s\"", name);
 }
 
 void DumpStrategyText::pr_matrix(const char* title, const rvec* m, gmx_bool bMDPformat) {
@@ -62,7 +70,17 @@ void DumpStrategyText::pr_matrix(const char* title, const rvec* m, gmx_bool bMDP
     }
 }
 
-void DumpStrategyText::pr_rvec(const char* title, const rvec vec, int n, gmx_bool bShowNumbers) {
+void DumpStrategyText::pr_rvec(const char* title, const real vec[], int n, gmx_bool bShowNumbers) {
+    if (available(vec, title))
+    {
+        pr_title_n(title, n);
+        TextDumpComponent* comp = componentsStack.top();
+        for (int i = 0; i < n; i++)
+        {
+            comp->addFormattedTextLeaf("%s[%d]=%12.5e", title, i, vec[i]);
+        }
+        close_section();
+    }
 }
 
 void DumpStrategyText::pr_rvecs(const char* title, const rvec vec[], int n)
@@ -95,6 +113,19 @@ void DumpStrategyText::pr_rvecs(const char* title, const rvec vec[], int n)
     }
 }
 
+void DumpStrategyText::pr_ivec_row(const char* title, const int vec[], int n, gmx_bool bMDPformat)
+{
+    if (available(vec, title))
+    {
+        componentsStack.top()->addFormattedTextLeaf("annealing-npoints%s", bMDPformat ? " = " : ":");
+        for (int i = 0; i < n; i++)
+        {
+            componentsStack.top()->addFormattedTextLeaf("  %10d", vec[i]);
+        }
+        componentsStack.top()->addFormattedTextLeaf("\n");
+    }
+}
+
 void DumpStrategyText::pr_ivec(const char* title, const int vec[], int n, gmx_bool bShowNumbers)
 {
 }
@@ -105,6 +136,45 @@ void DumpStrategyText::pr_ivecs(const char* title, const ivec vec[], int n)
 
 void DumpStrategyText::pr_ivec_block(const char* title, const int vec[], int n, gmx_bool bShowNumbers)
 {
+}
+
+// void DumpStrategyText::pr_group_nr()
+// {
+// }
+
+void DumpStrategyText::pr_grps(gmx::ArrayRef<const AtomGroupIndices> grps, const char* const* const* grpname)
+{
+    int index = 0;
+    for (const auto& group : grps)
+    {
+        componentsStack.top()->addFormattedTextLeaf(
+            "%s[%-12s] nr=%zu, name=[",
+            "grp",
+            shortName(static_cast<SimulationAtomGroupType>(index)),
+            group.size()
+        );
+        for (const auto& entry : group)
+        {
+            componentsStack.top()->addFormattedTextLeaf(" %s", *(grpname[entry]));
+        }
+        componentsStack.top()->addFormattedTextLeaf("]\n");
+        index++;
+    }
+    // int index = 0;
+    // for (const auto& group : grps)
+    // {
+    //     fprintf(fp,
+    //             "%s[%-12s] nr=%zu, name=[",
+    //             title,
+    //             shortName(static_cast<SimulationAtomGroupType>(index)),
+    //             group.size());
+    //     for (const auto& entry : group)
+    //     {
+    //         fprintf(fp, " %s", *(grpname[entry]));
+    //     }
+    //     fprintf(fp, "]\n");
+    //     index++;
+    // }
 }
 
 void DumpStrategyText::pr_group_stats(gmx::EnumerationArray<SimulationAtomGroupType, std::vector<int>>* gcount)

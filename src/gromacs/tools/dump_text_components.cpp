@@ -16,18 +16,18 @@ void TextDumpComponent::printValue(const Value& value) {
 }
 
 TextObjectComponent* TextDumpComponent::addTextSection(const std::string& name) {
-    return new TextObjectComponent(fp, indent, name);
+    return (TextObjectComponent*) this;
 }
 
 TextObjectComponent* TextDumpComponent::addTextObject(const std::string& name) {
-    return new TextObjectComponent(fp, indent + TEXT_INDENT, name);
+    return new TextObjectComponent(fp, indent, name);
 }
 
 TextObjectComponent* TextDumpComponent::addTextObject(const char* format, ...) {
     va_list args;
     va_start(args, format);
     
-    TextObjectComponent* object = new TextObjectComponent(fp, indent + TEXT_INDENT, format, args);
+    TextObjectComponent* object = new TextObjectComponent(fp, indent, format, args);
     
     va_end(args);
 
@@ -35,16 +35,16 @@ TextObjectComponent* TextDumpComponent::addTextObject(const char* format, ...) {
 }
 
 TextArrayComponent* TextDumpComponent::addTextArray(const std::string& name) {
-    return new TextArrayComponent(fp, indent + TEXT_INDENT, name);
+    return new TextArrayComponent(fp, indent, name);
 }
 
 void TextDumpComponent::addTextLeaf(const std::string& key, const Value& value) {
-    fprintf(fp, "\n%*s%-30s = ", indent + TEXT_INDENT, "", key.c_str());
+    fprintf(fp, "\n%*s%-30s = ", indent, "", key.c_str());
     printValue(value);
 }
 
 void TextDumpComponent::addTextLeaf(const Value& value) {
-    fprintf(fp, "\n%*s", indent + TEXT_INDENT, "");
+    fprintf(fp, "\n%*s", indent, "");
     printValue(value);
 }
     
@@ -60,7 +60,7 @@ void TextDumpComponent::addTextVectorLeaf(const float values[3], int size) {
 }
 
 void TextDumpComponent::addFormattedTextLeaf(const char* format, ...) {
-    fprintf(fp, "\n%*s", indent + TEXT_INDENT, "");
+    fprintf(fp, "\n%*s", indent, "");
 
     va_list args;
     va_start(args, format);

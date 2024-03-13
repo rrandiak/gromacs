@@ -2351,9 +2351,7 @@ void DumpBuilderQmOpts::build(DumpStrategy* strategy) {
 
     if (!bMDPformat)
     {
-        // gmx::TextWriter writer(fp);
-        // writer.wrapperSettings().setIndent(indent);
-        // gmx::dumpKeyValueTree(&writer, *ir->params);
+        DumpBuilderKVTree(*ir->params).build(strategy);
     }
 
     strategy->close_section();
@@ -2598,17 +2596,14 @@ void DumpBuilderInputRec::build(DumpStrategy* strategy) {
         } else {
             strategy->pr_rvec("posres-com", ir->posres_com, DIM, TRUE);
             strategy->pr_rvec("posres-comB", ir->posres_comB, DIM, TRUE);
-            // strategy->pr_rvec("posres-com", ir->posres_com, DIM, TRUE);
-            // strategy->pr_rvec("posres-comB", ir->posres_comB, DIM, TRUE);
         }
 
         // /* QMMM */
         strategy->pr_named_value("QMMM", EBOOL(ir->bQMMM));
+        strategy->close_section();
 
         DumpBuilderQmOpts(ir, bMDPformat).build(strategy);
 
         DumpBuilderGrpOpts(&(ir->opts), bMDPformat).build(strategy);
-    
-        strategy->close_section();
     }
 }

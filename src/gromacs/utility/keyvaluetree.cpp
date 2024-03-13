@@ -155,6 +155,7 @@ void dumpKeyValueTree(TextWriter* writer, const KeyValueTreeObject& tree)
         }
     }
 }
+
 //! \endcond
 
 /********************************************************************
@@ -322,3 +323,50 @@ void compareKeyValueTrees(TextWriter*               writer,
 //! \endcond
 
 } // namespace gmx
+
+void DumpBuilderKVTree::build(DumpStrategy* strategy)
+{
+    for (const auto& prop : kvTree.properties())
+    {
+        const auto& value = prop.value();
+        if (value.isObject())
+        {
+            strategy->pr_title(prop.key().c_str());
+            DumpBuilderKVTree(value.asObject()).build(strategy);
+            strategy->close_section();
+        }
+        else if (value.isArray()
+                 && std::all_of(value.asArray().values().begin(),
+                                value.asArray().values().end(),
+                                [](const auto& elem) { return elem.isObject(); }))
+        {
+            strategy->pr_title(prop.key().c_str());
+            for (const auto& elem : value.asArray().values())
+            {
+                DumpBuilderKVTree(elem.asObject()).build(strategy);
+            }
+            strategy->close_section();
+        } else {
+            if (value.isArray())
+            {
+                // TODO: implement
+                // writer->writeString("[");
+                // for (const auto& elem : value.asArray().values())
+                // {
+                //     GMX_RELEASE_ASSERT(
+                //             !elem.isObject() && !elem.isArray(),
+                //             "Only arrays of simple types and array of objects are implemented. "
+                //             "Arrays of arrays and mixed arrays are not supported.");
+                //     writer->writeString(" ");
+                //     writer->writeString(simpleValueToString(elem));
+                // }
+                // writer->writeString(" ]");
+            }
+            else
+            {
+                strategy->pr_named_value(prop.key().c_str(), simpleValueToString(value));
+            }
+
+        }
+    }
+}

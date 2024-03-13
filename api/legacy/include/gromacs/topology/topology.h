@@ -49,6 +49,9 @@
 #include "gromacs/utility/listoflists.h"
 #include "gromacs/utility/unique_cptr.h"
 
+#include "gromacs/tools/dump_builder.h"
+#include "gromacs/tools/dump_strategy.h"
+
 /*! \brief Molecules type data: atoms, interactions and exclusions */
 struct gmx_moltype_t
 {
@@ -269,5 +272,41 @@ void compareAtomGroups(FILE* fp, const SimulationGroups& g0, const SimulationGro
 using ExpandedTopologyPtr = std::unique_ptr<gmx_localtop_t>;
 
 void copy_moltype(const gmx_moltype_t* src, gmx_moltype_t* dst);
+
+class DumpBuilderGroups : DumpBuilder {
+private:
+    const SimulationGroups groups;
+    gmx_bool bShowNumbers;
+public:
+    DumpBuilderGroups(const SimulationGroups& groups, gmx_bool bShowNumbers) : groups(groups), bShowNumbers(bShowNumbers) {}
+    
+    void build(DumpStrategy* strategy) override;
+};
+
+class DumpBuilderMTop : DumpBuilder {
+private:
+    const gmx_mtop_t* mtop;
+    gmx_bool bShowNumbers;
+    gmx_bool bShowParameters;
+public:
+    DumpBuilderMTop(const gmx_mtop_t* mtop,
+        gmx_bool bShowNumbers,
+        gmx_bool bShowParameters) : mtop(mtop), bShowNumbers(bShowNumbers), bShowParameters(bShowParameters) {}
+    
+    void build(DumpStrategy* strategy) override;
+};
+
+class DumpBuilderTop : DumpBuilder {
+private:
+    const t_topology* top;
+    gmx_bool bShowNumbers;
+    gmx_bool bShowParameters;
+public:
+    DumpBuilderTop(const t_topology* top,
+        gmx_bool bShowNumbers,
+        gmx_bool bShowParameters) : top(top), bShowNumbers(bShowNumbers), bShowParameters(bShowParameters) {}
+    
+    void build(DumpStrategy* strategy) override;
+};
 
 #endif

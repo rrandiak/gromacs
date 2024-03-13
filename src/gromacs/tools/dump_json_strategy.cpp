@@ -63,6 +63,10 @@ void DumpJsonStrategy::pr_named_value(const char* name, const Value& value) {
     componentsStack.top()->addJsonLeaf(name, value);
 }
 
+void DumpJsonStrategy::pr_name(const char* name) {
+    componentsStack.top()->addJsonLeaf("name", name);
+}
+
 void DumpJsonStrategy::pr_matrix(const char* title, const rvec* m, gmx_bool bMDPformat) {
     if (bMDPformat) {
         pr_title(title);
@@ -78,7 +82,7 @@ void DumpJsonStrategy::pr_matrix(const char* title, const rvec* m, gmx_bool bMDP
     }
 }
 
-void DumpJsonStrategy::pr_rvec(const char* title, const rvec vec, int n, gmx_bool bShowNumbers) {
+void DumpJsonStrategy::pr_rvec(const char* title, const real vec[], int n, gmx_bool bShowNumbers) {
     if (available(vec, title)) {
         pr_title_n(title, n);
         for (int i = 0; i < n; i++) {
@@ -152,12 +156,20 @@ void DumpJsonStrategy::pr_rvecs(const char* title, const rvec vec[], int n) {
 void DumpJsonStrategy::pr_ivec(const char* title, const int vec[], int n, gmx_bool bShowNumbers)
 {
 }
+
+void DumpJsonStrategy::pr_ivec_row(const char* title, const int vec[], int n, gmx_bool bShowNumbers)
+{
+}
     
 void DumpJsonStrategy::pr_ivecs(const char* title, const ivec vec[], int n)
 {
 }
 
 void DumpJsonStrategy::pr_ivec_block(const char* title, const int vec[], int n, gmx_bool bShowNumbers)
+{
+}
+
+void DumpJsonStrategy::pr_grps(gmx::ArrayRef<const AtomGroupIndices> grps, const char* const* const* grpname)
 {
 }
 

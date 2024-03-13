@@ -32,17 +32,18 @@ public:
     void addTextVectorLeaf(const float values[3], int size);
     void addFormattedTextLeaf(const char* format, ...);
     void addGroupStats(gmx::EnumerationArray<SimulationAtomGroupType, std::vector<int>>* gcount);
+    void printFilename(const std::string& filename);
 };
 
 class TextObjectComponent : public TextDumpComponent {
 public:
     TextObjectComponent(FILE* fp, int indent, const std::string& name)
-            : TextDumpComponent(fp, indent) {
+            : TextDumpComponent(fp, indent + TEXT_INDENT) {
         fprintf(fp, "\n%*s%s:", indent, "", name.c_str());
     }
 
     TextObjectComponent(FILE* fp, int indent, const char* format, ...)
-            : TextDumpComponent(fp, indent) {
+            : TextDumpComponent(fp, indent + TEXT_INDENT) {
         va_list args;
         va_start(args, format);
 
@@ -57,7 +58,7 @@ public:
 class TextArrayComponent : public TextDumpComponent {
 public:
     TextArrayComponent(FILE* fp, int indent, const std::string& name)
-            : TextDumpComponent(fp, indent) {
+            : TextDumpComponent(fp, indent + TEXT_INDENT) {
         fprintf(fp, "\n%*s%s:", indent, "", name.c_str());
     }
 };

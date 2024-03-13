@@ -10,7 +10,7 @@ void DumpBuilderTpr::build(DumpStrategy* strategy) {
     t_inputrec    ir;
 
     read_tpx_state(fileName, tpx.bIr ? &ir : nullptr, &state, tpx.bTop ? &mtop : nullptr);
-    if (tpx.bIr && !originalInputrec) {
+    if (tpx.bIr && !bOriginalInputrec) {
         gmx::MDModules().adjustInputrecBasedOnModules(&ir);
     }
 
@@ -21,7 +21,7 @@ void DumpBuilderTpr::build(DumpStrategy* strategy) {
     }
 
     if (!mdpFileName) {
-        if (sysTop) {
+        if (bSysTop) {
             top = gmx_mtop_t_to_t_topology(&mtop, false);
         }
 
@@ -30,6 +30,15 @@ void DumpBuilderTpr::build(DumpStrategy* strategy) {
 
             DumpBuilderInputRec(tpx.bIr ? &ir : nullptr, FALSE).build(strategy);
             DumpBuilderTpxHeader(&(tpx)).build(strategy);
+
+            if (!bSysTop)
+            {
+                DumpBuilderMTop(&mtop, bShowNumbers, bShowParameters).build(strategy);
+            }
+            else
+            {
+                DumpBuilderTop(&top, bShowNumbers, bShowParameters).build(strategy);
+            }
 
             strategy->pr_rvecs("box", tpx.bBox ? state.box : nullptr, DIM);
             strategy->pr_rvecs("box_rel", tpx.bBox ? state.box_rel : nullptr, DIM);

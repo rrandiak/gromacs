@@ -720,3 +720,109 @@ void copy_moltype(const gmx_moltype_t* src, gmx_moltype_t* dst)
         dst->ilist[i] = src->ilist[i];
     }
 }
+
+void DumpBuilderGroups::build(DumpStrategy* strategy)
+{
+    strategy->pr_grps(groups.groups, groups.groupNames.data());
+    // pr_strings(fp, indent, "grpname", groups.groupNames.data(), groups.groupNames.size(), bShowNumbers);
+
+    // pr_indent(fp, indent);
+    // fprintf(fp, "groups          ");
+    // for (const auto group : gmx::EnumerationWrapper<SimulationAtomGroupType>{})
+    // {
+    //     printf(" %5.5s", shortName(group));
+    // }
+    // printf("\n");
+
+    // pr_indent(fp, indent);
+    // fprintf(fp, "allocated       ");
+    // int nat_max = 0;
+    // for (auto group : keysOf(groups.groups))
+    // {
+    //     printf(" %5d", groups.numberOfGroupNumbers(group));
+    //     nat_max = std::max(nat_max, groups.numberOfGroupNumbers(group));
+    // }
+    // printf("\n");
+
+    // if (nat_max == 0)
+    // {
+    //     pr_indent(fp, indent);
+    //     fprintf(fp, "groupnr[%5s] =", "*");
+    //     for (auto gmx_unused group : keysOf(groups.groups))
+    //     {
+    //         fprintf(fp, "  %3d ", 0);
+    //     }
+    //     fprintf(fp, "\n");
+    // }
+    // else
+    // {
+    //     for (int i = 0; i < nat_max; i++)
+    //     {
+    //         pr_indent(fp, indent);
+    //         fprintf(fp, "groupnr[%5d] =", i);
+    //         for (auto group : keysOf(groups.groups))
+    //         {
+    //             fprintf(fp,
+    //                     "  %3d ",
+    //                     !groups.groupNumbers[group].empty() ? groups.groupNumbers[group][i] : 0);
+    //         }
+    //         fprintf(fp, "\n");
+    //     }
+    // }
+}
+
+void DumpBuilderMTop::build(DumpStrategy* strategy)
+{
+    fprintf(stderr, "DumpBuilderMTop\n");
+    if (!(strategy->available(mtop, "topology")))
+    {
+        return;
+    }
+
+    strategy->pr_title("topology");
+    // fprintf(fp, "name=\"%s\"\n", *(mtop->name));
+    strategy->pr_name(*(mtop->name));
+    strategy->pr_named_value("#atoms", mtop->natoms);
+    strategy->pr_named_value("#molblock", mtop->molblock.size());
+    // for (size_t mb = 0; mb < mtop->molblock.size(); mb++)
+    // {
+    //     pr_molblock(fp, indent, "molblock", &mtop->molblock[mb], mb, mtop->moltype);
+    // }
+    strategy->pr_named_value("bIntermolecularInteractions", gmx::boolToString(mtop->bIntermolecularInteractions));
+    // if (mtop->bIntermolecularInteractions)
+    // {
+    //     for (int j = 0; j < F_NRE; j++)
+    //     {
+    //         pr_ilist(fp,
+    //                     indent,
+    //                     interaction_function[j].longname,
+    //                     mtop->ffparams.functype.data(),
+    //                     (*mtop->intermolecular_ilist)[j],
+    //                     bShowNumbers,
+    //                     bShowParameters,
+    //                     mtop->ffparams.iparams.data());
+    //     }
+    // }
+    // pr_ffparams(fp, indent, "ffparams", &(mtop->ffparams), bShowNumbers);
+    // for (size_t mt = 0; mt < mtop->moltype.size(); mt++)
+    // {
+    //     pr_moltype(fp, indent, "moltype", &mtop->moltype[mt], mt, &mtop->ffparams, bShowNumbers, bShowParameters);
+    // }
+    // pr_groups(fp, indent, mtop->groups, bShowNumbers);
+    DumpBuilderGroups(mtop->groups, bShowNumbers).build(strategy);
+}
+
+void DumpBuilderTop::build(DumpStrategy* strategy)
+{
+    if (!(strategy->available(top, "topology")))
+    {
+        return;
+    }
+
+    strategy->pr_title("topology");
+    // fprintf(fp, "name=\"%s\"\n", *(top->name));
+    // pr_atoms(fp, indent, "atoms", &(top->atoms), bShowNumbers);
+    // pr_block(fp, indent, "mols", &top->mols, bShowNumbers);
+    strategy->pr_named_value("bIntermolecularInteractions", gmx::boolToString(top->bIntermolecularInteractions));
+    // pr_idef(fp, indent, "idef", &top->idef, bShowNumbers, bShowParameters);
+}

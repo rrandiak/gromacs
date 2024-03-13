@@ -49,11 +49,11 @@
 class DumpBuilderTpr : public DumpBuilder {
 private:
     const char* fileName;
-    gmx_bool showNumbers;
-    gmx_bool showParameters;
+    gmx_bool bShowNumbers;
+    gmx_bool bShowParameters;
     const char* mdpFileName;
-    gmx_bool sysTop;
-    gmx_bool originalInputrec;
+    gmx_bool bSysTop;
+    gmx_bool bOriginalInputrec;
 
 public:
     DumpBuilderTpr(const char* fn,
@@ -63,11 +63,11 @@ public:
                    gmx_bool bSysTop,
                    gmx_bool bOriginalInputrec)
         : fileName(fn),
-          showNumbers(bShowNumbers),
-          showParameters(bShowParameters),
+          bShowNumbers(bShowNumbers),
+          bShowParameters(bShowParameters),
           mdpFileName(mdpfn),
-          sysTop(bSysTop),
-          originalInputrec(bOriginalInputrec) {}
+          bSysTop(bSysTop),
+          bOriginalInputrec(bOriginalInputrec) {}
     
     void build(DumpStrategy* strategy) override;
 };
