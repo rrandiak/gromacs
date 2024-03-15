@@ -1,8 +1,10 @@
-#include "gromacs/tools/dump_text_components.h"
+#include "gromacs/tools/dump/components/dump_components_text.h"
 
 void TextDumpComponent::printValue(const Value& value) {
     if (std::holds_alternative<int>(value)) {
         fprintf(fp, "%d", std::get<int>(value));
+    } else if (std::holds_alternative<long unsigned int>(value)) {
+        fprintf(fp, "%ld", std::get<long unsigned int>(value));
     } else if (std::holds_alternative<double>(value)) {
         fprintf(fp, "%g", std::get<double>(value));
     } else if (std::holds_alternative<std::string>(value)) {
@@ -27,6 +29,11 @@ void TextDumpComponent::printFormattedText(const char* format, ...) {
     vfprintf(fp, format, args);
     
     va_end(args);
+}
+
+TextDumpComponent* TextDumpComponent::addEmptySection()
+{
+    return new TextDumpComponent(fp, indent + indentValue);
 }
 
 TextObjectComponent* TextDumpComponent::addTextSection(const std::string& name) {
@@ -105,4 +112,10 @@ void TextDumpComponent::addGroupStats(gmx::EnumerationArray<SimulationAtomGroupT
         }
         fprintf(fp, "  (total %d atoms)\n", atot);
     }
+}
+
+void TextDumpComponent::addAttribute(const char* name, const Value& value)
+{
+    fprintf(fp, "\n%*s%s=", indent, "", name);
+    printValue(value);
 }

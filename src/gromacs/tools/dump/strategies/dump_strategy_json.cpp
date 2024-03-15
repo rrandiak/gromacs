@@ -1,4 +1,4 @@
-#include "gromacs/tools/dump_json_strategy.h"
+#include "gromacs/tools/dump/strategies/dump_strategy_json.h"
 
 bool DumpJsonStrategy::available(const void* p, const char* title) {
     if (!p) {
@@ -62,6 +62,10 @@ void DumpJsonStrategy::pr_is_present(const char* title, gmx_bool b) {
 void DumpJsonStrategy::pr_named_value(const char* name, const Value& value) {
     componentsStack.top()->addJsonLeaf(name, value);
 }
+    
+void DumpJsonStrategy::pr_attribute(const char* name, const Value& value)
+{
+}
 
 void DumpJsonStrategy::pr_name(const char* name) {
     componentsStack.top()->addJsonLeaf("name", name);
@@ -83,6 +87,10 @@ void DumpJsonStrategy::pr_matrix(const char* title, const rvec* m, gmx_bool bMDP
 }
     
 void DumpJsonStrategy::pr_sim_annealing(const char* title, const SimulatedAnnealing sa[], int n, gmx_bool bMDPformat)
+{
+}
+
+void DumpJsonStrategy::pr_functypes(const std::vector<int>& functype, const int n, const std::vector<t_iparams>& iparams)
 {
 }
 
@@ -185,11 +193,27 @@ void DumpJsonStrategy::pr_kvtree(const gmx::KeyValueTreeObject kvTree)
 {
 }
 
+void DumpJsonStrategy::pr_moltype(const int moltype, const char* moltypeName) 
+{
+}
+
 void DumpJsonStrategy::pr_grps(gmx::ArrayRef<const AtomGroupIndices> grps, const char* const* const* grpname)
 {
 }
 
 void DumpJsonStrategy::pr_group_stats(gmx::EnumerationArray<SimulationAtomGroupType, std::vector<int>>* gcount)
+{
+}
+
+void DumpJsonStrategy::pr_anneal_points(const char* title, const float vec[], int n)
+{
+}
+
+void DumpJsonStrategy::pr_grp_opt_agg(
+    const rvec acceleration[], const int ngacc,
+    const ivec nFreeze[], const int ngfrz,
+    const int egp_flags[], const int ngener
+)
 {
 }
 

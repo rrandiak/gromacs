@@ -1,12 +1,12 @@
-#ifndef GMX_TOOLS_DUMP_VALUE_COMPONENT_H
-#define GMX_TOOLS_DUMP_VALUE_COMPONENT_H
+#ifndef GMX_TOOLS_DUMP_COMPONENT_VALUE_H
+#define GMX_TOOLS_DUMP_COMPONENT_VALUE_H
 
 #include <cstdio>
 #include <cstdarg>
 #include <string>
 
 #include "gromacs/utility/cstringutil.h"
-#include "gromacs/tools/dump_component.h"
+#include "gromacs/tools/dump/dump_component.h"
 
 class DumpValueComponent : public DumpComponent {
 public:
@@ -17,6 +17,9 @@ public:
             fprintf(fp, "%s", std::get<gmx_bool>(value) ? "true" : "false");
         } else if (std::holds_alternative<int>(value)) {
             fprintf(fp, "%d", std::get<int>(value));
+        } else if (std::holds_alternative<long unsigned int>(value)) {
+            fprintf(stderr, "Warning: long unsigned int not supported\n");
+            fprintf(fp, "%ld", std::get<long unsigned int>(value));
         } else if (std::holds_alternative<double>(value)) {
             fprintf(fp, "%f", std::get<double>(value));
         } else if (std::holds_alternative<std::string>(value)) {

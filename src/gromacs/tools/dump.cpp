@@ -78,9 +78,9 @@
 #include "gromacs/utility/smalloc.h"
 #include "gromacs/utility/txtdump.h"
 
-#include "gromacs/tools/dump_builder_tpr.h"
-#include "gromacs/tools/dump_json_strategy.h"
-#include "gromacs/tools/dump_strategy_text.h"
+#include "gromacs/tools/dump/builders/dump_builder_tpr.h"
+#include "gromacs/tools/dump/strategies/dump_strategy_json.h"
+#include "gromacs/tools/dump/strategies/dump_strategy_text.h"
 
 namespace gmx
 {

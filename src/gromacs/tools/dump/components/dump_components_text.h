@@ -1,5 +1,5 @@
-#ifndef GMX_TOOLS_DUMP_TEXT_COMPONENTS_H
-#define GMX_TOOLS_DUMP_TEXT_COMPONENTS_H
+#ifndef GMX_TOOLS_DUMP_COMPONENTS_TEXT_H
+#define GMX_TOOLS_DUMP_COMPONENTS_TEXT_H
 
 #include <cstdio>
 #include <cstdarg>
@@ -7,9 +7,10 @@
 #include <vector>
 
 #include "gromacs/utility/cstringutil.h"
-#include "gromacs/tools/dump_component.h"
 #include "gromacs/utility/enumerationhelpers.h"
 #include "gromacs/topology/topology_enums.h"
+
+#include "gromacs/tools/dump/dump_component.h"
 
 class TextObjectComponent;
 class TextArrayComponent;
@@ -22,6 +23,7 @@ public:
     TextDumpComponent(FILE* fp, int indent) : DumpComponent(fp, indent) {}
 
     TextObjectComponent* addTextSection(const std::string& name);
+    TextDumpComponent* addEmptySection();
     virtual TextObjectComponent* addTextObject(const std::string& name);
     virtual TextObjectComponent* addTextObject(const char* format, ...);
     virtual TextArrayComponent* addTextArray(const std::string& name);
@@ -33,6 +35,7 @@ public:
     void addGroupStats(gmx::EnumerationArray<SimulationAtomGroupType, std::vector<int>>* gcount);
     void printFilename(const std::string& filename);
     void printFormattedText(const char* format, ...);
+    void addAttribute(const char* name, const Value& value); 
 };
 
 class TextObjectComponent : public TextDumpComponent {

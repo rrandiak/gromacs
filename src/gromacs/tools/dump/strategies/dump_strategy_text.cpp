@@ -1,4 +1,4 @@
-#include "gromacs/tools/dump_strategy_text.h"
+#include "gromacs/tools/dump/strategies/dump_strategy_text.h"
 
 int DumpComponent::indentValue = 3;
 
@@ -56,6 +56,11 @@ void DumpStrategyText::pr_is_present(const char* title, gmx_bool b) {
 
 void DumpStrategyText::pr_named_value(const char* name, const Value& value) {
     componentsStack.top()->addTextLeaf(name, value);
+}
+
+void DumpStrategyText::pr_attribute(const char* name, const Value& value)
+{
+    componentsStack.top()->addAttribute(name, value);
 }
 
 void DumpStrategyText::pr_name(const char* name) {
@@ -272,10 +277,117 @@ void DumpStrategyText::pr_grps(gmx::ArrayRef<const AtomGroupIndices> grps, const
     // }
 }
 
+void DumpStrategyText::pr_moltype(const int moltype, const char* moltypeName) 
+{
+    componentsStack.top()->addFormattedTextLeaf(
+        "%-20s = %d \"%s\"", "moltype", moltype, moltypeName
+    );
+}
+
 void DumpStrategyText::pr_group_stats(gmx::EnumerationArray<SimulationAtomGroupType, std::vector<int>>* gcount)
 {
     componentsStack.top()->addGroupStats(gcount);
 }
+
+void DumpStrategyText::pr_anneal_points(const char* title, const float vec[], int n)
+{
+    componentsStack.top()->addFormattedTextLeaf("%s [%d]:\t", title, n);
+    for (int i = 0; (i < vec[i]); i++)
+    {
+        componentsStack.top()->printFormattedText("  %10.1f", vec[i]);
+    }
+}
+
+void DumpStrategyText::pr_functypes(const std::vector<int>& functype, const int n, const std::vector<t_iparams>& iparams)
+{
+    TextDumpComponent* comp = componentsStack.top()->addEmptySection();
+    for (int i = 0; i < n; i++)
+    {
+        comp->addFormattedTextLeaf(
+            "functype[%d]=%s, ",
+            // bShowNumbers ? i : -1,
+            i,
+            interaction_function[functype[i]].name
+        );
+        // std::vector<KeyFormatValue> kfvs = getInteractionParameters(functype[i], iparams[i]);
+        std::vector<KeyFormatValue> kfvs = getIParamsValues(functype[i], iparams[i]);
+        // pr_iparams(fp, ffparams->functype[i], ffparams->iparams[i]);
+    //     pr_indent(fp, indent + INDENT);
+    //     fprintf(fp,
+    //             "functype[%d]=%s, ",
+    //             bShowNumbers ? i : -1,
+    //             interaction_function[ffparams->functype[i]].name);
+    //     pr_iparams(fp, ffparams->functype[i], ffparams->iparams[i]);
+    }
+}
+
+void DumpStrategyText::pr_grp_opt_agg(
+    const rvec acceleration[], const int ngacc,
+    const ivec nFreeze[], const int ngfrz,
+    const int egp_flags[], const int ngener
+)
+{
+    TextDumpComponent* comp = componentsStack.top()->addEmptySection();
+    int i, m;
+
+    // pr_indent(out, indent);
+    // fprintf(out, "acc:\t");
+    // for (i = 0; (i < opts->ngacc); i++)
+    // {
+    //     for (m = 0; (m < DIM); m++)
+    //     {
+    //         fprintf(out, "  %10g", opts->acceleration[i][m]);
+    //     }
+    // }
+    // fprintf(out, "\n");
+    comp->addFormattedTextLeaf("acc:\t");
+    for (i = 0; i < ngacc; i++)
+    {
+        for (m = 0; m < DIM; m++)
+        {
+            comp->printFormattedText("  %10g", acceleration[i][m]);
+        }
+    }
+
+    // pr_indent(out, indent);
+    // fprintf(out, "nfreeze:");
+    // for (i = 0; (i < opts->ngfrz); i++)
+    // {
+    //     for (m = 0; (m < DIM); m++)
+    //     {
+    //         fprintf(out, "  %10s", opts->nFreeze[i][m] ? "Y" : "N");
+    //     }
+    // }
+    // fprintf(out, "\n");
+    comp->addFormattedTextLeaf("nfreeze:");
+    for (i = 0; i < ngfrz; i++)
+    {
+        for (m = 0; m < DIM; m++)
+        {
+            comp->printFormattedText("  %10s", nFreeze[i][m] ? "Y" : "N");
+        }
+    }
+
+    // for (i = 0; (i < opts->ngener); i++)
+    // {
+    //     pr_indent(out, indent);
+    //     fprintf(out, "energygrp-flags[%3d]:", i);
+    //     for (m = 0; (m < opts->ngener); m++)
+    //     {
+    //         fprintf(out, " %d", opts->egp_flags[opts->ngener * i + m]);
+    //     }
+    //     fprintf(out, "\n");
+    // }
+    for (i = 0; (i < ngener); i++)
+    {
+        comp->addFormattedTextLeaf("energygrp-flags[%3d]:", i);
+        for (m = 0; m < ngener; m++)
+        {
+            comp->printFormattedText(" %d", egp_flags[ngener * i + m]);
+        }
+    }
+}
+
 
 // void DumpStrategyText::pr_reals(const char* title, const real* vec, int n)
 // {

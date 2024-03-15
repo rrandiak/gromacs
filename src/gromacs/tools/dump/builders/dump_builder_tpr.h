@@ -3,8 +3,6 @@
 
 #include "gmxpre.h"
 
-#include "dump.h"
-
 #include "config.h"
 
 #include "gromacs/fileio/checkpoint.h"
@@ -40,8 +38,11 @@
 #include "gromacs/mdrun/mdmodules.h"
 #include "gromacs/fileio/tpxio.h"
 
-#include "dump_builder.h"
-#include "gromacs/tools/dump_strategy.h"
+#include "gromacs/tools/dump/dump_builder.h"
+#include "gromacs/tools/dump/dump_strategy.h"
+#include "gromacs/tools/dump/builders/dump_builders_inputrec.h"
+#include "gromacs/tools/dump/builders/dump_builder_tpxio.h"
+#include "gromacs/tools/dump/builders/dump_builders_topology.h"
 
 #include "gromacs/mdtypes/inputrec.h"
 #include "gromacs/fileio/tpxio.h"

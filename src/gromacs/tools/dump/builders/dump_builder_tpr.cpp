@@ -1,4 +1,4 @@
-#include "gromacs/tools/dump_builder_tpr.h"
+#include "gromacs/tools/dump/builders/dump_builder_tpr.h"
 
 void DumpBuilderTpr::build(DumpStrategy* strategy) {
     FILE*      gp;

@@ -44,8 +44,6 @@
 #include "gromacs/utility/basedefinitions.h"
 #include "gromacs/utility/real.h"
 
-#include "gromacs/tools/dump_builder.h"
-
 struct gmx_mtop_t;
 struct t_atoms;
 struct t_block;
@@ -237,15 +235,5 @@ gmx_bool fn2bTPX(const std::filesystem::path& file);
 /* return if *file is one of the TPX file types */
 
 void pr_tpxheader(FILE* fp, int indent, const char* title, const TpxFileHeader* sh);
-
-class DumpBuilderTpxHeader: public DumpBuilder {
-private:
-    const TpxFileHeader* sh;
-
-public:
-    DumpBuilderTpxHeader(const TpxFileHeader* sh) : sh(sh) {}
-    
-    void build(DumpStrategy* strategy) override;
-};
 
 #endif

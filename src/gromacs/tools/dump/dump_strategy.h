@@ -9,16 +9,18 @@
 #include "gromacs/utility/keyvaluetree.h"
 #include "gromacs/mdtypes/md_enums.h"
 #include "gromacs/topology/topology_enums.h"
+#include "gromacs/topology/topology.h"
 
 #include <cstdio>
 #include <vector>
 
-#include "gromacs/tools/dump_component.h"
+#include "gromacs/tools/dump/dump_component.h"
 
 #define DIM 3
 
 using Value = std::variant<std::string, int, int64_t, long unsigned int, double, real, gmx_bool>;
 using AtomGroupIndices = std::vector<int>;
+
 // using vec = Value[DIM];
 
 class DumpStrategy {
@@ -50,6 +52,8 @@ public:
     //! Prints a named value.
     virtual void pr_named_value(const char* name, const Value& value) = 0;
 
+    virtual void pr_attribute(const char* name, const Value& value) = 0;
+
     virtual void pr_name(const char* name) = 0;
 
     virtual void pr_matrix(const char* title, const rvec* m, gmx_bool bMDPformat) = 0;
@@ -77,6 +81,18 @@ public:
     virtual void pr_kvtree(const gmx::KeyValueTreeObject kvTree) = 0;
 
     virtual void pr_group_stats(gmx::EnumerationArray<SimulationAtomGroupType, std::vector<int>>* gcount) = 0;
+
+    virtual void pr_moltype(const int moltype, const char* typeName) = 0;
+            
+    virtual void pr_anneal_points(const char* title, const float vec[], int n) = 0;
+
+    virtual void pr_functypes(const std::vector<int>& functype, const int n, const std::vector<t_iparams>& iparams) = 0;
+
+    virtual void pr_grp_opt_agg(
+        const rvec acceleration[], const int ngacc,
+        const ivec nFreeze[], const int ngfrz,
+        const int egp_flags[], const int ngener
+    ) = 0;
 
     // //! Prints a string value.
     // virtual void pr_str(const char* title, const char* s) = 0;

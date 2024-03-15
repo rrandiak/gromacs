@@ -1,18 +1,36 @@
-#ifndef GMX_TOOLS_DUMP_STRATEGY_TEXT_H
-#define GMX_TOOLS_DUMP_STRATEGY_TEXT_H
+#ifndef GMX_TOOLS_DUMP_STRATEGY_JSON_H
+#define GMX_TOOLS_DUMP_STRATEGY_JSON_H
+
+#define XX 0
+#define YY 1
+#define ZZ 2
 
 #include <stack>
 
 #include "gromacs/utility/basedefinitions.h"
 #include "gromacs/utility/real.h"
-#include "gromacs/tools/dump_strategy.h"
-#include "gromacs/tools/dump_text_components.h"
+#include "gromacs/tools/dump/dump_strategy.h"
+#include "gromacs/tools/dump/components/dump_components_json.h"
 
-class DumpStrategyText : public DumpStrategy {
+class DumpJsonStrategy : public DumpStrategy {
 private:
-    std::stack<TextDumpComponent*> componentsStack;
+    std::stack<JsonDumpComponent*> componentsStack;
 public:
-    DumpStrategyText(FILE* fp);
+    DumpJsonStrategy(FILE* fp) {
+        JsonDumpComponent* root = new JsonRootComponent(fp);
+        componentsStack.push(root);
+    }
+
+    ~DumpJsonStrategy() {
+        while (componentsStack.size() > 1) {
+            componentsStack.pop();
+        }
+        if (!componentsStack.empty()) {
+            JsonDumpComponent* comp = componentsStack.top();
+            componentsStack.pop();
+            delete comp;
+        }
+    }
 
     bool available(const void* p, const char* title) override;
     void pr_filename(const char* filename) override;
@@ -23,11 +41,12 @@ public:
     void close_section() override;
     void pr_is_present(const char* title, gmx_bool b) override;
     void pr_named_value(const char* name, const Value& value) override;
+    void pr_attribute(const char* name, const Value& value) override;
     void pr_name(const char* name) override;
     void pr_matrix(const char* title, const rvec* m, gmx_bool bMDPformat) override;
     void pr_sim_annealing(const char* title, const SimulatedAnnealing sa[], int n, gmx_bool bMDPformat) override;
     void pr_vec_row(const char* title, const Value vec[], int n, gmx_bool bShowNumbers) override;
-    void pr_rvec(const char* title, const rvec vec, int n, gmx_bool bShowNumbers) override;
+    void pr_rvec(const char* title, const real vec[], int n, gmx_bool bShowNumbers) override;
     void pr_rvec_row(const char* title, const real vec[], int n, gmx_bool bShowNumbers) override;
     void pr_rvecs(const char* title, const rvec vec[], int n) override;
     void pr_ivec(const char* title, const int vec[], int n, gmx_bool bShowNumbers) override;
@@ -37,6 +56,16 @@ public:
     void pr_kvtree(const gmx::KeyValueTreeObject kvTree) override;
     void pr_grps(gmx::ArrayRef<const AtomGroupIndices> grps, const char* const* const* grpname) override;
     void pr_group_stats(gmx::EnumerationArray<SimulationAtomGroupType, std::vector<int>>* gcount) override;
+    void pr_moltype(const int moltype, const char* moltypeName) override;
+
+    void pr_anneal_points(const char* title, const float vec[], int n) override;
+    void pr_functypes(const std::vector<int>& functype, const int n, const std::vector<t_iparams>& iparams) override;
+
+    void pr_grp_opt_agg(
+        const rvec acceleration[], const int ngacc,
+        const ivec nFreeze[], const int ngfrz,
+        const int egp_flags[], const int ngener
+    ) override;
     // void pr_int(const char* title, int i);
     // void pr_int64(const char* title, int64_t i);
     // void pr_real(const char* title, real r);

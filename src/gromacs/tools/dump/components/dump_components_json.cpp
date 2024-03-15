@@ -1,4 +1,4 @@
-#include "dump_json_components.h"
+#include "gromacs/tools/dump/components/dump_components_json.h"
 
 void JsonDumpComponent::printSeparator() {
     if (!isEmpty) {

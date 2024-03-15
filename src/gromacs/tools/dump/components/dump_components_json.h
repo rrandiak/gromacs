@@ -1,13 +1,13 @@
-#ifndef GMX_TOOLS_DUMP_JSON_COMPONENTS_H
-#define GMX_TOOLS_DUMP_JSON_COMPONENTS_H
+#ifndef GMX_TOOLS_DUMP_COMPONENTS_JSON_H
+#define GMX_TOOLS_DUMP_COMPONENTS_JSON_H
 
 #include <iostream>
 #include <map>
 #include <vector>
 #include <variant>
 
-#include "gromacs/tools/dump_component.h"
-#include "gromacs/tools/dump_value_component.h"
+#include "gromacs/tools/dump/dump_component.h"
+#include "gromacs/tools/dump/components/dump_component_value.h"
 
 #define JSON_INDENT 2
     
