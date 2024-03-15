@@ -304,13 +304,28 @@ void DumpStrategyText::pr_functypes(const std::vector<int>& functype, const int 
     for (int i = 0; i < n; i++)
     {
         comp->addFormattedTextLeaf(
-            "functype[%d]=%s, ",
+            "functype[%d]=%s",
             // bShowNumbers ? i : -1,
             i,
             interaction_function[functype[i]].name
         );
-        // std::vector<KeyFormatValue> kfvs = getInteractionParameters(functype[i], iparams[i]);
-        std::vector<KeyFormatValue> kfvs = getIParamsValues(functype[i], iparams[i]);
+        std::vector<KeyFormatValue> kfvs = getInteractionParameters(functype[i], iparams[i]);
+        for (size_t j = 0; j < kfvs.size(); j++) {
+            comp->printFormattedText(", %s=", kfvs[j].key);
+            if (std::holds_alternative<int>(kfvs[j].value)) {
+                comp->printFormattedText(kfvs[j].format, std::get<int>(kfvs[j].value));
+            } else if (std::holds_alternative<float>(kfvs[j].value)) {
+                comp->printFormattedText(kfvs[j].format, std::get<float>(kfvs[j].value));
+            } else if (std::holds_alternative<double>(kfvs[j].value)) {
+                comp->printFormattedText(kfvs[j].format, std::get<double>(kfvs[j].value));
+            } else if (std::holds_alternative<int64_t>(kfvs[j].value)) {
+                comp->printFormattedText(kfvs[j].format, std::get<int64_t>(kfvs[j].value));
+            } else if (std::holds_alternative<real>(kfvs[j].value)) {
+                comp->printFormattedText(kfvs[j].format, std::get<real>(kfvs[j].value));
+            } else {
+                comp->printFormattedText("unknown_format");
+            }
+        }
         // pr_iparams(fp, ffparams->functype[i], ffparams->iparams[i]);
     //     pr_indent(fp, indent + INDENT);
     //     fprintf(fp,

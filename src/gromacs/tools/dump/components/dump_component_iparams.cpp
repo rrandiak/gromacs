@@ -1,7 +1,6 @@
-#include "dump_component_iparams.h"
+#include "gromacs/tools/dump/components/dump_component_iparams.h"
 
-
-std::vector<KeyFormatValue> getIParamsValues(t_functype ftype, const t_iparams& iparams)
+std::vector<KeyFormatValue> getInteractionParameters(t_functype ftype, const t_iparams& iparams)
 {
     std::vector<KeyFormatValue> values;
     switch (ftype)
