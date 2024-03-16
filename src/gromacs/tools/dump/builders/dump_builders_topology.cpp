@@ -75,7 +75,6 @@ void DumpBuilderGroups::build(DumpStrategy* strategy)
 
 void DumpBuilderMTop::build(DumpStrategy* strategy)
 {
-    fprintf(stderr, "DumpBuilderMTop\n");
     if (!(strategy->available(mtop, "topology")))
     {
         return;
@@ -104,11 +103,14 @@ void DumpBuilderMTop::build(DumpStrategy* strategy)
     DumpBuilderFFParams(mtop->ffparams).build(strategy);
     // pr_ffparams(fp, indent, "ffparams", &(mtop->ffparams), bShowNumbers);
     // for (size_t mt = 0; mt < mtop->moltype.size(); mt++)
-    // {
-    //     pr_moltype(fp, indent, "moltype", &mtop->moltype[mt], mt, &mtop->ffparams, bShowNumbers, bShowParameters);
-    // }
+    for (size_t mt = 0; mt < mtop->moltype.size(); mt++)
+    {
+        DumpBuilderMoltype(&(mtop->moltype[mt]), mt, mtop->ffparams).build(strategy);
+        // pr_moltype(fp, indent, "moltype", &mtop->moltype[mt], mt, &mtop->ffparams, bShowNumbers, bShowParameters);
+    }
     // pr_groups(fp, indent, mtop->groups, bShowNumbers);
     DumpBuilderGroups(mtop->groups, bShowNumbers).build(strategy);
+    strategy->close_section();
 }
 
 void DumpBuilderTop::build(DumpStrategy* strategy)
@@ -132,6 +134,9 @@ void DumpBuilderFFParams::build(DumpStrategy* strategy)
     strategy->pr_attribute("atnr", ffparams.atnr);
     strategy->pr_attribute("ntypes", ffparams.numTypes());
     strategy->pr_functypes(ffparams.functype, ffparams.numTypes(), ffparams.iparams);
+    strategy->pr_named_value("reppow", ffparams.reppow);
+    strategy->pr_named_value("fudgeQQ", ffparams.fudgeQQ);
+    DumpBuilderCmapGrid(ffparams.cmap_grid).build(strategy);
     strategy->close_section();
 
     // indent = pr_title(fp, indent, title);
@@ -151,4 +156,139 @@ void DumpBuilderFFParams::build(DumpStrategy* strategy)
     // pr_double(fp, indent, "reppow", ffparams->reppow);
     // pr_real(fp, indent, "fudgeQQ", ffparams->fudgeQQ);
     // pr_cmap(fp, indent, "cmap", &ffparams->cmap_grid, bShowNumbers);
+}
+
+void DumpBuilderCmapGrid::build(DumpStrategy* strategy)
+{
+    strategy->pr_title("cmap");
+    strategy->close_section();
+}
+
+void DumpBuilderMoltype::build(DumpStrategy* strategy)
+{
+    strategy->pr_title_i("moltype", index);
+    strategy->pr_attribute("name", moltype->name[index]);
+    strategy->pr_atoms(&(moltype->atoms));
+    DumpBuilderListOfLists("excls", moltype->excls).build(strategy);
+    for (int i = 0; (i < F_NRE); i++)
+    {
+        strategy->pr_interaction_list(
+            interaction_function[i].longname,
+            ffparams.functype.data(),
+            moltype->ilist[i],
+            ffparams.iparams.data()
+        );
+    }
+    // pr_listoflists(fp, indent, "excls", &molt->excls, bShowNumbers);
+    // for (int j = 0; (j < F_NRE); j++)
+    // {
+    //     pr_ilist(fp,
+    //              indent,
+    //              interaction_function[j].longname,
+    //              ffparams->functype.data(),
+    //              molt->ilist[j],
+    //              bShowNumbers,
+    //              bShowParameters,
+    //              ffparams->iparams.data());
+    // }
+    strategy->close_section();
+}
+
+void DumpBuilderAtoms::build(DumpStrategy* strategy)
+{
+}
+
+void DumpBuilderListOfLists::build(DumpStrategy* strategy)
+{
+    if (!strategy->available(&lists, title.c_str()))
+    {
+        return;
+    }
+
+    strategy->pr_title(title.c_str());
+    strategy->pr_attribute("numLists", lists.size());
+    strategy->pr_attribute("numElements", lists.numElements());
+    // indent = pr_title(fp, indent, title);
+    // pr_indent(fp, indent);
+    // fprintf(fp, "numLists=%zu\n", lists->size());
+    // pr_indent(fp, indent);
+    // fprintf(fp, "numElements=%d\n", lists->numElements());
+
+    for (gmx::Index i = 0; i < lists.ssize(); i++)
+    {
+        // gmx::ArrayRef<const int> list = (*lists)[i];
+        strategy->pr_list_i(title.c_str(), i, lists[i]);
+        // int                      size = pr_indent(fp, indent);
+        // gmx::ArrayRef<const int> list = (*lists)[i];
+        // if (list.empty())
+        // {
+        //     size += fprintf(fp, "%s[%d]={", title, int(i));
+        // }
+        // else
+        // {
+        //     size += fprintf(fp, "%s[%d][num=%zu]={", title, bShowNumbers ? int(i) : -1, list.size());
+        // }
+        // bool isFirst = true;
+        // for (const int j : list)
+        // {
+        //     if (!isFirst)
+        //     {
+        //         size += fprintf(fp, ", ");
+        //     }
+        //     if ((size) > (USE_WIDTH))
+        //     {
+        //         fprintf(fp, "\n");
+        //         size = pr_indent(fp, indent + INDENT);
+        //     }
+        //     size += fprintf(fp, "%d", j);
+        //     isFirst = false;
+        // }
+        // fprintf(fp, "}\n");
+    }
+    strategy->close_section();
+}
+
+void DumpBuilderInteractionList::build(DumpStrategy* strategy)
+{
+    // strategy->pr_title(title.c_str());
+    // strategy->pr_attribute("nr", ilist.size());
+
+    if (ilist.empty())
+    {
+        return;
+    }
+
+    // strategy->pr_iatoms("iatoms");
+    // indent = pr_title(fp, indent, title);
+    // pr_indent(fp, indent);
+    // fprintf(fp, "nr: %d\n", ilist.size());
+    // if (!ilist.empty())
+    // {
+    //     pr_indent(fp, indent);
+    //     fprintf(fp, "iatoms:\n");
+    //     int j = 0;
+    //     for (int i = 0; i < ilist.size();)
+    //     {
+    //         pr_indent(fp, indent + INDENT);
+    //         const int type  = ilist.iatoms[i];
+    //         const int ftype = functype[type];
+    //         if (bShowNumbers)
+    //         {
+    //             fprintf(fp, "%d type=%d ", j, type);
+    //         }
+    //         j++;
+    //         printf("(%s)", interaction_function[ftype].name);
+    //         for (int k = 0; k < interaction_function[ftype].nratoms; k++)
+    //         {
+    //             fprintf(fp, " %3d", ilist.iatoms[i + 1 + k]);
+    //         }
+    //         if (bShowParameters)
+    //         {
+    //             fprintf(fp, "  ");
+    //             pr_iparams(fp, ftype, iparams[type]);
+    //         }
+    //         fprintf(fp, "\n");
+    //         i += 1 + interaction_function[ftype].nratoms;
+    //     }
+    // }
 }

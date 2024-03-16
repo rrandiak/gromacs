@@ -94,6 +94,11 @@ public:
         const int egp_flags[], const int ngener
     ) = 0;
 
+    virtual void pr_atoms(const t_atoms* atoms) = 0;
+
+    virtual void pr_list_i(const char* title, const int index, gmx::ArrayRef<const int> list) = 0;
+
+    virtual void pr_interaction_list(const std::string& title, const t_functype* functypes, const InteractionList& ilist, const t_iparams* iparams) = 0;
     // //! Prints a string value.
     // virtual void pr_str(const char* title, const char* s) = 0;
 

@@ -9,8 +9,18 @@
 #include "gromacs/utility/cstringutil.h"
 #include "gromacs/utility/enumerationhelpers.h"
 #include "gromacs/topology/topology_enums.h"
+#include "gromacs/utility/arrayref.h"
 
 #include "gromacs/tools/dump/dump_component.h"
+
+//! Line width for text dump output.
+#define LINE_WIDTH 80
+//! Right margin for text dump output.
+#define RMARGIN 10
+//! Actual line length for text dump output.
+#define USE_WIDTH ((LINE_WIDTH) - (RMARGIN))
+//! Default indentation for text dump output.
+// #define INDENT 3
 
 class TextObjectComponent;
 class TextArrayComponent;
@@ -26,6 +36,7 @@ public:
     TextDumpComponent* addEmptySection();
     virtual TextObjectComponent* addTextObject(const std::string& name);
     virtual TextObjectComponent* addTextObject(const char* format, ...);
+    virtual TextObjectComponent* addTextObject(const std::string& name, int index);
     virtual TextArrayComponent* addTextArray(const std::string& name);
     void addTextLeaf(const std::string& key, const Value& value);
     void addTextLeaf(const Value& value);
@@ -36,6 +47,7 @@ public:
     void printFilename(const std::string& filename);
     void printFormattedText(const char* format, ...);
     void addAttribute(const char* name, const Value& value); 
+    void printList(const char* title, int index, const gmx::ArrayRef<const int> list);
 };
 
 class TextObjectComponent : public TextDumpComponent {
@@ -43,6 +55,11 @@ public:
     TextObjectComponent(FILE* fp, int indent, const std::string& name)
             : TextDumpComponent(fp, indent + indentValue) {
         fprintf(fp, "\n%*s%s:", indent, "", name.c_str());
+    }
+
+    TextObjectComponent(FILE* fp, int indent, const std::string& name, int index)
+            : TextDumpComponent(fp, indent + indentValue) {
+        fprintf(fp, "\n%*s%s (%d):", indent, "", name.c_str(), index);
     }
 
     TextObjectComponent(FILE* fp, int indent, const char* format, ...)

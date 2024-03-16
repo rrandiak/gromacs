@@ -25,7 +25,8 @@ void DumpStrategyText::pr_title(const char* title) {
 }
 
 void DumpStrategyText::pr_title_i(const char* title, int i) {
-    // fprintf(fp, "%s (%d):\n", title, n);
+    TextDumpComponent* comp = componentsStack.top()->addTextObject(title, i);
+    componentsStack.push(comp);
 }
 
 void DumpStrategyText::pr_title_n(const char* title, int n) {
@@ -300,6 +301,7 @@ void DumpStrategyText::pr_anneal_points(const char* title, const float vec[], in
 
 void DumpStrategyText::pr_functypes(const std::vector<int>& functype, const int n, const std::vector<t_iparams>& iparams)
 {
+    // TODO: move to builder and leave pr_functype?
     TextDumpComponent* comp = componentsStack.top()->addEmptySection();
     for (int i = 0; i < n; i++)
     {
@@ -403,7 +405,166 @@ void DumpStrategyText::pr_grp_opt_agg(
     }
 }
 
+void DumpStrategyText::pr_atoms(const t_atoms* atoms)
+{
+    // TODO: divide between builder and strategy functions
+    // TODO: bShowNumbers to strategy as static member
+    bool bShowNumbers = true;
+    pr_title("atoms");
+    if (available(atoms->atom, "atom"))
+    {
+        pr_title_i("atom", atoms->nr);
+        for (int i = 0; (i < atoms->nr); i++)
+        {
+            // fprintf(stderr,
+            //         "atom[%6d]={type=%3hu, typeB=%3hu, ptype=%8s, m=%12.5e, "
+            //         "q=%12.5e, mB=%12.5e, qB=%12.5e, resind=%5d, atomnumber=%3d}\n",
+            //         i,
+            //         atoms->atom[i].type,
+            //         atoms->atom[i].typeB,
+            //         enumValueToString(atoms->atom[i].ptype),
+            //         atoms->atom[i].m,
+            //         atoms->atom[i].q,
+            //         atoms->atom[i].mB,
+            //         atoms->atom[i].qB,
+            //         atoms->atom[i].resind,
+            //         atoms->atom[i].atomnumber);
+            componentsStack.top()->addFormattedTextLeaf(
+                    "atom[%6d]={type=%3hu, typeB=%3hu, ptype=%8s, m=%12.5e, "
+                    "q=%12.5e, mB=%12.5e, qB=%12.5e, resind=%5d, atomnumber=%3d}",
+                    i,
+                    atoms->atom[i].type,
+                    atoms->atom[i].typeB,
+                    enumValueToString(atoms->atom[i].ptype),
+                    atoms->atom[i].m,
+                    atoms->atom[i].q,
+                    atoms->atom[i].mB,
+                    atoms->atom[i].qB,
+                    atoms->atom[i].resind,
+                    atoms->atom[i].atomnumber);
+        }
+        close_section();
+        // pr_strings
+        pr_title_i("atom", atoms->nr);
+        for (int i = 0; (i < atoms->nr); i++)
+        {
+            componentsStack.top()->addFormattedTextLeaf(
+                "%s[%d]={name=\"%s\"}",
+                "atom", bShowNumbers ? i : -1, *(atoms->atomname[i]));
+        }
+        close_section();
+        // pr_strings_2
+        pr_title_i("type", atoms->nr);
+        for (int i = 0; (i < atoms->nr); i++)
+        {
+            componentsStack.top()->addFormattedTextLeaf(
+                "%s[%d]={name=\"%s\",nameB=\"%s\"}",
+                "type", i, *(atoms->atomtype[i]), *(atoms->atomtypeB[i]));
+        }
+        close_section();
+    }
+    close_section();
+}
 
+void DumpStrategyText::pr_list_i(const char* title, const int index, gmx::ArrayRef<const int> list)
+{
+    componentsStack.top()->printList(title, index, list);
+}
+
+void DumpStrategyText::pr_interaction_list(const std::string& title, const t_functype* functypes, const InteractionList& ilist, const t_iparams* iparams)
+{
+    // TODO: show numbers
+    bool bShowNumbers = true;
+    bool bShowParameters = false;
+
+    pr_title(title.c_str());
+    componentsStack.top()->addFormattedTextLeaf("nr: %d", ilist.size());
+
+    if (ilist.empty())
+    {
+        close_section();
+        return;
+    }
+
+    pr_title("iatoms");
+    TextDumpComponent* comp = componentsStack.top();
+
+    int j = 0;
+    for (int i = 0; i < ilist.size();)
+    {
+        const int type  = ilist.iatoms[i];
+        const int ftype = functypes[type];
+        if (bShowNumbers)
+        {
+            comp->addFormattedTextLeaf("%d type=%d ", j, type);
+        }
+        j++;
+        comp->printFormattedText("(%s)", interaction_function[ftype].name);
+        for (int k = 0; k < interaction_function[ftype].nratoms; k++)
+        {
+            comp->printFormattedText(" %3d", ilist.iatoms[i + 1 + k]);
+        }
+        if (bShowParameters)
+        {
+            comp->printFormattedText("  ");
+            // TODO: migrate to specific strategy func
+            std::vector<KeyFormatValue> kfvs = getInteractionParameters(ftype, iparams[type]);
+            for (size_t j = 0; j < kfvs.size(); j++) {
+                comp->printFormattedText(", %s=", kfvs[j].key);
+                if (std::holds_alternative<int>(kfvs[j].value)) {
+                    comp->printFormattedText(kfvs[j].format, std::get<int>(kfvs[j].value));
+                } else if (std::holds_alternative<float>(kfvs[j].value)) {
+                    comp->printFormattedText(kfvs[j].format, std::get<float>(kfvs[j].value));
+                } else if (std::holds_alternative<double>(kfvs[j].value)) {
+                    comp->printFormattedText(kfvs[j].format, std::get<double>(kfvs[j].value));
+                } else if (std::holds_alternative<int64_t>(kfvs[j].value)) {
+                    comp->printFormattedText(kfvs[j].format, std::get<int64_t>(kfvs[j].value));
+                } else if (std::holds_alternative<real>(kfvs[j].value)) {
+                    comp->printFormattedText(kfvs[j].format, std::get<real>(kfvs[j].value));
+                } else {
+                    comp->printFormattedText("unknown_format");
+                }
+            }
+        }
+        i += 1 + interaction_function[ftype].nratoms;
+    }
+
+    close_section();
+    close_section();
+
+    // indent = pr_title(fp, indent, title);
+    // pr_indent(fp, indent);
+    // fprintf(fp, "nr: %d\n", ilist.size());
+    // if (!ilist.empty())
+    // {
+    //     pr_indent(fp, indent);
+    //     fprintf(fp, "iatoms:\n");
+    //     int j = 0;
+    //     for (int i = 0; i < ilist.size();)
+    //     {
+    //         pr_indent(fp, indent + INDENT);
+    //         const int type  = ilist.iatoms[i];
+    //         const int ftype = functype[type];
+    //         if (bShowNumbers)
+    //         {
+    //             fprintf(fp, "%d type=%d ", j, type);
+    //         }
+    //         j++;
+    //         printf("(%s)", interaction_function[ftype].name);
+    //         for (int k = 0; k < interaction_function[ftype].nratoms; k++)
+    //         {
+    //             fprintf(fp, " %3d", ilist.iatoms[i + 1 + k]);
+    //         }
+    //         if (bShowParameters)
+    //         {
+    //             fprintf(fp, "  ");
+    //             pr_iparams(fp, ftype, iparams[type]);
+    //         }
+    //         fprintf(fp, "\n");
+    //         i += 1 + interaction_function[ftype].nratoms;
+    //     }
+    // }
+}
 // void DumpStrategyText::pr_reals(const char* title, const real* vec, int n)
 // {
 //     // if (available(fp, vec, indent, title))

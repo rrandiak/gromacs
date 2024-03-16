@@ -217,6 +217,14 @@ void DumpJsonStrategy::pr_grp_opt_agg(
 {
 }
 
+void DumpJsonStrategy::pr_atoms(const t_atoms* atoms)
+{}
+    
+void DumpJsonStrategy::pr_list_i(const char* title, const int index, gmx::ArrayRef<const int> list)
+{}
+    
+void DumpJsonStrategy::pr_interaction_list(const std::string& title, const t_functype* functypes, const InteractionList& ilist, const t_iparams* iparams)
+{}
 // void DumpJsonStrategy::pr_reals(const char* title, const real* vec, int n)
 // {
 //     // if (available(fp, vec, indent, title))

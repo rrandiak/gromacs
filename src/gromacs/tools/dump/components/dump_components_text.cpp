@@ -45,6 +45,10 @@ TextObjectComponent* TextDumpComponent::addTextObject(const std::string& name) {
     return new TextObjectComponent(fp, indent, name);
 }
 
+TextObjectComponent* TextDumpComponent::addTextObject(const std::string& name, int index) {
+    return new TextObjectComponent(fp, indent, name, index);
+}
+
 TextObjectComponent* TextDumpComponent::addTextObject(const char* format, ...) {
     va_list args;
     va_start(args, format);
@@ -118,4 +122,58 @@ void TextDumpComponent::addAttribute(const char* name, const Value& value)
 {
     fprintf(fp, "\n%*s%s=", indent, "", name);
     printValue(value);
+}
+
+void TextDumpComponent::printList(const char* title, int index, const gmx::ArrayRef<const int> list)
+{
+    // TODO: show numbers
+    bool bShowNumbers = true;
+    if (list.empty())
+    {
+        fprintf(fp, "\n%*s%s[%d]={}", indent, "", title, index);
+        return;
+    }
+
+    int size = fprintf(fp, "\n%*s%s[%d][num=%zu]={", indent, "", title, bShowNumbers ? index : -1, list.size()) - 1;
+
+    bool isFirst = true;
+    for (const int item : list)
+    {
+        if (!isFirst)
+        {
+            size += fprintf(fp, ", ");
+        }
+        if ((size) > (USE_WIDTH))
+        {
+            fprintf(fp, "\n");
+            size = fprintf(fp, "%*s", indent + indentValue, "");
+        }
+        size += fprintf(fp, "%d", item);
+        isFirst = false;
+    }
+    fprintf(fp, "}");
+        // if (list.empty())
+        // {
+        //     size += fprintf(fp, "%s[%d]={", title, int(i));
+        // }
+        // else
+        // {
+        //     size += fprintf(fp, "%s[%d][num=%zu]={", title, bShowNumbers ? int(i) : -1, list.size());
+        // }
+        // bool isFirst = true;
+        // for (const int j : list)
+        // {
+        //     if (!isFirst)
+        //     {
+        //         size += fprintf(fp, ", ");
+        //     }
+        //     if ((size) > (USE_WIDTH))
+        //     {
+        //         fprintf(fp, "\n");
+        //         size = pr_indent(fp, indent + INDENT);
+        //     }
+        //     size += fprintf(fp, "%d", j);
+        //     isFirst = false;
+        // }
+        // fprintf(fp, "}\n");
 }
