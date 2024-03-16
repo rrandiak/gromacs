@@ -43,6 +43,7 @@ endif()
 
 set_property(GLOBAL PROPERTY GMX_LIBGROMACS_SOURCES)
 set_property(GLOBAL PROPERTY CUDA_SOURCES)
+set_property(GLOBAL PROPERTY HIP_SOURCES)
 set_property(GLOBAL PROPERTY GMX_INSTALLED_HEADERS)
 set_property(GLOBAL PROPERTY GMX_AVX_512_SOURCE)
 
@@ -210,8 +211,17 @@ if (GMX_GPU_CUDA)
         # version which is not present on the system where driver is not installed.
         # At some future release cmake will provide a workaround for this under the hood at which
         # point we can use PRIVATE linking for these libs until then we stick with PUBLIC linking.
-        target_link_libraries(libgromacs PUBLIC cuda nvidia-ml)
+        target_link_libraries(libgromacs PUBLIC ${GMX_CUDA_DRV_LIB} ${GMX_NVIDIA_ML_LIB})
     endif()
+elseif(GMX_GPU_HIP)
+    get_property(PROPERTY_HIP_SOURCES GLOBAL PROPERTY HIP_SOURCES)
+
+    foreach(hip_file ${PROPERTY_HIP_SOURCES})
+       set_source_files_properties(${hip_file} PROPERTIES LANGUAGE HIP)
+    endforeach()
+
+    gmx_hip_add_library(libgromacs ${LIBGROMACS_SOURCES})
+    target_link_libraries(libgromacs PRIVATE hip::host)
 else()
     add_library(libgromacs ${LIBGROMACS_SOURCES})
 endif()
@@ -220,8 +230,35 @@ if (TARGET Heffte::Heffte)
     target_link_libraries(libgromacs PRIVATE Heffte::Heffte)
 endif()
 
+if(GMX_GPU_FFT_HIPFFT)
+    target_link_libraries(libgromacs PRIVATE roc::rocfft hip::hipfft)
+endif()
+if(GMX_GPU_FFT_VKFFT)
+    target_link_libraries(libgromacs PRIVATE VkFFT)
+endif()
 if(GMX_GPU_FFT_ROCFFT)
     target_link_libraries(libgromacs PRIVATE roc::rocfft)
+endif()
+
+if(GMX_GPU_FFT_ONEMKL)
+    # Availability of targets was checked in gmxManageOneMKL.cmake.
+    # Linking directly against backend library to avoid double-free issue
+    # encountered with cufft backend and urTearDown for the DPC++ runtime.
+    # See #5000.
+    if("${SYCL_CXX_FLAGS_EXTRA}" MATCHES "fsycl-targets=.*(nvptx64|nvidia_gpu)")
+        target_link_libraries(libgromacs PRIVATE MKL::onemkl_dft_cufft)
+        target_compile_definitions(libgromacs PRIVATE ONEMKL_USING_CUFFT_BACKEND)
+    elseif("${SYCL_CXX_FLAGS_EXTRA}" MATCHES "fsycl-targets=.*(amdgcn|amd_gpu)")
+        target_link_libraries(libgromacs PRIVATE MKL::onemkl_dft_rocfft)
+        target_compile_definitions(libgromacs PRIVATE ONEMKL_USING_ROCFFT_BACKEND)
+    else()
+        target_link_libraries(libgromacs PRIVATE MKL::onemkl_dft_mklgpu)
+        target_compile_definitions(libgromacs PRIVATE ONEMKL_USING_MKLGPU_BACKEND)
+    endif()
+    # Linking directly against the backend seems to additionally require
+    # manually including the required headers.
+    get_target_property(ONEMKL_DFT_INCLUDE_DIR MKL::onemkl INTERFACE_INCLUDE_DIRECTORIES)
+    target_include_directories(libgromacs PRIVATE ${ONEMKL_DFT_INCLUDE_DIR})
 endif()
 
 target_link_libraries(libgromacs PRIVATE $<BUILD_INTERFACE:common>)
@@ -340,6 +377,11 @@ if (GMX_GPU_CUDA AND CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     endif()
 endif()
 
+if (GMX_GPU_HIP)
+    get_property(HIP_SOURCES GLOBAL PROPERTY HIP_SOURCES)
+    set_source_files_properties(${HIP_SOURCES} PROPERTIES COMPILE_FLAGS "${HIP_CXX_FLAGS}")
+endif()
+
 # Only add the -fsycl flag to sources that really need it
 if (GMX_GPU_SYCL)
     get_property(SYCL_SOURCES GLOBAL PROPERTY SYCL_SOURCES)
@@ -348,18 +390,13 @@ endif()
 
 gmx_setup_tng_for_libgromacs()
 
-# We apply the SYCL flag explicitly just for libgromacs, since bugs in the beta versions of
-# icpx/dpcpp leads to crashes if we try to link an library without any SYCL code with the
-# -fsycl flag enabled. Once that bug is fixed, we should change it to simply add
-# SYCL_CXX_FLAGS to GMX_SHARED_LINKER_FLAGS.
 target_link_libraries(libgromacs
                       PRIVATE
                       ${EXTRAE_LIBRARIES}
                       ${GMX_EXTRA_LIBRARIES}
                       ${GMX_COMMON_LIBRARIES}
                       ${FFT_LIBRARIES} ${LINEAR_ALGEBRA_LIBRARIES}
-                      ${THREAD_LIB} ${GMX_SHARED_LINKER_FLAGS}
-                      ${SYCL_CXX_FLAGS}
+                      ${THREAD_LIB}
                       ${OpenCL_LIBRARIES}
                       $<$<PLATFORM_ID:SunOS>:socket>
                       PUBLIC

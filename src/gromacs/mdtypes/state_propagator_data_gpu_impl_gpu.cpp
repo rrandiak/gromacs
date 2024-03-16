@@ -43,11 +43,13 @@
 
 #include "config.h"
 
-#if GMX_GPU
+#if GMX_GPU && !GMX_GPU_HIP
 
 #    include "gromacs/gpu_utils/device_stream_manager.h"
 #    include "gromacs/gpu_utils/devicebuffer.h"
 #    include "gromacs/gpu_utils/gpueventsynchronizer.h"
+#    include "gromacs/math/functions.h"
+#    include "gromacs/math/utilities.h"
 #    include "gromacs/math/vectypes.h"
 #    include "gromacs/mdtypes/state_propagator_data_gpu.h"
 #    include "gromacs/timing/wallcycle.h"
@@ -162,8 +164,7 @@ void StatePropagatorDataGpu::Impl::reinit(int numAtomsLocal, int numAtomsAll)
     int numAtomsPadded;
     if (allocationBlockSizeDivisor_ > 0)
     {
-        numAtomsPadded = ((numAtomsAll_ + allocationBlockSizeDivisor_ - 1) / allocationBlockSizeDivisor_)
-                         * allocationBlockSizeDivisor_;
+        numAtomsPadded = divideRoundUp(numAtomsAll_, allocationBlockSizeDivisor_) * allocationBlockSizeDivisor_;
     }
     else
     {
@@ -191,6 +192,8 @@ void StatePropagatorDataGpu::Impl::reinit(int numAtomsLocal, int numAtomsAll)
     if (sc_haveGpuFBufferOps)
     {
         clearDeviceBufferAsync(&d_f_, 0, d_fCapacity_, *localStream_);
+        // We need to synchronize to avoid a data race with copyForcesToGpu(Local).
+        localStream_->synchronize();
     }
 
     wallcycle_sub_stop(wcycle_, WallCycleSubCounter::LaunchStatePropagatorData);

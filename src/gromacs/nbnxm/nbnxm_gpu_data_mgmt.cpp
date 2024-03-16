@@ -226,10 +226,11 @@ static inline void init_plist(gpu_plist* pl)
 {
     /* initialize to nullptr pointers to data that is not allocated here and will
        need reallocation in nbnxn_gpu_init_pairlist */
-    pl->sci      = nullptr;
-    pl->cjPacked = nullptr;
-    pl->imask    = nullptr;
-    pl->excl     = nullptr;
+    pl->sci                  = nullptr;
+    pl->cjPacked             = nullptr;
+    pl->imask                = nullptr;
+    pl->excl                 = nullptr;
+    pl->d_rollingPruningPart = nullptr;
 
     /* size -1 indicates that the respective array hasn't been initialized yet */
     pl->na_c                   = -1;
@@ -591,52 +592,53 @@ void gpu_init_pairlist(NbnxmGpu* nb, const NbnxnPairlistGpu* h_plist, const Inte
                        GpuApiCallBehavior::Async,
                        bDoTime ? iTimers.pl_h2d.fetchNextEvent() : nullptr);
 
-/* gpu sorting is only implemented for cuda */
-#if GMX_GPU_CUDA
-    reallocateDeviceBuffer(&d_plist->sorting.sciSorted,
-                           h_plist->sci.size(),
-                           &d_plist->sorting.nsciSorted,
-                           &d_plist->sorting.sciSortedNalloc,
-                           deviceContext);
-    copyToDeviceBuffer(&d_plist->sorting.sciSorted,
-                       h_plist->sci.data(),
-                       0,
-                       h_plist->sci.size(),
-                       deviceStream,
-                       GpuApiCallBehavior::Async,
-                       bDoTime ? iTimers.pl_h2d.fetchNextEvent() : nullptr);
-    reallocateDeviceBuffer(&d_plist->sorting.sciCount,
-                           h_plist->sci.size(),
-                           &d_plist->sorting.nsciCounted,
-                           &d_plist->sorting.sciCountedNalloc,
-                           deviceContext);
-
-    if (d_plist->sorting.nscanTemporary == -1)
+    /* gpu sorting is only implemented for cuda */
+    if (nbnxmSortListsOnGpu())
     {
-        reallocateDeviceBuffer(&d_plist->sorting.sciHistogram,
-                               c_sciHistogramSize + 1,
-                               &d_plist->sorting.nsciHistogram,
-                               &d_plist->sorting.sciHistogramNalloc,
+        reallocateDeviceBuffer(&d_plist->sorting.sciSorted,
+                               h_plist->sci.size(),
+                               &d_plist->sorting.nsciSorted,
+                               &d_plist->sorting.sciSortedNalloc,
+                               deviceContext);
+        copyToDeviceBuffer(&d_plist->sorting.sciSorted,
+                           h_plist->sci.data(),
+                           0,
+                           h_plist->sci.size(),
+                           deviceStream,
+                           GpuApiCallBehavior::Async,
+                           bDoTime ? iTimers.pl_h2d.fetchNextEvent() : nullptr);
+        reallocateDeviceBuffer(&d_plist->sorting.sciCount,
+                               h_plist->sci.size(),
+                               &d_plist->sorting.nsciCounted,
+                               &d_plist->sorting.sciCountedNalloc,
                                deviceContext);
 
-        reallocateDeviceBuffer(&d_plist->sorting.sciOffset,
-                               c_sciHistogramSize,
-                               &d_plist->sorting.nsciOffset,
-                               &d_plist->sorting.sciOffsetNalloc,
-                               deviceContext);
+        if (d_plist->sorting.nscanTemporary == -1)
+        {
+            reallocateDeviceBuffer(&d_plist->sorting.sciHistogram,
+                                   c_sciHistogramSize + 1,
+                                   &d_plist->sorting.nsciHistogram,
+                                   &d_plist->sorting.sciHistogramNalloc,
+                                   deviceContext);
 
-        size_t scanTemporarySize = 0;
-        getExclusiveScanWorkingArraySize(scanTemporarySize, d_plist, deviceStream);
+            reallocateDeviceBuffer(&d_plist->sorting.sciOffset,
+                                   c_sciHistogramSize,
+                                   &d_plist->sorting.nsciOffset,
+                                   &d_plist->sorting.sciOffsetNalloc,
+                                   deviceContext);
 
-        reallocateDeviceBuffer(&d_plist->sorting.scanTemporary,
-                               static_cast<int>(scanTemporarySize),
-                               &d_plist->sorting.nscanTemporary,
-                               &d_plist->sorting.scanTemporaryNalloc,
-                               deviceContext);
+            size_t scanTemporarySize = 0;
+            getExclusiveScanWorkingArraySize(scanTemporarySize, d_plist, deviceStream);
+
+            reallocateDeviceBuffer(&d_plist->sorting.scanTemporary,
+                                   scanTemporarySize,
+                                   &d_plist->sorting.nscanTemporary,
+                                   &d_plist->sorting.scanTemporaryNalloc,
+                                   deviceContext);
+        }
+
+        clearDeviceBufferAsync(&d_plist->sorting.sciHistogram, 0, c_sciHistogramSize, deviceStream);
     }
-
-    clearDeviceBufferAsync(&d_plist->sorting.sciHistogram, 0, c_sciHistogramSize, deviceStream);
-#endif
 
     reallocateDeviceBuffer(&d_plist->cjPacked,
                            h_plist->cjPacked.size(),
@@ -742,7 +744,7 @@ void gpu_init_atomdata(NbnxmGpu* nb, const nbnxn_atomdata_t* nbat)
     }
 
     atdat->numAtoms      = numAtoms;
-    atdat->numAtomsLocal = nbat->natoms_local;
+    atdat->numAtomsLocal = nbat->numLocalAtoms();
 
     /* need to clear GPU f output if realloc happened */
     if (realloced)
@@ -902,15 +904,16 @@ void gpu_launch_cpyback(NbnxmGpu*                nb,
     if (!stepWork.useGpuFBufferOps)
     {
         static_assert(
-                sizeof(*nbatom->out[0].f.data()) == sizeof(float),
+                sizeof(*nbatom->outputBuffer(0).f.data()) == sizeof(float),
                 "The host force buffer should be in single precision to match device data size.");
-        copyFromDeviceBuffer(reinterpret_cast<Float3*>(nbatom->out[0].f.data()) + atomsRange.begin(),
-                             &adat->f,
-                             atomsRange.begin(),
-                             atomsRange.size(),
-                             deviceStream,
-                             GpuApiCallBehavior::Async,
-                             bDoTime ? timers->xf[atomLocality].nb_d2h.fetchNextEvent() : nullptr);
+        copyFromDeviceBuffer(
+                reinterpret_cast<Float3*>(nbatom->outputBuffer(0).f.data()) + atomsRange.begin(),
+                &adat->f,
+                atomsRange.begin(),
+                atomsRange.size(),
+                deviceStream,
+                GpuApiCallBehavior::Async,
+                bDoTime ? timers->xf[atomLocality].nb_d2h.fetchNextEvent() : nullptr);
 
         issueClFlushInStream(deviceStream);
     }

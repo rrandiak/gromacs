@@ -231,7 +231,7 @@ gmx_option_multichoice(
     GMX_GPU
     "Framework for GPU acceleration"
     OFF
-    OFF CUDA OpenCL SYCL)
+    OFF CUDA OpenCL SYCL HIP)
 if(GMX_GPU STREQUAL SYCL)
     gmx_option_multichoice(
         GMX_SYCL
@@ -248,11 +248,16 @@ if(GMX_GPU STREQUAL SYCL)
             check_cxx_compiler_flag("-fsycl" HAVE_SYCL_DPCPP)
             if(HAVE_SYCL_DPCPP)
                 set(GMX_SYCL "DPCPP")
-                message(STATUS "GROMACS SYCL backend: Setting GMX_SYCL=DPCPP (Intel oneAPI DPC++)")
+                if (NOT "${GMX_REPORTED_SYCL_BACKEND}" STREQUAL ${GMX_SYCL})
+                    message(STATUS "GROMACS SYCL backend: Setting GMX_SYCL=DPCPP (Intel oneAPI DPC++)")
+                endif()
             else()
                 set(GMX_SYCL "ACPP")
-                message(STATUS "GROMACS SYCL backend: Setting GMX_SYCL=ACPP (AdaptiveCpp/hipSYCL)")
+                if (NOT "${GMX_REPORTED_SYCL_BACKEND}" STREQUAL ${GMX_SYCL})
+                    message(STATUS "GROMACS SYCL backend: Setting GMX_SYCL=ACPP (AdaptiveCpp/hipSYCL)")
+                endif()
             endif()
+            set(GMX_REPORTED_SYCL_BACKEND ${GMX_SYCL} CACHE INTERNAL "The most recent SYCL backend reported via CMake status message")
         endif ()
     endif ()
 endif()
@@ -293,7 +298,7 @@ gmx_dependent_option(
     GMX_USE_HEFFTE
     "Use HeFFTe for distributed FFT support. Used with CUDA backend"
     OFF
-    "GMX_GPU STREQUAL CUDA OR GMX_GPU STREQUAL SYCL;GMX_MPI")
+    "GMX_GPU STREQUAL CUDA OR GMX_GPU STREQUAL HIP OR GMX_GPU STREQUAL SYCL;GMX_MPI")
 gmx_dependent_option(
     GMX_USE_CUFFTMP
     "Use cuFFTMp for distributed FFT support. Used with CUDA backend"
@@ -311,10 +316,13 @@ gmx_dependent_option(
 # OpenCL           | VkFFT or clFFT according to toolchain
 # SYCL via hipSYCL | VkFFT
 # SYCL via DPCPP   | MKL
+# HIP              | hipFFT
 # =================+======================================
 if (GMX_GPU)
     if (GMX_GPU STREQUAL CUDA)
         set(GMX_GPU_FFT_LIBRARY_DEFAULT "cuFFT")
+    elseif(GMX_GPU STREQUAL HIP)
+        set(GMX_GPU_FFT_LIBRARY_DEFAULT "hipFFT")
     elseif(GMX_GPU STREQUAL OPENCL)
         if (APPLE OR MSVC)
             set(GMX_GPU_FFT_LIBRARY_DEFAULT "VkFFT")
@@ -333,10 +341,10 @@ if (GMX_GPU)
         GMX_GPU_FFT_LIBRARY
         "GPU FFT library"
         "${GMX_GPU_FFT_LIBRARY_DEFAULT}"
-        cuFFT clFFT VkFFT MKL rocFFT BBFFT none)
+        cuFFT hipFFT clFFT VkFFT MKL oneMKL rocFFT BBFFT none)
     # The validity of chosen option is later verified by the selected backend
 
-    foreach (_gpu_fft_library cuFFT clFFT VkFFT MKL rocFFT BBFFT)
+    foreach (_gpu_fft_library cuFFT hipFFT clFFT VkFFT MKL oneMKL rocFFT BBFFT)
         string(TOUPPER "${_gpu_fft_library}" _gpu_fft_library_upper)
         if (GMX_GPU_FFT_LIBRARY STREQUAL ${_gpu_fft_library_upper})
             if (NOT GMX_GPU_FFT_QUIET_AFTER_FIRST_RUN)
@@ -692,10 +700,12 @@ if(GMX_GPU)
     string(TOUPPER "${GMX_GPU}" _gmx_gpu_uppercase)
     if(${_gmx_gpu_uppercase} STREQUAL "CUDA")
         include(gmxManageCuda)
+    elseif(${_gmx_gpu_uppercase} STREQUAL "HIP")
+        include(gmxManageHip)
     elseif(${_gmx_gpu_uppercase} STREQUAL "OPENCL")
         message(STATUS "GPU support with OpenCL is deprecated. It is still fully supported (and " 
-            "recommended for AMD, Intel, and Apple GPUs). It may be replaced by different "
-            "approaches in future releases of GROMACS.")
+            "recommended for Apple GPUs). Please use CUDA for running on NVIDIA GPUs and "
+            "SYCL for running on Intel and AMD GPUs.")
         include(gmxManageOpenCL)
     elseif(${_gmx_gpu_uppercase} STREQUAL "SYCL")
         include(gmxManageSycl)
@@ -713,7 +723,7 @@ if(GMX_GPU)
         endif()
     endif()
     # Only OpenCL and SYCL support changing the default cluster size
-    if (${_gmx_gpu_uppercase} STREQUAL "CUDA")
+    if (${_gmx_gpu_uppercase} STREQUAL "CUDA" OR ${_gmx_gpu_uppercase} STREQUAL "HIP")
         if (GMX_GPU_NB_CLUSTER_SIZE AND NOT "${GMX_GPU_NB_CLUSTER_SIZE}" EQUAL 8)
             message(FATAL_ERROR "Changing GMX_GPU_NB_CLUSTER_SIZE is not supported in CUDA (the default GMX_GPU_NB_CLUSTER_SIZE=8 is used)")
         endif()
@@ -739,9 +749,9 @@ if(GMX_GPU)
         mark_as_advanced(GMX_GPU_NB_CLUSTER_SIZE)
     endif()
 
-    if (NOT (${_gmx_gpu_uppercase} STREQUAL "SYCL"))
+    if (NOT (${_gmx_gpu_uppercase} STREQUAL "SYCL" OR ${_gmx_gpu_uppercase} STREQUAL "HIP"))
         if (GMX_GPU_NB_DISABLE_CLUSTER_PAIR_SPLIT)
-            message(FATAL_ERROR "Disabling cluster pair splitting is only supported in SYCL, set GMX_GPU_NB_DISABLE_CLUSTER_PAIR_SPLIT=off otherwise")
+            message(FATAL_ERROR "Disabling cluster pair splitting is only supported with SYCL or HIP, set GMX_GPU_NB_DISABLE_CLUSTER_PAIR_SPLIT=off otherwise")
         endif()
     endif()
 endif()
@@ -754,7 +764,7 @@ mark_as_advanced(GMX_GPU_NB_NUM_CLUSTER_PER_CELL_Z)
 
 # For build with CUDA/SYCL and Lib-MPI, check if underlying MPI implementation is GPU-aware
 # GPU-aware MPI allows direct GPU communication without staging data through host
-if((GMX_GPU_CUDA OR GMX_GPU_SYCL) AND GMX_LIB_MPI)
+if((GMX_GPU_CUDA OR GMX_GPU_HIP OR GMX_GPU_SYCL) AND GMX_LIB_MPI)
     include(gmxManageGpuAwareMpi)
 else()
     set(HAVE_MPI_EXT 0)
@@ -772,14 +782,16 @@ if(GMX_GPU_CUDA AND NOT GMX_GPU_FFT_CUFFT)
 endif()
 
 if(GMX_USE_HEFFTE)
-    if(NOT GMX_GPU_CUDA AND NOT GMX_GPU_SYCL)
-        message(FATAL_ERROR "HeFFTe support requires a CUDA or SYCL build")
+    if(NOT GMX_GPU_CUDA AND NOT GMX_GPU_HIP AND NOT GMX_GPU_SYCL)
+        message(FATAL_ERROR "HeFFTe support requires a CUDA, HIP or SYCL build")
     endif()
     if(NOT GMX_LIB_MPI)
         message(FATAL_ERROR "HeFFTe support requires a library MPI build")
     endif()
     if(GMX_GPU_CUDA)
         find_package(Heffte 2.2.0 REQUIRED CUDA)
+    elseif(GMX_GPU_HIP)
+        find_package(Heffte 2.2.0 REQUIRED ROCM)
     elseif(GMX_GPU_SYCL)
         if(GMX_GPU_FFT_ROCFFT)
             find_package(Heffte 2.2.0 REQUIRED ROCM)
@@ -828,8 +840,6 @@ gmx_add_cache_dependency(GMX_BUILD_UNITTESTS BOOL BUILD_TESTING OFF)
 ########################################################################
 # Our own GROMACS tests
 ########################################################################
-
-include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/src/external)
 
 include(gmxTestInlineASM)
 gmx_test_inline_asm_gcc_x86(GMX_X86_GCC_INLINE_ASM)

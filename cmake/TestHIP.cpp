@@ -1,7 +1,7 @@
 /*
  * This file is part of the GROMACS molecular simulation package.
  *
- * Copyright 2020- The GROMACS Authors
+ * Copyright 2024- The GROMACS Authors
  * and the project initiators Erik Lindahl, Berk Hess and David van der Spoel.
  * Consult the AUTHORS/COPYING files and https://www.gromacs.org for details.
  *
@@ -31,22 +31,17 @@
  * To help us fund GROMACS development, we humbly ask that you cite
  * the research papers on the package. Check out https://www.gromacs.org.
  */
-/*! \internal \file
- *
- * \brief This file declares a type useful for spline vectors
- *
- * \author Berk Hess <hess@kth.se>
- * \author Mark Abraham <mark.j.abraham@gmail.com>
- * \ingroup module_ewald
- */
 
-#ifndef GMX_EWALD_SPLINE_VECTORS_H
-#define GMX_EWALD_SPLINE_VECTORS_H
+#include "hip/hip_runtime.h"
 
-#include "gromacs/math/vectypes.h"
-#include "gromacs/utility/real.h"
+__global__ void kernel (void) {
+    float num = 0.;
+    atomicAdd(&num, 1.3);
+}
 
-/*! \brief Helper typedef for spline vectors */
-typedef real* splinevec[DIM];
-
-#endif
+int
+main()
+{
+    hipLaunchKernelGGL(kernel, dim3(1), dim3(1), 0, 0);
+    return 0;
+}

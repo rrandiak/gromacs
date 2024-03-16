@@ -76,7 +76,7 @@ endfunction()
 # GROMACS build configurations, and those expected for the current
 # CMake build type (e.g. Release) to TARGET. Other GROMACS CMake code
 # is expected to use either gmx_target_compile_options(name_of_target)
-# or gmx_cuda_target_compile_options(name_of_variable) because CUDA
+# or gmx_device_target_compile_options(name_of_variable) because CUDA
 # compilation has special requirements.
 #
 # Most targets (ie. libraries, executables) need compiler flags that
@@ -146,7 +146,9 @@ endfunction()
 # ${VARIABLE_NAME}, along with other such variables that are
 # specialized for the various build_types. Hopefully this will improve
 # when we use native CUDA language support in our CMake.
-function(gmx_cuda_target_compile_options VARIABLE_NAME)
+# This function is also used for wrapping the options passed to the HIP
+# compiler
+function(gmx_device_target_compile_options VARIABLE_NAME)
     if (GMX_SKIP_DEFAULT_CFLAGS)
         set (CXXFLAGS "")
     else()
@@ -236,7 +238,7 @@ macro (gmx_c_flags)
     include(CheckCXXCompilerFlag)
 
     # gcc
-    if(CMAKE_COMPILER_IS_GNUCC)
+    if(CMAKE_C_COMPILER_ID MATCHES "GNU")
         #flags are added in reverse order and -Wno* need to appear after -Wall
         if(NOT GMX_OPENMP)
             GMX_TEST_CFLAG(CFLAGS_PRAGMA "-Wno-unknown-pragmas" GMXC_CFLAGS)
@@ -259,7 +261,7 @@ macro (gmx_c_flags)
         GMX_TEST_CFLAG(CFLAGS_NOINLINE "-fno-inline" GMXC_CFLAGS_DEBUG)
     endif()
     # g++
-    if(CMAKE_COMPILER_IS_GNUCXX)
+    if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
         if(NOT GMX_OPENMP)
             GMX_TEST_CXXFLAG(CXXFLAGS_PRAGMA "-Wno-unknown-pragmas" GMXC_CXXFLAGS)
         endif()
@@ -357,6 +359,8 @@ macro (gmx_c_flags)
             GMX_TEST_CXXFLAG(CXXFLAGS_WARN "/wd4800;/wd4355;/wd4996;/wd4305;/wd4244;/wd4101;/wd4267;/wd4090;/wd4068;" GMXC_CXXFLAGS)
         endif()
         GMX_TEST_CXXFLAG(CXXFLAGS_LANG "/permissive-" GMXC_CXXFLAGS)
+        # Set source and execution character sets to UTF-8
+        GMX_TEST_CXXFLAG(CXXFLAGS_LANG "/utf-8" GMXC_CXXFLAGS)
     endif()
 
     if (CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_C_COMPILER_ID MATCHES "IntelLLVM")
@@ -485,6 +489,9 @@ function(gmx_warn_on_everything target)
     # Default statement for enum is OK.
     # It's OK to not have branches for Count members of enum classes
     gmx_target_warning_suppression(${target} "-Wno-switch-enum" HAS_WARNING_NO_SWITCH_ENUM)
+
+    # Sometimes it's ok to not have a default: switch statement
+    gmx_target_warning_suppression(${target} "-Wno-switch-default" HAS_WARNING_NO_SWITCH_DEFAULT)
 
     # We need to use macros like
     # GMX_CATCH_ALL_AND_EXIT_WITH_FATAL_ERROR and

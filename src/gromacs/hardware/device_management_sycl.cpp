@@ -322,14 +322,6 @@ static DeviceStatus isDeviceCompatible(const sycl::device&           syclDevice,
             return DeviceStatus::Incompatible;
         }
 
-#if GMX_SYCL_DPCPP && defined(__INTEL_LLVM_COMPILER) && (__INTEL_LLVM_COMPILER == 20220000)
-        if (syclDevice.get_backend() == sycl::backend::ext_oneapi_level_zero)
-        {
-            // See Issue #4354
-            return DeviceStatus::IncompatibleLevelZeroAndOneApi2022;
-        }
-#endif
-
 // Ensure any changes are in sync with nbnxm_sycl_kernel.h
 #if GMX_GPU_NB_CLUSTER_SIZE == 4
         const std::vector<int> compiledNbnxmSubGroupSizes{ 8 };
@@ -406,7 +398,7 @@ static bool isDeviceFunctional(const sycl::device& syclDevice, std::string* erro
     static const int numThreads = 8;
     try
     {
-        sycl::queue                                     queue(syclDevice);
+        sycl::queue queue(syclDevice, { sycl::property::queue::in_order() });
         std::unique_ptr<int, std::function<void(int*)>> buffer = {
             sycl::malloc_device<int>(numThreads, queue), [=](int* ptr) { sycl::free(ptr, queue); }
         };
@@ -460,7 +452,7 @@ static DeviceStatus checkDevice(size_t deviceId, const DeviceInformation& device
 {
 
     DeviceStatus supportStatus = isDeviceCompatible(
-            deviceInfo.syclDevice, deviceInfo.deviceVendor, deviceInfo.supportedSubGroupSizes());
+            deviceInfo.syclDevice, deviceInfo.deviceVendor, deviceInfo.supportedSubGroupSizes);
     if (supportStatus != DeviceStatus::Compatible)
     {
         return supportStatus;
@@ -555,17 +547,35 @@ static std::vector<sycl::device> partitionDevices(const std::vector<sycl::device
     for (const auto& device : devices)
     {
         using sycl::info::partition_property, sycl::info::partition_affinity_domain;
-        try
+        // Get the partition affinity domains supported by this device for
+        // partitioning into at least two sub-devices along that affinity domain.
+        const std::vector<partition_affinity_domain> supportedPartitionAffinityDomains =
+                device.get_info<sycl::info::device::partition_affinity_domains>();
+        // In principle, the above information is enough to decide
+        // whether to attempt NUMA-based device partitioning. But the
+        // driver changed in late 2023 to show PVC tiles as devices by
+        // default and other infrastructure is still catching up. So
+        // we make a further check that some sub-devices exist.
+        const unsigned int subDeviceCount =
+                device.get_info<sycl::info::device::partition_max_sub_devices>();
+        // Can this device be partitioned into two or more sub-devices along NUMA domains?
+        if ((subDeviceCount > 0)
+            && (std::find(supportedPartitionAffinityDomains.begin(),
+                          supportedPartitionAffinityDomains.end(),
+                          partition_affinity_domain::numa)
+                != supportedPartitionAffinityDomains.end()))
         {
             /* Split the device along NUMA domains into sub-devices.
-             * For multi-tile Intel GPUs, this corresponds to individual tiles.
-             * All other devices tested don't support partitioning and throw sycl::exception. */
-            const auto subDevices =
+             * For multi-tile Intel GPUs, this corresponds to
+             * individual tiles.  If create_sub_devices() is called
+             * for a device that does not support NUMA-based partitioning
+             * it would throw, but the above logic avoids that. */
+            const std::vector<sycl::device> subDevices =
                     device.create_sub_devices<partition_property::partition_by_affinity_domain>(
                             partition_affinity_domain::numa);
             retVal.insert(retVal.end(), subDevices.begin(), subDevices.end());
         }
-        catch (const sycl::exception&)
+        else
         {
             retVal.push_back(device);
         }
@@ -596,19 +606,20 @@ std::vector<std::unique_ptr<DeviceInformation>> findDevices()
 
         deviceInfos[i]->gpuAwareMpiStatus = getDeviceGpuAwareMpiStatus(syclDevice.get_backend());
 
-        deviceInfos[i]->supportedSubGroupSizesSize = 0;
+        deviceInfos[i]->supportedSubGroupSizes.clear();
         try
         {
             const auto sgSizes = syclDevice.get_info<sycl::info::device::sub_group_sizes>();
-            GMX_RELEASE_ASSERT(sgSizes.size() <= deviceInfos[i]->supportedSubGroupSizesData.size(),
+            GMX_RELEASE_ASSERT(sgSizes.size() <= deviceInfos[i]->supportedSubGroupSizes.capacity(),
                                "Device supports too many subgroup sizes");
-            deviceInfos[i]->supportedSubGroupSizesSize = sgSizes.size();
-            // TODO: check capacity, see MR !3208
-            std::copy(sgSizes.begin(), sgSizes.end(), deviceInfos[i]->supportedSubGroupSizesData.begin());
+            for (int sgSize : sgSizes)
+            {
+                deviceInfos[i]->supportedSubGroupSizes.push_back(sgSize);
+            }
         }
         catch (std::exception)
         {
-            deviceInfos[i]->supportedSubGroupSizesSize = 0;
+            deviceInfos[i]->supportedSubGroupSizes.clear();
             // The device will be marked incompatible by checkDevice below
         }
 

@@ -2243,7 +2243,7 @@ int gmx_grompp(int argc, char* argv[])
                     "lead to instabilities. If you really want to combine position restraints with "
                     "pressure coupling, we suggest to use %s pressure coupling instead.",
                     enumValueToString(ir->pressureCouplingOptions.epc),
-                    enumValueToString(PressureCoupling::Berendsen));
+                    enumValueToString(PressureCoupling::CRescale));
             wi.addNote(warningMessage);
         }
 
@@ -2625,19 +2625,21 @@ int gmx_grompp(int argc, char* argv[])
         {
             copy_mat(ir->pressureCouplingOptions.compress, compressibility);
         }
+        real initLambda = 0;
+        if (ir->efep != FreeEnergyPerturbationType::No)
+        {
+            if (ir->fepvals->init_fep_state >= 0)
+            {
+                initLambda = ir->fepvals->all_lambda[static_cast<int>(
+                        FreeEnergyPerturbationCouplingType::Fep)][ir->fepvals->init_fep_state];
+            }
+            else
+            {
+                initLambda = ir->fepvals->init_lambda;
+            }
+        }
         setStateDependentAwhParams(
-                ir->awhParams.get(),
-                *ir->pull,
-                pull,
-                state.box,
-                ir->pbcType,
-                compressibility,
-                *ir,
-                ir->efep != FreeEnergyPerturbationType::No ? ir->fepvals->all_lambda[static_cast<int>(
-                        FreeEnergyPerturbationCouplingType::Fep)][ir->fepvals->init_fep_state]
-                                                           : 0,
-                sys,
-                &wi);
+                ir->awhParams.get(), *ir->pull, pull, state.box, ir->pbcType, compressibility, *ir, initLambda, sys, &wi);
     }
 
     if (ir->bPull)

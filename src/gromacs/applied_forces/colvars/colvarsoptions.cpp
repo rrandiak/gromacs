@@ -131,7 +131,10 @@ void ColvarsOptions::writeInternalParametersToKvt(KeyValueTreeObjectBuilder tree
 {
 
     // Copy the content of the colvars input file into a string for latter save in KVT
-    colvarsConfigString_ = TextReader::readFileToString(colvarsFileName_);
+    if (!colvarsFileName_.empty())
+    {
+        colvarsConfigString_ = TextReader::readFileToString(colvarsFileName_);
+    }
 
     // Write colvars input file as a string
     treeBuilder.addValue<std::string>(c_colvarsModuleName + "-" + c_configStringTag_, colvarsConfigString_);
@@ -271,7 +274,7 @@ void ColvarsOptions::processEdrFilename(const EdrOutputFilename& filename)
     GMX_RELEASE_ASSERT(!filename.edrOutputFilename_.empty(), "Empty name for the *.edr output file");
 
     outputPrefix_ =
-            stripExtension(std::filesystem::path(filename.edrOutputFilename_).filename()).u8string();
+            stripExtension(std::filesystem::path(filename.edrOutputFilename_).filename()).string();
 }
 
 

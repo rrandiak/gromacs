@@ -204,9 +204,17 @@ double biasedLogWeightFromPoint(ArrayRef<const DimParams>  dimParams,
                 {
                     const int pointLambdaIndex     = grid.point(pointIndex).coordValue[d];
                     const int gridpointLambdaIndex = grid.point(gridpointIndex).coordValue[d];
-                    logWeight -= dimParams[d].fepDimParams().beta
-                                 * (neighborLambdaEnergies[pointLambdaIndex]
-                                    - neighborLambdaEnergies[gridpointLambdaIndex]);
+
+                    const double energyDiff = neighborLambdaEnergies[pointLambdaIndex]
+                                              - neighborLambdaEnergies[gridpointLambdaIndex];
+                    if (dimParams[d].fepDimParams().beta * energyDiff < -0.5 * detail::c_largePositiveExponent)
+                    {
+                        GMX_THROW(SimulationInstabilityError(gmx::formatString(
+                                "AWH lambda dimension encountered a too large negative neighbor "
+                                "energy difference of %f kJ/mol",
+                                energyDiff)));
+                    }
+                    logWeight -= dimParams[d].fepDimParams().beta * energyDiff;
                 }
             }
             else
@@ -297,7 +305,7 @@ double BiasState::calculateAverageNonZeroMetric()
 {
     int    elementCount = 0;
     double sumVolume    = 0;
-    for (gmx::Index pointIndex = 0; pointIndex < ssize(points_); pointIndex++)
+    for (gmx::Index pointIndex = 0; pointIndex < gmx::ssize(points_); pointIndex++)
     {
         std::vector<double> correlationIntegral     = getSharedPointCorrelationIntegral(pointIndex);
         double              correlationTensorVolume = getSqrtDeterminant(correlationIntegral);
@@ -335,7 +343,7 @@ double BiasState::scaleTargetByMetric(double targetMetricScalingLimit)
      * point depending on its sampling, but it cannot be lower than lowerScalingLimit. */
     double upperScalingLimit = averageVolume * targetMetricScalingLimit;
     double lowerScalingLimit = averageVolume / targetMetricScalingLimit;
-    for (gmx::Index pointIndex = 0; pointIndex < ssize(points_); pointIndex++)
+    for (gmx::Index pointIndex = 0; pointIndex < gmx::ssize(points_); pointIndex++)
     {
         PointState& ps = points_[pointIndex];
 

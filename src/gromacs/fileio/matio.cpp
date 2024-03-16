@@ -127,7 +127,7 @@ static std::vector<t_mapping> getcmap(FILE* in, const std::filesystem::path& fn)
         gmx_fatal(FARGS,
                   "Not enough lines in colormap file %s"
                   "(just wanted to read number of entries)",
-                  fn.u8string().c_str());
+                  fn.string().c_str());
     }
     sscanf(line, "%d", &n);
     m.resize(n);
@@ -138,7 +138,7 @@ static std::vector<t_mapping> getcmap(FILE* in, const std::filesystem::path& fn)
             gmx_fatal(FARGS,
                       "Not enough lines in colormap file %s"
                       "(should be %d, found only %d)",
-                      fn.u8string().c_str(),
+                      fn.string().c_str(),
                       n + 1,
                       i);
         }
@@ -469,11 +469,11 @@ static t_matrix read_xpm_entry(FILE* in)
             mm.axis_x.reserve(mm.nx + 1);
             while (sscanf(line, "%lf", &u) == 1)
             {
-                if (ssize(mm.axis_x) > mm.nx)
+                if (gmx::ssize(mm.axis_x) > mm.nx)
                 {
                     gmx_fatal(FARGS, "Too many x-axis labels in xpm (max %d)", mm.nx);
                 }
-                else if (ssize(mm.axis_x) == mm.nx)
+                else if (gmx::ssize(mm.axis_x) == mm.nx)
                 {
                     mm.flags |= MAT_SPATIAL_X;
                 }
@@ -488,11 +488,11 @@ static t_matrix read_xpm_entry(FILE* in)
             mm.axis_y.reserve(mm.ny + 1);
             while (sscanf(line, "%lf", &u) == 1)
             {
-                if (ssize(mm.axis_y) > mm.ny)
+                if (gmx::ssize(mm.axis_y) > mm.ny)
                 {
                     gmx_fatal(FARGS, "Too many y-axis labels in xpm (max %d)", mm.ny);
                 }
-                else if (ssize(mm.axis_y) == mm.ny)
+                else if (gmx::ssize(mm.axis_y) == mm.ny)
                 {
                     mm.flags |= MAT_SPATIAL_Y;
                 }
@@ -587,7 +587,7 @@ real** matrix2real(t_matrix* in, real** out)
 
     std::vector<real> rmap(in->map.size());
 
-    for (gmx::Index i = 0; i != ssize(in->map); ++i)
+    for (gmx::Index i = 0; i != gmx::ssize(in->map); ++i)
     {
         if ((in->map[i].desc == nullptr) || (sscanf(in->map[i].desc, "%lf", &tmp) != 1))
         {
@@ -765,9 +765,9 @@ static void pr_discrete_cmap(FILE* out, int* nlevel, int i0)
                 "\"%c%c c #%02X%02X%02X \" /* \"%3d\" */,\n",
                 mapper[(i + i0) % NMAP],
                 (n <= NMAP) ? ' ' : mapper[(i + i0) / NMAP],
-                static_cast<unsigned int>(round(255 * rgbd[i].r)),
-                static_cast<unsigned int>(round(255 * rgbd[i].g)),
-                static_cast<unsigned int>(round(255 * rgbd[i].b)),
+                static_cast<unsigned int>(std::round(255 * rgbd[i].r)),
+                static_cast<unsigned int>(std::round(255 * rgbd[i].g)),
+                static_cast<unsigned int>(std::round(255 * rgbd[i].b)),
                 i);
     }
 }
@@ -1067,9 +1067,9 @@ void write_xpm_m(FILE* out, t_matrix m)
                 "\"%c%c c #%02X%02X%02X \" /* \"%s\" */,\n",
                 map.code.c1,
                 bOneChar ? ' ' : map.code.c2,
-                static_cast<unsigned int>(round(map.rgb.r * 255)),
-                static_cast<unsigned int>(round(map.rgb.g * 255)),
-                static_cast<unsigned int>(round(map.rgb.b * 255)),
+                static_cast<unsigned int>(std::round(map.rgb.r * 255)),
+                static_cast<unsigned int>(std::round(map.rgb.g * 255)),
+                static_cast<unsigned int>(std::round(map.rgb.b * 255)),
                 map.desc);
     }
     writeXpmAxis(out, "x", m.axis_x);

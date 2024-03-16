@@ -43,6 +43,7 @@
 #ifndef GMX_NBNXM_GPU_JIT_SUPPORT_H
 #define GMX_NBNXM_GPU_JIT_SUPPORT_H
 
+#include "gromacs/gpu_utils/gpu_macros.h"
 #include "gromacs/utility/basedefinitions.h"
 
 struct NbnxmGpu;

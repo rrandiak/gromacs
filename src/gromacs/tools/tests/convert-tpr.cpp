@@ -73,20 +73,20 @@ TEST_F(ConvertTprTest, ExtendRuntimeExtensionTest)
     gmx_mtop_t top;
     t_inputrec ir;
     t_state    state;
-    read_tpx_state(tprFileHandle.tprName().c_str(), &ir, &state, &top);
+    read_tpx_state(tprFileHandle.tprName(), &ir, &state, &top);
 
     const int64_t originalNStep = ir.nsteps;
 
     const int64_t extendByPs     = 100;
     std::string   extendByString = std::to_string(extendByPs);
 
-    TestFileManager   fileManager;
-    std::string       outTprFilename = fileManager.getTemporaryFilePath("extended.tpr").u8string();
-    const char* const command[]      = {
-        "convert-tpr",          "-s",      tprFileHandle.tprName().c_str(), "-o",
-        outTprFilename.c_str(), "-extend", extendByString.c_str()
-    };
-    CommandLine cmdline(command);
+    TestFileManager             fileManager;
+    const std::filesystem::path outTprFilename = fileManager.getTemporaryFilePath("extended.tpr");
+    const std::string           command[]      = { "convert-tpr",           "-s",
+                                    tprFileHandle.tprName(), "-o",
+                                    outTprFilename.string(), "-extend",
+                                    extendByString };
+    CommandLine                 cmdline(command);
 
     gmx::test::CommandLineTestHelper::runModuleFactory(&gmx::ConvertTprInfo::create, &cmdline);
 
@@ -94,7 +94,7 @@ TEST_F(ConvertTprTest, ExtendRuntimeExtensionTest)
         gmx_mtop_t top_after;
         t_inputrec ir_after;
         t_state    state_after;
-        read_tpx_state(outTprFilename.c_str(), &ir_after, &state_after, &top_after);
+        read_tpx_state(outTprFilename, &ir_after, &state_after, &top_after);
 
         EXPECT_EQ(ir_after.nsteps, originalNStep + gmx::roundToInt64(extendByPs / ir.delta_t));
     }
@@ -102,16 +102,14 @@ TEST_F(ConvertTprTest, ExtendRuntimeExtensionTest)
 
     // Extending again (tests nsteps not zero initially
 
-    std::string anotherOutTprFilename = fileManager.getTemporaryFilePath("extended_again.tpr").u8string();
+    const std::filesystem::path anotherOutTprFilename =
+            fileManager.getTemporaryFilePath("extended_again.tpr");
 
-    const char* const secondCommand[] = { "convert-tpr",
-                                          "-s",
-                                          outTprFilename.c_str(),
-                                          "-o",
-                                          anotherOutTprFilename.c_str(),
-                                          "-extend",
-                                          extendByString.c_str() };
-    CommandLine       secondCmdline(secondCommand);
+    const std::string secondCommand[] = {
+        "convert-tpr", "-s",          outTprFilename.string(), "-o", anotherOutTprFilename.string(),
+        "-extend",     extendByString
+    };
+    CommandLine secondCmdline(secondCommand);
     gmx::test::CommandLineTestHelper::runModuleFactory(&gmx::ConvertTprInfo::create, &secondCmdline);
 
 
@@ -119,7 +117,7 @@ TEST_F(ConvertTprTest, ExtendRuntimeExtensionTest)
         gmx_mtop_t top_after;
         t_inputrec ir_after;
         t_state    state_after;
-        read_tpx_state(anotherOutTprFilename.c_str(), &ir_after, &state_after, &top_after);
+        read_tpx_state(anotherOutTprFilename, &ir_after, &state_after, &top_after);
 
         EXPECT_EQ(ir_after.nsteps, originalNStep + gmx::roundToInt64(2 * extendByPs / ir.delta_t));
     }
@@ -130,23 +128,20 @@ TEST_F(ConvertTprTest, UntilRuntimeExtensionTest)
     gmx_mtop_t top;
     t_inputrec ir;
     t_state    state;
-    read_tpx_state(tprFileHandle.tprName().c_str(), &ir, &state, &top);
+    read_tpx_state(tprFileHandle.tprName(), &ir, &state, &top);
 
     const int64_t originalNStep = ir.nsteps;
 
     const int64_t untilPs       = 100;
     std::string   untilPsString = std::to_string(untilPs);
 
-    TestFileManager   fileManager;
-    std::string       outTprFilename = fileManager.getTemporaryFilePath("extended.tpr").u8string();
-    const char* const command[]      = { "convert-tpr",
-                                    "-s",
-                                    tprFileHandle.tprName().c_str(),
-                                    "-o",
-                                    outTprFilename.c_str(),
-                                    "-until",
-                                    untilPsString.data() };
-    CommandLine       cmdline(command);
+    TestFileManager             fileManager;
+    const std::filesystem::path outTprFilename = fileManager.getTemporaryFilePath("extended.tpr");
+    const std::string           command[]      = {
+        "convert-tpr", "-s",         tprFileHandle.tprName(), "-o", outTprFilename.string(),
+        "-until",      untilPsString
+    };
+    CommandLine cmdline(command);
 
     gmx::test::CommandLineTestHelper::runModuleFactory(&gmx::ConvertTprInfo::create, &cmdline);
 
@@ -154,7 +149,7 @@ TEST_F(ConvertTprTest, UntilRuntimeExtensionTest)
         gmx_mtop_t top_after;
         t_inputrec ir_after;
         t_state    state;
-        read_tpx_state(outTprFilename.c_str(), &ir_after, &state, &top_after);
+        read_tpx_state(outTprFilename, &ir_after, &state, &top_after);
 
         EXPECT_EQ(ir_after.nsteps, originalNStep + gmx::roundToInt64(untilPs / ir.delta_t));
     }
@@ -165,23 +160,20 @@ TEST_F(ConvertTprTest, nstepRuntimeExtensionTest)
     gmx_mtop_t top;
     t_inputrec ir;
     t_state    state;
-    read_tpx_state(tprFileHandle.tprName().c_str(), &ir, &state, &top);
+    read_tpx_state(tprFileHandle.tprName(), &ir, &state, &top);
 
     const int64_t originalNStep = ir.nsteps;
 
     const int64_t nsteps    = 102;
     std::string   nstepsStr = std::to_string(nsteps);
 
-    TestFileManager   fileManager;
-    std::string       outTprFilename = fileManager.getTemporaryFilePath("extended.tpr").u8string();
-    const char* const command[]      = { "convert-tpr",
-                                    "-s",
-                                    tprFileHandle.tprName().c_str(),
-                                    "-o",
-                                    outTprFilename.c_str(),
-                                    "-nsteps",
-                                    nstepsStr.data() };
-    CommandLine       cmdline(command);
+    TestFileManager             fileManager;
+    const std::filesystem::path outTprFilename = fileManager.getTemporaryFilePath("extended.tpr");
+    const std::string           command[]      = {
+        "convert-tpr", "-s",     tprFileHandle.tprName(), "-o", outTprFilename.string(),
+        "-nsteps",     nstepsStr
+    };
+    CommandLine cmdline(command);
 
     gmx::test::CommandLineTestHelper::runModuleFactory(&gmx::ConvertTprInfo::create, &cmdline);
 
@@ -189,7 +181,7 @@ TEST_F(ConvertTprTest, nstepRuntimeExtensionTest)
         gmx_mtop_t top_after;
         t_inputrec ir_after;
         t_state    state_after;
-        read_tpx_state(outTprFilename.c_str(), &ir_after, &state_after, &top_after);
+        read_tpx_state(outTprFilename, &ir_after, &state_after, &top_after);
 
         EXPECT_EQ(ir_after.nsteps, originalNStep + nsteps);
     }
@@ -200,20 +192,16 @@ TEST_F(ConvertTprTest, generateVelocitiesTest)
     gmx_mtop_t top;
     t_inputrec ir;
     t_state    state;
-    read_tpx_state(tprFileHandle.tprName().c_str(), &ir, &state, &top);
+    read_tpx_state(tprFileHandle.tprName(), &ir, &state, &top);
 
-    TestFileManager fileManager;
-    std::string outTprFilename  = fileManager.getTemporaryFilePath("new_velocities.tpr").u8string();
-    const char* const command[] = { "convert-tpr",
-                                    "-s",
-                                    tprFileHandle.tprName().c_str(),
-                                    "-o",
-                                    outTprFilename.c_str(),
-                                    "-generate_velocities",
-                                    "-velocity_temp",
-                                    "300",
-                                    "-velocity_seed",
-                                    "12345" };
+    TestFileManager             fileManager;
+    const std::filesystem::path outTprFilename =
+            fileManager.getTemporaryFilePath("new_velocities.tpr");
+    const std::string command[] = { "convert-tpr",           "-s",
+                                    tprFileHandle.tprName(), "-o",
+                                    outTprFilename.string(), "-generate_velocities",
+                                    "-velocity_temp",        "300",
+                                    "-velocity_seed",        "12345" };
     CommandLine       cmdline(command);
 
     gmx::test::CommandLineTestHelper::runModuleFactory(&gmx::ConvertTprInfo::create, &cmdline);
@@ -222,7 +210,7 @@ TEST_F(ConvertTprTest, generateVelocitiesTest)
         gmx_mtop_t top_after;
         t_inputrec ir_after;
         t_state    state_after;
-        read_tpx_state(outTprFilename.c_str(), &ir_after, &state_after, &top_after);
+        read_tpx_state(outTprFilename, &ir_after, &state_after, &top_after);
 
         gmx::test::TestReferenceData    data;
         gmx::test::TestReferenceChecker checker(data.rootChecker());

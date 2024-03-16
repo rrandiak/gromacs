@@ -129,12 +129,19 @@ _rocm_extra_packages = [
     #             apt_keys=['http://repo.radeon.com/rocm/rocm.gpg.key'],
     #             apt_repositories=['deb [arch=amd64] http://repo.radeon.com/rocm/apt/X.Y.Z/ ubuntu main']
     "clinfo",
-    "hipfft",
     "libelf1",
+]
+
+_rocm_version_dependent_packages = [
+    # The following require
+    #             apt_keys=['http://repo.radeon.com/rocm/rocm.gpg.key'],
+    #             apt_repositories=['deb [arch=amd64] http://repo.radeon.com/rocm/apt/X.Y.Z/ ubuntu main']
+    "hipfft",
+    "hipfft-dev",
     "rocfft",
     "rocfft-dev",
-    "rocm-opencl",
     "rocm-dev",
+    "rocm-opencl",
 ]
 
 # Extra packages required to build CP2K
@@ -314,7 +321,23 @@ def get_rocm_packages(args) -> typing.List[str]:
     if args.rocm is None:
         return []
     else:
-        return _rocm_extra_packages
+        packages = _rocm_extra_packages
+        packages.extend(get_rocm_version_dependent_packages(args))
+        return packages
+
+
+def get_rocm_version_dependent_packages(args) -> typing.List[str]:
+    packages = []
+    rocm_version = args.rocm
+    rocm_version_parsed = [int(i) for i in rocm_version.split(".")]
+    # if the version does not contain the final patch version, add it manually to make sure that
+    # we can install the packages
+    if len(rocm_version_parsed) < 3:
+        rocm_version = rocm_version + ".0"
+    for entry in _rocm_version_dependent_packages:
+        packages.append(entry + rocm_version)
+
+    return packages
 
 
 def get_rocm_repository(args) -> "hpccm.building_blocks.base":
@@ -576,15 +599,30 @@ def get_nvhpcsdk(args):
 def get_hipsycl(args):
     if args.hipsycl is None:
         return None
-    if args.llvm is None:
-        raise RuntimeError("Can not build hipSYCL without LLVM")
     if args.rocm is None:
         raise RuntimeError("hipSYCL requires the ROCm packages")
+    if args.llvm is None:
+        # We're using ROCm LLVM in this case, which is not compatible with CUDA
+        if args.cuda is not None:
+            raise RuntimeError("Can not build hipSYCL with CUDA and no upstream LLVM")
 
-    cmake_opts = [
-        "-DCMAKE_C_COMPILER=clang-{}".format(args.llvm),
-        "-DCMAKE_CXX_COMPILER=clang++-{}".format(args.llvm),
-        "-DLLVM_DIR=/usr/lib/llvm-{}/cmake/".format(args.llvm),
+    if args.llvm is not None:
+        cmake_opts = [
+            "-DCMAKE_C_COMPILER=clang-{}".format(args.llvm),
+            "-DCMAKE_CXX_COMPILER=clang++-{}".format(args.llvm),
+            "-DLLVM_DIR=/usr/lib/llvm-{}/cmake/".format(args.llvm),
+        ]
+    else:
+        cmake_opts = [
+            "-DCMAKE_C_COMPILER=/opt/rocm/bin/amdclang",
+            "-DCMAKE_CXX_COMPILER=/opt/rocm/bin/amdclang++",
+            "-DLLVM_DIR=/opt/rocm/llvm/lib/cmake/llvm",
+            "-DWITH_SSCP_COMPILER=OFF",
+            "-DWITH_OPENCL_BACKEND=OFF",
+            "-DWITH_LEVEL_ZERO_BACKEND=OFF",
+        ]
+
+    cmake_opts += [
         "-DCMAKE_PREFIX_PATH=/opt/rocm/lib/cmake",
         "-DWITH_ROCM_BACKEND=ON",
     ]
@@ -596,12 +634,12 @@ def get_hipsycl(args):
         ]
 
     postinstall = [
-        # https://github.com/illuhad/hipSYCL/issues/361#issuecomment-718943645
+        # https://github.com/AdaptiveCpp/AdaptiveCpp/issues/361#issuecomment-718943645
         'for f in /opt/rocm/amdgcn/bitcode/*.bc; do ln -s "$f" "/opt/rocm/lib/$(basename $f .bc).amdgcn.bc"; done'
     ]
     if args.cuda is not None:
         postinstall += [
-            # https://github.com/illuhad/hipSYCL/issues/410#issuecomment-743301929
+            # https://github.com/AdaptiveCpp/AdaptiveCpp/issues/410#issuecomment-743301929
             f"sed s/_OPENMP/__OPENMP_NVPTX__/ -i /usr/lib/llvm-{args.llvm}/lib/clang/*/include/__clang_cuda_complex_builtins.h",
         ]
 
@@ -612,8 +650,8 @@ def get_hipsycl(args):
         hipsycl_version_opts["commit"] = args.hipsycl
 
     return hpccm.building_blocks.generic_cmake(
-        repository="https://github.com/illuhad/hipSYCL.git",
-        directory="/var/tmp/hipSYCL",
+        repository="https://github.com/AdaptiveCpp/AdaptiveCpp.git",
+        directory="/var/tmp/AdaptiveCpp",
         prefix="/usr/local",
         recursive=True,
         cmake_opts=["-DCMAKE_BUILD_TYPE=Release", *cmake_opts],

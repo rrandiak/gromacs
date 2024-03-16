@@ -181,7 +181,7 @@ TestReferenceDataImplPointer initReferenceDataInstanceForSelfTest(ReferenceDataM
 {
     if (g_referenceData)
     {
-        GMX_RELEASE_ASSERT(g_referenceData.unique(),
+        GMX_RELEASE_ASSERT(g_referenceData.use_count() == 1,
                            "Test cannot create multiple TestReferenceData instances");
         g_referenceData->onTestEnd(true);
         g_referenceData.reset();
@@ -197,7 +197,8 @@ public:
     {
         if (g_referenceData)
         {
-            GMX_RELEASE_ASSERT(g_referenceData.unique(), "Test leaked TestRefeferenceData objects");
+            GMX_RELEASE_ASSERT(g_referenceData.use_count() == 1,
+                               "Test leaked TestRefeferenceData objects");
             g_referenceData->onTestEnd(test_info.result()->Passed());
             g_referenceData.reset();
         }
@@ -296,26 +297,26 @@ TestReferenceDataImpl::TestReferenceDataImpl(ReferenceDataMode                  
                                              std::optional<std::filesystem::path> testNameOverride) :
     updateMismatchingEntries_(false), bSelfTestMode_(bSelfTestMode), bInUse_(false)
 {
-    const std::string dirname  = bSelfTestMode
-                                         ? TestFileManager::getGlobalOutputTempDirectory().u8string()
-                                         : TestFileManager::getInputDataDirectory().u8string();
-    const std::string filename = testNameOverride.has_value()
-                                         ? testNameOverride.value().u8string()
-                                         : TestFileManager::getTestSpecificFileName(".xml").u8string();
-    fullFilename_              = std::filesystem::path(dirname).append("refdata").append(filename);
+    const std::filesystem::path dirname = bSelfTestMode
+                                                  ? TestFileManager::getGlobalOutputTempDirectory()
+                                                  : TestFileManager::getInputDataDirectory();
+    const std::filesystem::path filename =
+            testNameOverride.has_value() ? testNameOverride.value()
+                                         : TestFileManager::getTestSpecificFileName(".xml");
+    fullFilename_ = dirname / "refdata" / filename;
 
     switch (mode)
     {
         case ReferenceDataMode::Compare:
             if (File::exists(fullFilename_, File::throwOnError))
             {
-                compareRootEntry_ = readReferenceDataFile(fullFilename_.u8string());
+                compareRootEntry_ = readReferenceDataFile(fullFilename_.string());
             }
             break;
         case ReferenceDataMode::CreateMissing:
             if (File::exists(fullFilename_, File::throwOnError))
             {
-                compareRootEntry_ = readReferenceDataFile(fullFilename_.u8string());
+                compareRootEntry_ = readReferenceDataFile(fullFilename_.string());
             }
             else
             {
@@ -326,7 +327,7 @@ TestReferenceDataImpl::TestReferenceDataImpl(ReferenceDataMode                  
         case ReferenceDataMode::UpdateChanged:
             if (File::exists(fullFilename_, File::throwOnError))
             {
-                compareRootEntry_ = readReferenceDataFile(fullFilename_.u8string());
+                compareRootEntry_ = readReferenceDataFile(fullFilename_.string());
             }
             else
             {
@@ -360,10 +361,10 @@ void TestReferenceDataImpl::onTestEnd(bool testPassed) const
                 if (!std::filesystem::create_directory(dirname))
                 {
                     GMX_THROW(TestException(gmx::formatString(
-                            "Creation of reference data directory failed: %s", dirname.u8string().c_str())));
+                            "Creation of reference data directory failed: %s", dirname.string().c_str())));
                 }
             }
-            writeReferenceDataFile(fullFilename_.u8string(), *outputRootEntry_);
+            writeReferenceDataFile(fullFilename_.string(), *outputRootEntry_);
         }
     }
     else if (compareRootEntry_)

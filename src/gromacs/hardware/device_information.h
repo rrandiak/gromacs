@@ -64,6 +64,7 @@
 
 #include "gromacs/utility/arrayref.h"
 #include "gromacs/utility/enumerationhelpers.h"
+#include "gromacs/utility/fixedcapacityvector.h"
 #include "gromacs/utility/mpiinfo.h"
 
 //! Constant used to help minimize preprocessed code
@@ -98,8 +99,6 @@ enum class DeviceStatus : int
      * See \c GMX_CUDA_TARGET_SM and \c GMX_CUDA_TARGET_COMPUTE CMake variables.
      */
     DeviceNotTargeted,
-    //! \brief LevelZero backend is known to cause errors with oneAPI 2022.0.1
-    IncompatibleLevelZeroAndOneApi2022,
     //! \brief AMD RDNA devices (gfx10xx, gfx11xx) with 32-wide execution are not supported with OpenCL,
     IncompatibleOclAmdRdna,
     //! \brief RDNA not targeted (SYCL)
@@ -130,8 +129,7 @@ static const gmx::EnumerationArray<DeviceStatus, const char*> c_deviceStateStrin
     "non-functional",
     "unavailable",
     "not in set of targeted devices",
-    "incompatible (Level Zero backend is not stable with oneAPI 2022.0)", // Issue #4354
-    "incompatible (AMD RDNA devices are not supported)",                  // Issue #4521
+    "incompatible (AMD RDNA devices are not supported)", // Issue #4521
     // clang-format off
     // NOLINTNEXTLINE(bugprone-suspicious-missing-comma)
     "incompatible (please recompile with GMX" "_ACPP_ENABLE_AMD_RDNA_SUPPORT)"
@@ -173,14 +171,10 @@ struct DeviceInformation
     /*! \brief Warp/sub-group sizes supported by the device.
      *
      * \ref DeviceInformation must be serializable in CUDA, so we cannot use \c std::vector here.
-     * Arbitrarily limiting to 10. FixedCapacityVector uses pointers internally, so no good either. */
-    std::array<int, 10>      supportedSubGroupSizesData;
-    int                      supportedSubGroupSizesSize;
-    gmx::ArrayRef<const int> supportedSubGroupSizes() const
-    {
-        return { supportedSubGroupSizesData.data(),
-                 supportedSubGroupSizesData.data() + supportedSubGroupSizesSize };
-    }
+     * Arbitrarily limiting to 10.
+     */
+    gmx::FixedCapacityVector<int, 10> supportedSubGroupSizes;
+
     gmx::GpuAwareMpiStatus gpuAwareMpiStatus;
 #if GMX_GPU_CUDA
     //! CUDA device properties.
@@ -207,6 +201,6 @@ struct DeviceInformation
 };
 
 //! Whether \ref DeviceInformation can be serialized for sending via MPI.
-static constexpr bool c_canSerializeDeviceInformation = std::is_trivial_v<DeviceInformation>;
+static constexpr bool c_canSerializeDeviceInformation = std::is_trivially_copyable_v<DeviceInformation>;
 
 #endif // GMX_HARDWARE_DEVICE_INFORMATION_H

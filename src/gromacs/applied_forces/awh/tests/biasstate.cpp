@@ -118,7 +118,7 @@ public:
                                                                awhParams.nstSampleCoord() * mdTimeStep);
 
         // Here we initialize the grid point state using the input file
-        std::string filename = gmx::test::TestFileManager::getInputFilePath(GetParam()).u8string();
+        std::string filename = gmx::test::TestFileManager::getInputFilePath(GetParam()).string();
         biasState_->initGridPointState(awhBiasParams,
                                        dimParams,
                                        grid,
@@ -176,7 +176,7 @@ public:
         params_                          = std::make_unique<AwhTestParameters>(getAwhTestParameters(
                 AwhHistogramGrowthType::Linear, AwhPotentialType::Convolved, awhDimParameters, true, 1.0, false, 0.5, 0));
         const AwhParams&       awhParams = params_->awhParams;
-        const AwhBiasParams&   awhBiasParams = awhParams.awhBiasParams()[0];
+        const AwhBiasParams&   awhBiasParams = awhParams.awhBiasParams(0);
         std::vector<DimParams> dimParams;
         dimParams.push_back(DimParams::pullDimParams(1.0, 15.0, params_->beta));
         dimParams.push_back(DimParams::pullDimParams(1.0, 15.0, params_->beta));
@@ -217,7 +217,7 @@ TEST_P(UserInputTest, ParsesUser3DInput)
     std::string     correctFormatMessage;
     /* Get a data point for each AWH grid point so that they all get data. */
     EXPECT_NO_THROW(mapGridToDataGrid(
-            &gridIndexToDataIndex_, data_, numRows_, filename_.u8string(), grid, correctFormatMessage));
+            &gridIndexToDataIndex_, data_, numRows_, filename_.string(), grid, correctFormatMessage));
     EXPECT_EQ(numRows_, 30);
     EXPECT_EQ(numColumns_, 8);
 }

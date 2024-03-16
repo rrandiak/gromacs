@@ -628,7 +628,7 @@ static void override_nsteps_cmdline(const gmx::MDLogger& mdlog, int64_t nsteps_c
             sprintf(sbuf_msg,
                     "Overriding nsteps with value passed on the command line: %s steps, %.3g ps",
                     gmx_step_str(nsteps_cmdline, sbuf_steps),
-                    fabs(nsteps_cmdline * ir->delta_t));
+                    std::fabs(nsteps_cmdline * ir->delta_t));
         }
         else
         {
@@ -1873,12 +1873,14 @@ int Mdrunner::mdrunner()
             GMX_RELEASE_ASSERT(deviceStreamManager != nullptr,
                                "GPU device stream manager should be valid in order to use GPU "
                                "version of bonded forces.");
-            fr->listedForcesGpu = std::make_unique<ListedForcesGpu>(mtop.ffparams,
-                                                                    fr->ic->epsfac * fr->fudgeQQ,
-                                                                    *deviceInfo,
-                                                                    deviceStreamManager->context(),
-                                                                    deviceStreamManager->bondedStream(),
-                                                                    wcycle.get());
+            fr->listedForcesGpu =
+                    std::make_unique<ListedForcesGpu>(mtop.ffparams,
+                                                      fr->ic->epsfac * fr->fudgeQQ,
+                                                      inputrec->opts.ngener - inputrec->nwall,
+                                                      *deviceInfo,
+                                                      deviceStreamManager->context(),
+                                                      deviceStreamManager->bondedStream(),
+                                                      wcycle.get());
         }
         fr->longRangeNonbondeds = std::make_unique<CpuPpLongRangeNonbondeds>(fr->n_tpi,
                                                                              fr->ic->ewaldcoeff_q,
@@ -2055,7 +2057,8 @@ int Mdrunner::mdrunner()
                                        deviceContext,
                                        pmeStream,
                                        pmeGpuProgram.get(),
-                                       mdlog);
+                                       mdlog,
+                                       nullptr);
             }
             GMX_CATCH_ALL_AND_EXIT_WITH_FATAL_ERROR
         }

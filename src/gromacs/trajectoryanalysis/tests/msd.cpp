@@ -42,6 +42,8 @@
 
 #include "gromacs/trajectoryanalysis/modules/msd.h"
 
+#include <gromacs/commandline/cmdlineoptionsmodule.h>
+#include <gromacs/trajectoryanalysis/cmdlinerunner.h>
 #include <gtest/gtest.h>
 
 #include "gromacs/gmxpreprocess/grompp.h"
@@ -144,8 +146,8 @@ public:
     // to calling grompp. sets the -s input to the generated tpr
     void createTpr(const std::string& structure, const std::string& topology, const std::string& index)
     {
-        std::string tpr             = fileManager().getTemporaryFilePath(".tpr").u8string();
-        std::string mdp             = fileManager().getTemporaryFilePath(".mdp").u8string();
+        std::string tpr             = fileManager().getTemporaryFilePath(".tpr").string();
+        std::string mdp             = fileManager().getTemporaryFilePath(".mdp").string();
         std::string mdpFileContents = gmx::formatString(
                 "cutoff-scheme = verlet\n"
                 "rcoulomb      = 0.85\n"
@@ -160,11 +162,11 @@ public:
         caller.addOption("-maxwarn", 0);
         caller.addOption("-f", mdp.c_str());
         auto gro = std::filesystem::path(simDB).append(structure);
-        caller.addOption("-c", gro.u8string().c_str());
+        caller.addOption("-c", gro.string().c_str());
         auto top = std::filesystem::path(simDB).append(topology);
-        caller.addOption("-p", top.u8string().c_str());
+        caller.addOption("-p", top.string().c_str());
         auto ndx = std::filesystem::path(simDB).append(index);
-        caller.addOption("-n", ndx.u8string().c_str());
+        caller.addOption("-n", ndx.string().c_str());
         caller.addOption("-o", tpr.c_str());
         ASSERT_EQ(0, gmx_grompp(caller.argc(), caller.argv()));
 
@@ -231,6 +233,21 @@ TEST_F(MsdModuleTest, oneDimensionalDiffusionWithMaxTau)
     setInputFile("-n", "msd.ndx");
     const char* const cmdline[] = { "-trestart", "200", "-type", "x", "-sel", "0", "-maxtau", "5" };
     runTest(CommandLine(cmdline));
+}
+
+TEST_F(MsdModuleTest, roundingFail)
+{
+    // Check that a proper exception is throws when a trajectory is saved too often, #4694
+    setInputFile("-f", "msd_traj_rounding_fail.xtc");
+    setInputFile("-s", "msd_coords.gro");
+    setInputFile("-n", "msd.ndx");
+    CommandLine cmdline = commandLine();
+    cmdline.addOption("-sel", "0");
+
+    ICommandLineOptionsModulePointer runner(
+            TrajectoryAnalysisCommandLineRunner::createModule(createModule()));
+
+    EXPECT_THROW(CommandLineTestHelper::runModuleDirect(std::move(runner), &cmdline), gmx::ToleranceError);
 }
 
 

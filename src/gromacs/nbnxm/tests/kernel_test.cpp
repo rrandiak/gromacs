@@ -72,6 +72,7 @@
 #include "gromacs/nbnxm/pairlistset.h"
 #include "gromacs/nbnxm/pairlistsets.h"
 #include "gromacs/nbnxm/pairsearch.h"
+#include "gromacs/nbnxm/simd_energy_accumulator.h"
 #include "gromacs/pbcutil/ishift.h"
 #include "gromacs/pbcutil/pbc.h"
 #include "gromacs/topology/topology.h"
@@ -83,7 +84,7 @@
 #include "testutils/testasserts.h"
 #include "testutils/testinit.h"
 
-#include "spc72_coords.h"
+#include "spc27_coords.h"
 
 namespace gmx
 {
@@ -133,7 +134,7 @@ struct TestSystem
 {
     /*! \brief Constructor
      *
-     * Generates test system of a cubic box partially filled with 72 water molecules.
+     * Generates test system of a cubic box partially filled with 27 water molecules.
      * It has parts with uncharged molecules, normal SPC/E and part with full LJ.
      */
     TestSystem(LJCombinationRule ljCombinationRule);
@@ -215,13 +216,13 @@ TestSystem::TestSystem(const LJCombinationRule ljCombinationRule)
     nonbondedParameters[6] = nonbondedParameters[2];
     nonbondedParameters[7] = nonbondedParameters[3];
 
-    coordinates = spc72Coordinates;
-    copy_mat(spc72Box, box);
+    coordinates = spc27Coordinates;
+    copy_mat(spc27Box, box);
     put_atoms_in_box(PbcType::Xyz, box, coordinates);
 
-    int numAtoms = coordinates.size();
-    GMX_RELEASE_ASSERT(numAtoms % numAtomsInMolecule == 0,
-                       "Coordinates should match whole molecules");
+    const int numAtoms = coordinates.size();
+    GMX_RELEASE_ASSERT(numAtoms % (3 * numAtomsInMolecule) == 0,
+                       "Coordinates should be a multiple of 3 x whole water molecules");
 
     atomTypes.resize(numAtoms);
     charges.resize(numAtoms);
@@ -312,6 +313,19 @@ std::unique_ptr<nonbonded_verlet_t> setupNbnxmForBenchInstance(const KernelOptio
                                                        system.nonbondedParameters,
                                                        c_numEnergyGroups,
                                                        numThreads);
+
+    if (options.kernelSetup.kernelType != Nbnxm::KernelType::Cpu4x4_PlainC)
+    {
+        // We normally only get the energy group energy accumulator when we use energy
+        // groups. For this test it's convenient to have both types of accumulators,
+        // so we can run one and multiple energy groups without rebuilding atomData.
+        // So we manually add the single energy group accumulator here.
+        for (int th = 0; th < numThreads; th++)
+        {
+            atomData->outputBuffer(th).accumulatorSingleEnergies =
+                    std::make_unique<EnergyAccumulator<false, true>>();
+        }
+    }
 
     // Put everything together
     auto nbv = std::make_unique<nonbonded_verlet_t>(
@@ -619,8 +633,9 @@ public:
         stepWork.computeEnergy = true;
 
         // Resize the energy output buffers to 1 to trigger the non-energy-group kernel
-        nbv_->nbat().out[0].Vvdw.resize(1);
-        nbv_->nbat().out[0].Vc.resize(1);
+        nbv_->nbat().paramsDeprecated().numEnergyGroups = 1;
+        nbv_->nbat().outputBuffer(0).Vvdw.resize(1);
+        nbv_->nbat().outputBuffer(0).Vc.resize(1);
 
         // The reduction still acts on all groups pairs
         std::vector<real> vVdw(square(c_numEnergyGroups));
@@ -691,7 +706,7 @@ public:
         // Compare the forces to the forces computed with energies
         FloatingPointTolerance forcesOnlyTolerance(relativeToleranceAsUlp(1000.0, 10));
 
-        for (int i = 0; i < ssize(forces); i++)
+        for (int i = 0; i < gmx::ssize(forces); i++)
         {
             for (int d = 0; d < DIM; d++)
             {
@@ -700,8 +715,9 @@ public:
         }
 
         // Now call the energy group pair kernel
-        nbv_->nbat().out[0].Vvdw.resize(square(c_numEnergyGroups));
-        nbv_->nbat().out[0].Vc.resize(square(c_numEnergyGroups));
+        nbv_->nbat().paramsDeprecated().numEnergyGroups = c_numEnergyGroups;
+        nbv_->nbat().outputBuffer(0).Vvdw.resize(square(c_numEnergyGroups));
+        nbv_->nbat().outputBuffer(0).Vc.resize(square(c_numEnergyGroups));
         stepWork.computeEnergy = true;
 
         std::vector<real> vVdwGrps(gmx::square(c_numEnergyGroups));
@@ -712,7 +728,7 @@ public:
         std::vector<RVec> forces3(system_.coordinates.size(), { 0.0_real, 0.0_real, 0.0_real });
         nbv_->atomdata_add_nbat_f_to_f(AtomLocality::All, forces3);
 
-        for (int i = 0; i < ssize(forces); i++)
+        for (int i = 0; i < gmx::ssize(forces); i++)
         {
             for (int d = 0; d < DIM; d++)
             {
@@ -727,7 +743,7 @@ public:
         // Cross check the sum of group energies with the total energies
         real vVdwGrpsSum     = 0;
         real vCoulombGrpsSum = 0;
-        for (int gg = 0; gg < ssize(vVdwGrps); gg++)
+        for (int gg = 0; gg < gmx::ssize(vVdwGrps); gg++)
         {
             vVdwGrpsSum += vVdwGrps[gg];
             vCoulombGrpsSum += vCoulombGrps[gg];

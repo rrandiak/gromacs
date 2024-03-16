@@ -268,7 +268,7 @@ Run control
       Interval for computing the forces in level 2 of the multiple time-stepping
       scheme
 
-.. mdp:: mass-repartitioning-factor
+.. mdp:: mass-repartition-factor
 
       (1) []
       Scales the masses of the lightest atoms in the system by this factor
@@ -3590,12 +3590,12 @@ For further details about Colvars interface implementation follow :ref:`colvars`
 
 .. mdp:: colvars-configfile
 
-   (colvars.dat) Name of the Colvars configuration file, using options
+   Name of the Colvars configuration file, using options
    specific to Colvars that are documented at:
    `https://colvars.github.io/gromacs-2024/colvars-refman-gromacs.html
    <https://colvars.github.io/gromacs-2024/colvars-refman-gromacs.html>`_.
    The file name can be either an absolute path, or a path relative to the
-   folder from which :ref:`gmx mdrun` is called.
+   working directory when :ref:`gmx grompp` is called.
 
 .. mdp:: colvars-seed
 

@@ -279,8 +279,8 @@ static KernelSetup pick_nbnxn_kernel(const gmx::MDLogger&     mdlog,
             .asParagraph()
             .appendTextFormatted("Using %s %dx%d nonbonded short-range kernels",
                                  lookup_kernel_name(kernelSetup.kernelType),
-                                 IClusterSizePerKernelType[kernelSetup.kernelType],
-                                 JClusterSizePerKernelType[kernelSetup.kernelType]);
+                                 sc_iClusterSize(kernelSetup.kernelType),
+                                 sc_jClusterSize(kernelSetup.kernelType));
 
     if (KernelType::Cpu4x4_PlainC == kernelSetup.kernelType
         || KernelType::Cpu8x8x8_PlainC == kernelSetup.kernelType)
@@ -525,7 +525,7 @@ nonbonded_verlet_t::nonbonded_verlet_t(std::unique_ptr<PairlistSets>     pairlis
 
     if (pairlistSets_->params().haveFep_)
     {
-        freeEnergyDispatch_ = std::make_unique<FreeEnergyDispatch>(nbat_->params().nenergrp);
+        freeEnergyDispatch_ = std::make_unique<FreeEnergyDispatch>(nbat_->params().numEnergyGroups);
     }
 }
 
@@ -548,7 +548,7 @@ nonbonded_verlet_t::nonbonded_verlet_t(std::unique_ptr<PairlistSets>     pairlis
 
     if (pairlistSets_->params().haveFep_)
     {
-        freeEnergyDispatch_ = std::make_unique<FreeEnergyDispatch>(nbat_->params().nenergrp);
+        freeEnergyDispatch_ = std::make_unique<FreeEnergyDispatch>(nbat_->params().numEnergyGroups);
     }
 }
 
