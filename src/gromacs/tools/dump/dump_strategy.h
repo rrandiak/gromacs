@@ -10,6 +10,7 @@
 #include "gromacs/mdtypes/md_enums.h"
 #include "gromacs/topology/topology_enums.h"
 #include "gromacs/topology/topology.h"
+#include "gromacs/fileio/tpxio.h"
 
 #include <cstdio>
 #include <vector>
@@ -99,6 +100,17 @@ public:
     virtual void pr_list_i(const char* title, const int index, gmx::ArrayRef<const int> list) = 0;
 
     virtual void pr_interaction_list(const std::string& title, const t_functype* functypes, const InteractionList& ilist, const t_iparams* iparams) = 0;
+
+    virtual void pr_tpx_header(const TpxFileHeader* sh) = 0;
+
+    virtual void pr_groups(const SimulationGroups& groups) = 0;
+
+    virtual void pr_resinfo(const t_resinfo* resinfo, int n) = 0;
+
+    virtual void pr_cmap(const gmx_cmap_t* cmap_grid) = 0;
+    
+    virtual void pr_attribute_quoted(const char* name, const std::string& value) = 0;
+    virtual void pr_lambda(real lambda) = 0;
     // //! Prints a string value.
     // virtual void pr_str(const char* title, const char* s) = 0;
 

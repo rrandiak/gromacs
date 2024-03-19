@@ -70,8 +70,19 @@ public:
     void pr_atoms(const t_atoms* atoms) override;
     
     void pr_list_i(const char* title, const int index, gmx::ArrayRef<const int> list) override;
-    
+
     void pr_interaction_list(const std::string& title, const t_functype* functypes, const InteractionList& ilist, const t_iparams* iparams) override;
+
+    void pr_tpx_header(const TpxFileHeader* sh) override;
+    
+    void pr_groups(const SimulationGroups& groups) override;
+
+    void pr_resinfo(const t_resinfo* resinfo, int n);
+    
+    void pr_cmap(const gmx_cmap_t* cmap_grid) override;
+
+    void pr_attribute_quoted(const char* name, const std::string& value) override;
+    void pr_lambda(real lambda) override;
     // void pr_int(const char* title, int i);
     // void pr_int64(const char* title, int64_t i);
     // void pr_real(const char* title, real r);

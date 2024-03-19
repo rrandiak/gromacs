@@ -64,6 +64,11 @@ void DumpStrategyText::pr_attribute(const char* name, const Value& value)
     componentsStack.top()->addAttribute(name, value);
 }
 
+void DumpStrategyText::pr_attribute_quoted(const char* name, const std::string& value)
+{
+    componentsStack.top()->addFormattedTextLeaf("%s=\"%s\"", name, value.c_str());
+}
+
 void DumpStrategyText::pr_name(const char* name) {
     componentsStack.top()->addFormattedTextLeaf("name=\"%s\"", name);
 }
@@ -248,17 +253,16 @@ void DumpStrategyText::pr_grps(gmx::ArrayRef<const AtomGroupIndices> grps, const
     int index = 0;
     for (const auto& group : grps)
     {
-        componentsStack.top()->addFormattedTextLeaf(
-            "%s[%-12s] nr=%zu, name=[",
-            "grp",
+        componentsStack.top()->printFormattedText(
+            "\ngrp[%-12s] nr=%zu, name=[",
             shortName(static_cast<SimulationAtomGroupType>(index)),
             group.size()
         );
         for (const auto& entry : group)
         {
-            componentsStack.top()->addFormattedTextLeaf(" %s", *(grpname[entry]));
+            componentsStack.top()->printFormattedText(" %s", *(grpname[entry]));
         }
-        componentsStack.top()->addFormattedTextLeaf("]\n");
+        componentsStack.top()->printFormattedText("]");
         index++;
     }
     // int index = 0;
@@ -462,6 +466,7 @@ void DumpStrategyText::pr_atoms(const t_atoms* atoms)
                 "type", i, *(atoms->atomtype[i]), *(atoms->atomtypeB[i]));
         }
         close_section();
+        pr_resinfo(atoms->resinfo, atoms->nres);
     }
     close_section();
 }
@@ -565,6 +570,138 @@ void DumpStrategyText::pr_interaction_list(const std::string& title, const t_fun
     //     }
     // }
 }
+
+void DumpStrategyText::pr_tpx_header(const TpxFileHeader* sh)
+{
+    if (!available(sh, "header"))
+    {
+        return;
+    }
+
+    pr_title("header");
+    TextDumpComponent* comp = componentsStack.top();
+
+    comp->addAlignedTextLeaf("bIr", sh->bIr ? "present" : "not present", 6);
+    comp->addAlignedTextLeaf("bBox", sh->bBox ? "present" : "not present", 6);
+    comp->addAlignedTextLeaf("bTop", sh->bTop ? "present" : "not present", 6);
+    comp->addAlignedTextLeaf("bX", sh->bX ? "present" : "not present", 6);
+    comp->addAlignedTextLeaf("bV", sh->bV ? "present" : "not present", 6);
+    comp->addAlignedTextLeaf("bF", sh->bF ? "present" : "not present", 6);
+    comp->addAlignedTextLeaf("natoms", sh->natoms, 6);
+    pr_lambda(sh->lambda);
+    comp->addAlignedTextLeaf("buffer size", sh->sizeOfTprBody, 6);
+
+    close_section();
+}
+
+void DumpStrategyText::pr_groups(const SimulationGroups& groups)
+{
+    TextDumpComponent* comp = componentsStack.top();
+    comp->addFormattedTextLeaf("groups          ");
+    for (const auto group : gmx::EnumerationWrapper<SimulationAtomGroupType>{})
+    {
+        comp->printFormattedText(" %5.5s", shortName(group));
+    }
+
+    comp->addFormattedTextLeaf("allocated       ");
+    int nat_max = 0;
+    for (auto group : keysOf(groups.groups))
+    {
+        comp->printFormattedText(" %5d", groups.numberOfGroupNumbers(group));
+        nat_max = std::max(nat_max, groups.numberOfGroupNumbers(group));
+    }
+
+    if (nat_max == 0)
+    {
+        comp->addFormattedTextLeaf("groupnr[%5s] =", "*");
+        for (auto gmx_unused group : keysOf(groups.groups))
+        {
+            comp->printFormattedText("  %3d ", 0);
+        }
+    }
+    else
+    {
+        for (int i = 0; i < nat_max; i++)
+        {
+            comp->addFormattedTextLeaf("groupnr[%5d] =", i);
+            for (auto group : keysOf(groups.groups))
+            {
+                comp->printFormattedText("  %3d ",
+                    !groups.groupNumbers[group].empty() ? groups.groupNumbers[group][i] : 0);
+            }
+        }
+    }
+}
+
+void DumpStrategyText::pr_resinfo(const t_resinfo* resinfo, int n)
+{
+    bool bShowNumbers = true;
+    if (!available(resinfo, "residue"))
+    {
+        return;
+    }
+
+    pr_title_n("residue", n);
+    TextDumpComponent* comp = componentsStack.top();
+    for (int i = 0; i < n; i++)
+    {
+        comp->addFormattedTextLeaf(
+            "residue[%d]={name=\"%s\", nr=%d, ic='%c'}",
+            bShowNumbers ? i : -1,
+            *(resinfo[i].name),
+            resinfo[i].nr,
+            (resinfo[i].ic == '\0') ? ' ' : resinfo[i].ic
+        );
+    }
+    close_section();
+}
+
+
+void DumpStrategyText::pr_cmap(const gmx_cmap_t* cmap_grid)
+{ 
+    // TODO: bShowNumbers 
+    bool bShowNumbers = true;
+    const real dx = cmap_grid->grid_spacing != 0 ? 360.0 / cmap_grid->grid_spacing : 0;
+
+    const int nelem = cmap_grid->grid_spacing * cmap_grid->grid_spacing;
+
+    if (!available(cmap_grid, "cmap"))
+    {
+        return;
+    }
+
+    TextDumpComponent* comp = componentsStack.top();
+    comp->printFormattedText("\ncmap\n");
+
+    for (gmx::Index i = 0; i < gmx::ssize(cmap_grid->cmapdata); i++)
+    {
+        real idx = -180.0;
+        comp->printFormattedText("%8s %8s %8s %8s\n", "V", "dVdx", "dVdy", "d2dV");
+
+        comp->printFormattedText("grid[%3zd]={\n", bShowNumbers ? i : -1);
+
+        for (int j = 0; j < nelem; j++)
+        {
+            if ((j % cmap_grid->grid_spacing) == 0)
+            {
+                comp->printFormattedText("%8.1f\n", idx);
+                idx += dx;
+            }
+
+            comp->printFormattedText("%8.3f ", cmap_grid->cmapdata[i].cmap[j * 4]);
+            comp->printFormattedText("%8.3f ", cmap_grid->cmapdata[i].cmap[j * 4 + 1]);
+            comp->printFormattedText("%8.3f ", cmap_grid->cmapdata[i].cmap[j * 4 + 2]);
+            comp->printFormattedText("%8.3f\n", cmap_grid->cmapdata[i].cmap[j * 4 + 3]);
+        }
+        comp->printFormattedText("\n");
+    }
+}
+
+void DumpStrategyText::pr_lambda(real lambda)
+{
+    componentsStack.top()->addFormattedTextLeaf("lambda = %e", lambda);
+}
+
 // void DumpStrategyText::pr_reals(const char* title, const real* vec, int n)
 // {
 //     // if (available(fp, vec, indent, title))

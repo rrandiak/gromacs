@@ -27,6 +27,7 @@ void DumpBuilderGroups::build(DumpStrategy* strategy)
 {
     strategy->pr_grps(groups.groups, groups.groupNames.data());
     // pr_strings(fp, indent, "grpname", groups.groupNames.data(), groups.groupNames.size(), bShowNumbers);
+    strategy->pr_groups(groups);
 
     // pr_indent(fp, indent);
     // fprintf(fp, "groups          ");
@@ -136,7 +137,7 @@ void DumpBuilderFFParams::build(DumpStrategy* strategy)
     strategy->pr_functypes(ffparams.functype, ffparams.numTypes(), ffparams.iparams);
     strategy->pr_named_value("reppow", ffparams.reppow);
     strategy->pr_named_value("fudgeQQ", ffparams.fudgeQQ);
-    DumpBuilderCmapGrid(ffparams.cmap_grid).build(strategy);
+    strategy->pr_cmap(&(ffparams.cmap_grid));
     strategy->close_section();
 
     // indent = pr_title(fp, indent, title);
@@ -158,16 +159,10 @@ void DumpBuilderFFParams::build(DumpStrategy* strategy)
     // pr_cmap(fp, indent, "cmap", &ffparams->cmap_grid, bShowNumbers);
 }
 
-void DumpBuilderCmapGrid::build(DumpStrategy* strategy)
-{
-    strategy->pr_title("cmap");
-    strategy->close_section();
-}
-
 void DumpBuilderMoltype::build(DumpStrategy* strategy)
 {
     strategy->pr_title_i("moltype", index);
-    strategy->pr_attribute("name", moltype->name[index]);
+    strategy->pr_attribute_quoted("name", moltype->name[index]);
     strategy->pr_atoms(&(moltype->atoms));
     DumpBuilderListOfLists("excls", moltype->excls).build(strategy);
     for (int i = 0; (i < F_NRE); i++)

@@ -29,7 +29,8 @@ void DumpBuilderTpr::build(DumpStrategy* strategy) {
             strategy->pr_filename(fileName);
 
             DumpBuilderInputRec(tpx.bIr ? &ir : nullptr, FALSE).build(strategy);
-            DumpBuilderTpxHeader(&(tpx)).build(strategy);
+            // DumpBuilderTpxHeader(&(tpx)).build(strategy);
+            strategy->pr_tpx_header(&tpx);
 
             if (!bSysTop)
             {

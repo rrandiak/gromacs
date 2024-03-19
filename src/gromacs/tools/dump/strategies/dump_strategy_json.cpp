@@ -225,6 +225,25 @@ void DumpJsonStrategy::pr_list_i(const char* title, const int index, gmx::ArrayR
     
 void DumpJsonStrategy::pr_interaction_list(const std::string& title, const t_functype* functypes, const InteractionList& ilist, const t_iparams* iparams)
 {}
+
+void DumpJsonStrategy::pr_tpx_header(const TpxFileHeader* sh)
+{}
+
+void DumpJsonStrategy::pr_groups(const SimulationGroups& groups)
+{}
+
+void DumpJsonStrategy::pr_resinfo(const t_resinfo* resinfo, int n)
+{}
+
+void DumpJsonStrategy::pr_cmap(const gmx_cmap_t* cmap_grid)
+{}
+
+void DumpJsonStrategy::pr_attribute_quoted(const char* name, const std::string& value)
+{}
+
+void DumpJsonStrategy::pr_lambda(real lambda)
+{}
+
 // void DumpJsonStrategy::pr_reals(const char* title, const real* vec, int n)
 // {
 //     // if (available(fp, vec, indent, title))
