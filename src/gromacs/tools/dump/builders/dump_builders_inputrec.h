@@ -32,14 +32,9 @@
 class DumpBuilderInputRec : public DumpBuilder {
 private:
     const t_inputrec* ir;
-    // TODO: move bMDPformat to DumpComponent as static member
-    gmx_bool bMDPformat;
 
 public:
-    DumpBuilderInputRec(const t_inputrec* ir,
-                        gmx_bool bMDPformat)
-        : ir(ir),
-          bMDPformat(bMDPformat) {}
+    DumpBuilderInputRec(const t_inputrec* ir) : ir(ir) {}
     
     void build(DumpStrategy* strategy) override;
 };
@@ -57,10 +52,9 @@ public:
 class DumpBuilderQmOpts : public DumpBuilder {
 private:
     const t_inputrec* ir;
-    gmx_bool bMDPformat;
 
 public:
-    DumpBuilderQmOpts(const t_inputrec* ir, gmx_bool bMDPformat) : ir(ir), bMDPformat(bMDPformat) {}
+    DumpBuilderQmOpts(const t_inputrec* ir) : ir(ir) {}
     
     void build(DumpStrategy* strategy) override;
 };
@@ -119,10 +113,9 @@ public:
 class DumpBuilderFep: public DumpBuilder {
 private:
     const t_lambda* fep;
-    gmx_bool bMDPformat;
 
 public:
-    DumpBuilderFep(const t_lambda* fep, gmx_bool bMDPformat) : fep(fep), bMDPformat(bMDPformat) {}
+    DumpBuilderFep(const t_lambda* fep) : fep(fep) {}
     
     void build(DumpStrategy* strategy) override;
 };
@@ -162,10 +155,9 @@ public:
 class DumpBuilderGrpOpts: public DumpBuilder {
 private:
     const t_grpopts* opts;
-    gmx_bool bMDPformat;
 
 public:
-    DumpBuilderGrpOpts(const t_grpopts* opts, gmx_bool bMDPformat) : opts(opts), bMDPformat(bMDPformat) {}
+    DumpBuilderGrpOpts(const t_grpopts* opts) : opts(opts) {}
     
     void build(DumpStrategy* strategy) override;
 };

@@ -26,7 +26,15 @@ void DumpBuilderMolblock::build(DumpStrategy* strategy)
 void DumpBuilderGroups::build(DumpStrategy* strategy)
 {
     strategy->pr_grps(groups.groups, groups.groupNames.data());
-    // pr_strings(fp, indent, "grpname", groups.groupNames.data(), groups.groupNames.size(), bShowNumbers);
+
+    strategy->pr_title_i("grpname", groups.groupNames.size());
+    const char* names[] = {"name"};
+    for (size_t i = 0; i < groups.groupNames.size(); i++)
+    {
+        strategy->pr_vec_attributes("grpname", i, names, groups.groupNames.data()[i], 1);
+    }
+    strategy->close_section();
+
     strategy->pr_groups(groups);
 
     // pr_indent(fp, indent);
@@ -83,7 +91,8 @@ void DumpBuilderMTop::build(DumpStrategy* strategy)
 
     strategy->pr_title("topology");
     // fprintf(fp, "name=\"%s\"\n", *(mtop->name));
-    strategy->pr_name(*(mtop->name));
+    // strategy->pr_name(*(mtop->name));
+    strategy->pr_attribute_quoted("name", *(mtop->name));
     strategy->pr_named_value("#atoms", mtop->natoms);
     DumpBuilderMolblock(mtop->molblock, mtop->moltype).build(strategy);
     strategy->pr_named_value("bIntermolecularInteractions", gmx::boolToString(mtop->bIntermolecularInteractions));

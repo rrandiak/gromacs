@@ -28,8 +28,8 @@ void DumpBuilderMts::build(DumpStrategy* strategy) {
 void DumpBuilderPull::pr_pull_group(DumpStrategy* strategy, int g, const t_pull_group* pgrp)
 {
     strategy->pr_title_i("pull-group", g);
-    // strategy->pr_ivec_block(fp, indent, "atom", pgrp->ind.data(), pgrp->ind.size(), TRUE);
-    strategy->pr_rvec("weight", pgrp->weight.data(), pgrp->weight.size(), TRUE);
+    // strategy->pr_ivec_block(fp, indent, "atom", pgrp->ind.data(), pgrp->ind.size());
+    strategy->pr_rvec("weight", pgrp->weight.data(), pgrp->weight.size());
     strategy->pr_named_value("pbcatom", pgrp->pbcatom);
     strategy->close_section();
 }
@@ -49,9 +49,10 @@ void DumpBuilderPull::pr_pull_coord(DumpStrategy* strategy, int c, const t_pull_
         std::string buffer = gmx::formatString("group[%d]", g);
         strategy->pr_named_value(buffer.c_str(), pcrd->group[g]);
     }
-    strategy->pr_ivec("dim", pcrd->dim, DIM, TRUE);
-    strategy->pr_rvec("origin", pcrd->origin, DIM, TRUE);
-    strategy->pr_rvec("vec", pcrd->vec, DIM, TRUE);
+    const int list[] = {1, 2, 3};
+    strategy->pr_ivec("dim", pcrd->dim, DIM);
+    strategy->pr_rvec("origin", pcrd->origin, DIM);
+    strategy->pr_rvec("vec", pcrd->vec, DIM);
     strategy->pr_named_value("start", gmx::boolToString(pcrd->bStart));
     strategy->pr_named_value("init", pcrd->init);
     strategy->pr_named_value("rate", pcrd->rate);
@@ -164,10 +165,10 @@ void DumpBuilderRot::pr_rotgrp(DumpStrategy* strategy, int g, const t_rotgrp* ro
     strategy->pr_title_i("rot-group", g);
     strategy->pr_named_value("rot-type", enumValueToString(rotg->eType));
     strategy->pr_named_value("rot-massw", gmx::boolToString(rotg->bMassW));
-    strategy->pr_ivec_block("atom", rotg->ind, rotg->nat, TRUE);
+    strategy->pr_ivec_block("atom", rotg->ind, rotg->nat);
     strategy->pr_rvecs("x-ref", as_vec_array(rotg->x_ref_original.data()), rotg->x_ref_original.size());
-    strategy->pr_rvec("rot-vec", rotg->inputVec, DIM, TRUE);
-    strategy->pr_rvec("rot-pivot", rotg->pivot, DIM, TRUE);
+    strategy->pr_rvec("rot-vec", rotg->inputVec, DIM);
+    strategy->pr_rvec("rot-pivot", rotg->pivot, DIM);
     strategy->pr_named_value("rot-rate", rotg->rate);
     strategy->pr_named_value("rot-k", rotg->k);
     strategy->pr_named_value("rot-slab-dist", rotg->slab_dist);
@@ -195,7 +196,7 @@ void DumpBuilderRot::build(DumpStrategy* strategy)
 void DumpBuilderImd::build(DumpStrategy* strategy)
 {
     strategy->pr_named_value("IMD-atoms", imd->nat);
-    strategy->pr_ivec_block("atom", imd->ind, imd->nat, TRUE);
+    strategy->pr_ivec_block("atom", imd->ind, imd->nat);
 }
 
 void DumpBuilderFep::build(DumpStrategy* strategy)
@@ -214,7 +215,7 @@ void DumpBuilderFep::build(DumpStrategy* strategy)
     if (fep->n_lambda > 0)
     {
         // pr_indent(fp, indent);
-        // fprintf(fp, "separate-dvdl%s\n", bMDPformat ? " = " : ":");
+        // fprintf(fp, "separate-dvdl%s\n" ? " = " : ":");
         // for (auto i : gmx::EnumerationArray<FreeEnergyPerturbationCouplingType, bool>::keys())
         // {
         //     fprintf(fp, "%18s = ", enumValueToString(i));
@@ -228,7 +229,7 @@ void DumpBuilderFep::build(DumpStrategy* strategy)
         //     }
         //     fprintf(fp, "\n");
         // }
-        // fprintf(fp, "all-lambdas%s\n", bMDPformat ? " = " : ":");
+        // fprintf(fp, "all-lambdas%s\n" ? " = " : ":");
         // for (auto key : gmx::EnumerationArray<FreeEnergyPerturbationCouplingType, bool>::keys())
         // {
         //     fprintf(fp, "%18s = ", enumValueToString(key));
@@ -298,7 +299,7 @@ void DumpBuilderExpanded::build(DumpStrategy* strategy)
     strategy->pr_named_value("init-wl-delta", expanded->init_wl_delta);
     strategy->pr_named_value("wl-oneovert", gmx::boolToString(expanded->bWLoneovert));
 
-    strategy->pr_rvec("init-lambda-weights", expanded->init_lambda_weights.data(), n_lambda, TRUE);
+    strategy->pr_rvec("init-lambda-weights", expanded->init_lambda_weights.data(), n_lambda);
     strategy->pr_named_value("init-weights", gmx::boolToString(expanded->bInit_weights));
 }
 
@@ -307,7 +308,7 @@ void DumpBuilderSimtemp::build(DumpStrategy* strategy)
     strategy->pr_named_value("simulated-tempering-scaling", enumValueToString(simtemp->eSimTempScale));
     strategy->pr_named_value("sim-temp-low", simtemp->simtemp_low);
     strategy->pr_named_value("sim-temp-high", simtemp->simtemp_high);
-    strategy->pr_rvec("simulated tempering temperatures", simtemp->temperatures.data(), n_lambda, TRUE);
+    strategy->pr_rvec("simulated tempering temperatures", simtemp->temperatures.data(), n_lambda);
 }
 
 void DumpBuilderSwap::build(DumpStrategy* strategy)
@@ -330,7 +331,7 @@ void DumpBuilderSwap::build(DumpStrategy* strategy)
         snprintf(str, STRLEN, "massw_split%d", j);
         strategy->pr_named_value(str, gmx::boolToString(swap->massw_split[j]));
         snprintf(str, STRLEN, "split atoms group %d", j);
-        strategy->pr_ivec_block(str, swap->grp[j].ind, swap->grp[j].nat, TRUE);
+        strategy->pr_ivec_block(str, swap->grp[j].ind, swap->grp[j].nat);
     }
 
     /* The solvent group */
@@ -341,15 +342,14 @@ void DumpBuilderSwap::build(DumpStrategy* strategy)
     strategy->pr_ivec_block(
         str,
         swap->grp[static_cast<int>(SwapGroupSplittingType::Solvent)].ind,
-        swap->grp[static_cast<int>(SwapGroupSplittingType::Solvent)].nat,
-        TRUE
+        swap->grp[static_cast<int>(SwapGroupSplittingType::Solvent)].nat
     );
 
     /* Now print the indices for all the ion groups: */
     for (int ig = static_cast<int>(SwapGroupSplittingType::Count); ig < swap->ngrp; ig++)
     {
         snprintf(str, STRLEN, "ion group %s", swap->grp[ig].molname);
-        strategy->pr_ivec_block(str, swap->grp[ig].ind, swap->grp[ig].nat, TRUE);
+        strategy->pr_ivec_block(str, swap->grp[ig].ind, swap->grp[ig].nat);
     }
 
     strategy->pr_named_value("cyl0-r", swap->cyl0r);
@@ -441,7 +441,7 @@ void DumpBuilderQmOpts::build(DumpStrategy* strategy) {
     strategy->pr_named_value("free-energy", enumValueToString(ir->efep));
     if (ir->efep != FreeEnergyPerturbationType::No || ir->bSimTemp)
     {
-        DumpBuilderFep(ir->fepvals.get(), bMDPformat).build(strategy);
+        DumpBuilderFep(ir->fepvals.get()).build(strategy);
     }
     if (ir->bExpanded)
     {
@@ -450,7 +450,7 @@ void DumpBuilderQmOpts::build(DumpStrategy* strategy) {
 
     /* NON-equilibrium MD stuff */
     strategy->pr_named_value("cos-acceleration", ir->cos_accel);
-    strategy->pr_matrix("deform", ir->deform, bMDPformat);
+    strategy->pr_matrix("deform", ir->deform);
 
     /* SIMULATED TEMPERING */
     strategy->pr_named_value("simulated-tempering", gmx::boolToString(ir->bSimTemp));
@@ -495,31 +495,31 @@ void DumpBuilderGrpOpts::build(DumpStrategy* strategy) {
         strategy->pr_title("grpopts");
     }
 
-    // fprintf(out, "nrdf%s", bMDPformat ? " = " : ":");
+    // fprintf(out, "nrdf%s" ? " = " : ":");
     // for (i = 0; (i < opts->ngtc); i++)
     // {
     //     fprintf(out, "  %10g", opts->nrdf[i]);
     // }
     // fprintf(out, "\n");
-    strategy->pr_rvec_row("nrdf", opts->nrdf, opts->ngtc, bMDPformat);
+    strategy->pr_rvec_row("nrdf", opts->nrdf, opts->ngtc);
 
     // pr_indent(out, indent);
-    // fprintf(out, "ref-t%s", bMDPformat ? " = " : ":");
+    // fprintf(out, "ref-t%s" ? " = " : ":");
     // for (i = 0; (i < opts->ngtc); i++)
     // {
     //     fprintf(out, "  %10g", opts->ref_t[i]);
     // }
     // fprintf(out, "\n");
-    strategy->pr_rvec_row("ref-t", opts->ref_t, opts->ngtc, bMDPformat);
+    strategy->pr_rvec_row("ref-t", opts->ref_t, opts->ngtc);
 
     // pr_indent(out, indent);
-    // fprintf(out, "tau-t%s", bMDPformat ? " = " : ":");
+    // fprintf(out, "tau-t%s" ? " = " : ":");
     // for (i = 0; (i < opts->ngtc); i++)
     // {
     //     fprintf(out, "  %10g", opts->tau_t[i]);
     // }
     // fprintf(out, "\n");
-    strategy->pr_rvec_row("tau-t", opts->tau_t, opts->ngtc, bMDPformat);
+    strategy->pr_rvec_row("tau-t", opts->tau_t, opts->ngtc);
     
     if (!bMDPformat)
     {
@@ -527,21 +527,21 @@ void DumpBuilderGrpOpts::build(DumpStrategy* strategy) {
     }
 
     /* Pretty-print the simulated annealing info */
-    // fprintf(out, "annealing%s", bMDPformat ? " = " : ":");
+    // fprintf(out, "annealing%s" ? " = " : ":");
     // for (i = 0; (i < opts->ngtc); i++)
     // {
     //     fprintf(out, "  %10s", enumValueToString(opts->annealing[i]));
     // }
     // fprintf(out, "\n");
-    strategy->pr_sim_annealing("annealing", opts->annealing, opts->ngtc, bMDPformat);
+    strategy->pr_sim_annealing("annealing", opts->annealing, opts->ngtc);
 
-    // fprintf(out, "annealing-npoints%s", bMDPformat ? " = " : ":");
+    // fprintf(out, "annealing-npoints%s" ? " = " : ":");
     // for (i = 0; (i < opts->ngtc); i++)
     // {
     //     fprintf(out, "  %10d", opts->anneal_npoints[i]);
     // }
     // fprintf(out, "\n");
-    strategy->pr_ivec_row("annealing-npoints", opts->anneal_npoints, opts->ngtc, bMDPformat);
+    strategy->pr_ivec_row("annealing-npoints", opts->anneal_npoints, opts->ngtc);
 
     for (i = 0; (i < opts->ngtc); i++)
     {
@@ -674,8 +674,8 @@ void DumpBuilderInputRec::build(DumpStrategy* strategy) {
             strategy->pr_named_value("pcoupltype", enumValueToString(ir->pressureCouplingOptions.epct));
             strategy->pr_named_value("nstpcouple", ir->pressureCouplingOptions.nstpcouple);
             strategy->pr_named_value("tau-p", ir->pressureCouplingOptions.tau_p);
-            strategy->pr_matrix("compressibility", ir->pressureCouplingOptions.compress, bMDPformat);
-            strategy->pr_matrix("ref-p", ir->pressureCouplingOptions.ref_p, bMDPformat);
+            strategy->pr_matrix("compressibility", ir->pressureCouplingOptions.compress);
+            strategy->pr_matrix("ref-p", ir->pressureCouplingOptions.ref_p);
         }
         // Refcoord-scaling is also needed for other algorithms that affect the box
         strategy->pr_named_value("refcoord-scaling", enumValueToString(ir->pressureCouplingOptions.refcoord_scaling));
@@ -684,16 +684,16 @@ void DumpBuilderInputRec::build(DumpStrategy* strategy) {
         //     fprintf(fp, "posres-com  = %g %g %g\n", ir->posres_com[XX], ir->posres_com[YY], ir->posres_com[ZZ]);
         //     fprintf(fp, "posres-comB = %g %g %g\n", ir->posres_comB[XX], ir->posres_comB[YY], ir->posres_comB[ZZ]);
         } else {
-            strategy->pr_rvec("posres-com", ir->posres_com, DIM, TRUE);
-            strategy->pr_rvec("posres-comB", ir->posres_comB, DIM, TRUE);
+            strategy->pr_rvec("posres-com", ir->posres_com, DIM);
+            strategy->pr_rvec("posres-comB", ir->posres_comB, DIM);
         }
 
         // /* QMMM */
         strategy->pr_named_value("QMMM", gmx::boolToString(ir->bQMMM));
         strategy->close_section();
 
-        DumpBuilderQmOpts(ir, bMDPformat).build(strategy);
+        DumpBuilderQmOpts(ir).build(strategy);
 
-        DumpBuilderGrpOpts(&(ir->opts), bMDPformat).build(strategy);
+        DumpBuilderGrpOpts(&(ir->opts)).build(strategy);
     }
 }
