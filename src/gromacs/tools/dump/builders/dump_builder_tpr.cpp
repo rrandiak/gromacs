@@ -48,15 +48,11 @@ void DumpBuilderTpr::build(DumpStrategy* strategy) {
             strategy->pr_rvecs("svir_prev", tpx.bBox ? state.svir_prev : nullptr, DIM);
             strategy->pr_rvecs("fvir_prev", tpx.bBox ? state.fvir_prev : nullptr, DIM);
             /* leave nosehoover_xi in for now to match the tpr version */
-            // strategy->pr_doubles(stdout, indent, "nosehoover_xi", state.nosehoover_xi.data(), state.ngtc);
-            /*strategy->pr_doubles(stdout,indent,"nosehoover_vxi",state.nosehoover_vxi,state.ngtc);*/
-            /*strategy->pr_doubles(stdout,indent,"therm_integral",state.therm_integral,state.ngtc);*/
+            strategy->pr_dvec_row("nosehoover_xi", state.nosehoover_xi.data(), state.ngtc);
+            /*strategy->pr_dvec_row("nosehoover_vxi",state.nosehoover_vxi,state.ngtc);*/
+            /*strategy->pr_dvec_row("therm_integral",state.therm_integral,state.ngtc);*/
             strategy->pr_rvecs("x", tpx.bX ? state.x.rvec_array() : nullptr, state.numAtoms());
             strategy->pr_rvecs("v", tpx.bV ? state.v.rvec_array() : nullptr, state.numAtoms());
-
-            // fprintf(stdout, "\n\n-----\n");
-            // pr_title(stdout, indent, fileName);
-            // pr_inputrec(stdout, 0, "inputrec", tpx.bIr ? &ir : nullptr, FALSE);
         }
 
         DumpBuilderGroupStats(&mtop.groups, mtop.natoms).build(strategy);

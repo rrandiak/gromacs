@@ -11,7 +11,7 @@ DumpStrategyText::DumpStrategyText(FILE* fp)
 bool DumpStrategyText::available(const void* p, const char* title)
 {
     if (!p) {
-        componentsStack.top()->addTextLeaf(title, "not available");
+        componentsStack.top()->addFormattedTextLeaf("%s: %s", title, "not available");
     }
     return (p != nullptr);
 }
@@ -135,6 +135,31 @@ void DumpStrategyText::pr_rvec_row(const char* title, const real vec[], int n) {
         for (int i = 0; i < n; i++)
         {
             comp->printFormattedText("  %10g", vec[i]);
+        }
+    }
+}
+void DumpStrategyText::pr_dvec_row(const char* title, const double vec[], int n)
+{
+    if (available(vec, title))
+    {
+        TextDumpComponent* comp = componentsStack.top();
+        comp->addFormattedTextLeaf("%s%s", title, bMDPformat ? " = " : ":");
+        for (int i = 0; i < n; i++)
+        {
+            comp->printFormattedText("  %10g", vec[i]);
+        }
+    }
+}
+
+void DumpStrategyText::pr_svec_row(const char* title, const char* vec[], int n)
+{
+    if (available(vec, title))
+    {
+        TextDumpComponent* comp = componentsStack.top();
+        comp->addFormattedTextLeaf("%s%s", title, bMDPformat ? " = " : ":");
+        for (int i = 0; i < n; i++)
+        {
+            comp->printFormattedText("  %10s", vec[i]);
         }
     }
 }
@@ -337,6 +362,16 @@ void DumpStrategyText::pr_functypes(const std::vector<int>& functype, const int 
                 comp->printFormattedText(kfvs[j].format, std::get<int64_t>(kfvs[j].value));
             } else if (std::holds_alternative<real>(kfvs[j].value)) {
                 comp->printFormattedText(kfvs[j].format, std::get<real>(kfvs[j].value));
+            } else if (std::holds_alternative<std::array<real, 3>>(kfvs[j].value)) {
+                std::array<real, 3> arr = std::get<std::array<real, 3>>(kfvs[j].value);
+                comp->printFormattedText("(");
+                for (int k = 0; k < DIM - 1; k++)
+                {
+                    comp->printFormattedText(kfvs[j].format, arr[k]);
+                    comp->printFormattedText(",");
+                }
+                comp->printFormattedText(kfvs[j].format, arr[DIM - 1]);
+                comp->printFormattedText(")");
             } else {
                 comp->printFormattedText("unknown_format");
             }
@@ -536,7 +571,18 @@ void DumpStrategyText::pr_interaction_list(const std::string& title, const t_fun
                     comp->printFormattedText(kfvs[j].format, std::get<int64_t>(kfvs[j].value));
                 } else if (std::holds_alternative<real>(kfvs[j].value)) {
                     comp->printFormattedText(kfvs[j].format, std::get<real>(kfvs[j].value));
+                } else if (std::holds_alternative<std::array<real, 3>>(kfvs[j].value)) {
+                    std::array<real, 3> arr = std::get<std::array<real, 3>>(kfvs[j].value);
+                    comp->printFormattedText("( ");
+                    for (int k = 0; k < DIM - 1; k++)
+                    {
+                        comp->printFormattedText(kfvs[j].format, arr[k]);
+                        comp->printFormattedText(", ");
+                    }
+                    comp->printFormattedText(kfvs[j].format, arr[DIM - 1]);
+                    comp->printFormattedText(")");
                 } else {
+                    std::array<real, 3> arr = std::get<std::array<real, 3>>(kfvs[j].value);
                     comp->printFormattedText("unknown_format");
                 }
             }
@@ -660,27 +706,27 @@ void DumpStrategyText::pr_cmap(const gmx_cmap_t* cmap_grid)
     }
 
     TextDumpComponent* comp = componentsStack.top();
-    comp->printFormattedText("\ncmap\n");
+    comp->printFormattedText("\ncmap");
 
     for (gmx::Index i = 0; i < gmx::ssize(cmap_grid->cmapdata); i++)
     {
         real idx = -180.0;
-        comp->printFormattedText("%8s %8s %8s %8s\n", "V", "dVdx", "dVdy", "d2dV");
+        comp->printFormattedText("\n%8s %8s %8s %8s", "V", "dVdx", "dVdy", "d2dV");
 
-        comp->printFormattedText("grid[%3zd]={\n", bShowNumbers ? i : -1);
+        comp->printFormattedText("\ngrid[%3zd]={", bShowNumbers ? i : -1);
 
         for (int j = 0; j < nelem; j++)
         {
             if ((j % cmap_grid->grid_spacing) == 0)
             {
-                comp->printFormattedText("%8.1f\n", idx);
+                comp->printFormattedText("\n%8.1f", idx);
                 idx += dx;
             }
 
-            comp->printFormattedText("%8.3f ", cmap_grid->cmapdata[i].cmap[j * 4]);
+            comp->printFormattedText("\n%8.3f ", cmap_grid->cmapdata[i].cmap[j * 4]);
             comp->printFormattedText("%8.3f ", cmap_grid->cmapdata[i].cmap[j * 4 + 1]);
             comp->printFormattedText("%8.3f ", cmap_grid->cmapdata[i].cmap[j * 4 + 2]);
-            comp->printFormattedText("%8.3f\n", cmap_grid->cmapdata[i].cmap[j * 4 + 3]);
+            comp->printFormattedText("%8.3f", cmap_grid->cmapdata[i].cmap[j * 4 + 3]);
         }
         comp->printFormattedText("\n");
     }

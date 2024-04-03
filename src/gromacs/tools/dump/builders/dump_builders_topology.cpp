@@ -12,12 +12,12 @@ void DumpBuilderMolblock::build(DumpStrategy* strategy)
         strategy->pr_named_value("#posres_xA", molblock[mb].posres_xA.size());
         if (!molblock[mb].posres_xA.empty())
         {
-            strategy->pr_rvecs("#posres_xA", as_rvec_array(molblock[mb].posres_xA.data()), molblock[mb].posres_xA.size());
+            strategy->pr_rvecs("posres_xA", as_rvec_array(molblock[mb].posres_xA.data()), molblock[mb].posres_xA.size());
         }
         strategy->pr_named_value("#posres_xB", molblock[mb].posres_xB.size());
         if (!molblock[mb].posres_xB.empty())
         {
-            strategy->pr_rvecs("#posres_xB", as_rvec_array(molblock[mb].posres_xB.data()), molblock[mb].posres_xB.size());
+            strategy->pr_rvecs("posres_xB", as_rvec_array(molblock[mb].posres_xB.data()), molblock[mb].posres_xB.size());
         }
         strategy->close_section();
     }
@@ -171,7 +171,7 @@ void DumpBuilderFFParams::build(DumpStrategy* strategy)
 void DumpBuilderMoltype::build(DumpStrategy* strategy)
 {
     strategy->pr_title_i("moltype", index);
-    strategy->pr_attribute_quoted("name", moltype->name[index]);
+    strategy->pr_attribute_quoted("name", *(moltype->name));
     strategy->pr_atoms(&(moltype->atoms));
     DumpBuilderListOfLists("excls", moltype->excls).build(strategy);
     for (int i = 0; (i < F_NRE); i++)

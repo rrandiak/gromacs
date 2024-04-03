@@ -31,6 +31,7 @@ private:
     
 public:
     TextDumpComponent(FILE* fp, int indent) : DumpComponent(fp, indent) {}
+    virtual ~TextDumpComponent() = default;
 
     TextObjectComponent* addTextSection(const std::string& name);
     TextDumpComponent* addEmptySection();
@@ -87,6 +88,8 @@ class TextRootComponent : public TextDumpComponent {
 public:
     TextRootComponent(FILE* fp)
             : TextDumpComponent(fp, 0) {}
+    
+    virtual ~TextRootComponent() = default;
 
     TextObjectComponent* addTextObject(const std::string& name) override {
         return new TextObjectComponent(fp, indent, name);

@@ -3,14 +3,16 @@
 std::vector<KeyFormatValue> getInteractionParameters(t_functype ftype, const t_iparams& iparams)
 {
     std::vector<KeyFormatValue> values;
+    char buffer[12];
+    buffer[0] = '\0';
     switch (ftype)
     {
         case F_ANGLES:
         case F_G96ANGLES:
-            values.push_back({"rA", "%12.5e", iparams.harmonic.rA});
-            values.push_back({"krA", "%12.5e", iparams.harmonic.krA});
-            values.push_back({"rB", "%12.5e", iparams.harmonic.rB});
-            values.push_back({"krB", "%12.5e", iparams.harmonic.krB});
+            values.push_back({"thA", "%12.5e", iparams.harmonic.rA});
+            values.push_back({"ctA", "%12.5e", iparams.harmonic.krA});
+            values.push_back({"thB", "%12.5e", iparams.harmonic.rB});
+            values.push_back({"ctB", "%12.5e", iparams.harmonic.krB});
             break;
         case F_CROSS_BOND_BONDS:
             values.push_back({"r1e", "%15.8e", iparams.cross_bb.r1e});
@@ -181,41 +183,44 @@ std::vector<KeyFormatValue> getInteractionParameters(t_functype ftype, const t_i
             values.push_back({"kfacB", "%15.8e", iparams.dihres.kfacB});
             break;
         case F_POSRES:
-            // TODO:
-            // writer->writeLineFormatted(
-            //         "pos0A=(%15.8e,%15.8e,%15.8e), fcA=(%15.8e,%15.8e,%15.8e), "
-            //         "pos0B=(%15.8e,%15.8e,%15.8e), fcB=(%15.8e,%15.8e,%15.8e)",
-            //         iparams.posres.pos0A[XX],
-            //         iparams.posres.pos0A[YY],
-            //         iparams.posres.pos0A[ZZ],
-            //         iparams.posres.fcA[XX],
-            //         iparams.posres.fcA[YY],
-            //         iparams.posres.fcA[ZZ],
-            //         iparams.posres.pos0B[XX],
-            //         iparams.posres.pos0B[YY],
-            //         iparams.posres.pos0B[ZZ],
-            //         iparams.posres.fcB[XX],
-            //         iparams.posres.fcB[YY],
-            //         iparams.posres.fcB[ZZ]);
+            values.push_back({"pos0A", "%15.8e", std::array<real, 3>
+                    {iparams.posres.pos0A[XX], 
+                    iparams.posres.pos0A[YY],
+                    iparams.posres.pos0A[ZZ]}
+            });
+            values.push_back({"fcA", "%15.8e", std::array<real, 3>
+                    {iparams.posres.fcA[XX], 
+                    iparams.posres.fcA[YY],
+                    iparams.posres.fcA[ZZ]}
+            });
+            values.push_back({"pos0B", "%15.8e", std::array<real, 3>
+                    {iparams.posres.pos0B[XX], 
+                    iparams.posres.pos0B[YY],
+                    iparams.posres.pos0B[ZZ]}
+            });
+            values.push_back({"fcB", "%15.8e", std::array<real, 3>
+                    {iparams.posres.fcB[XX], 
+                    iparams.posres.fcB[YY],
+                    iparams.posres.fcB[ZZ]}
+            });
             break;
         case F_FBPOSRES:
-            // TODO:
-            // writer->writeLineFormatted(
-            //         "pos0=(%15.8e,%15.8e,%15.8e), geometry=%d, r=%15.8e, k=%15.8e",
-            //         iparams.fbposres.pos0[XX],
-            //         iparams.fbposres.pos0[YY],
-            //         iparams.fbposres.pos0[ZZ],
-            //         iparams.fbposres.geom,
-            //         iparams.fbposres.r,
-            //         iparams.fbposres.k);
+            values.push_back({"pos0", "%15.8e", std::array<real, 3>
+                    {iparams.posres.pos0[XX], 
+                    iparams.posres.pos0[YY],
+                    iparams.posres.pos0[ZZ]}
+            });
+            values.push_back({"geom", "%d", iparams.posres.geom});
+            values.push_back({"r", "%15.8e", iparams.posres.r});
+            values.push_back({"k", "%15.8e", iparams.posres.k});
             break;
         case F_RBDIHS:
             // TODO:
-            // for (int i = 0; i < NR_RBDIHS; i++)
-            // {
-            //     writer->writeStringFormatted(
-            //             "%srbcA[%d]=%15.8e", i == 0 ? "" : ", ", i, iparams.rbdihs.rbcA[i]);
-            // }
+            for (int i = 0; i < NR_RBDIHS; i++)
+            {
+                sprintf(buffer + strlen(buffer), "srbcA[%d]", i);
+                values.push_back({buffer, "%15.8e", iparams.rbdihs.rbcA[i]});
+            }
             // writer->ensureLineBreak();
             // for (int i = 0; i < NR_RBDIHS; i++)
             // {

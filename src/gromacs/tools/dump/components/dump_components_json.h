@@ -15,6 +15,7 @@ class JsonObjectComponent;
 class JsonArrayComponent;
 
 class JsonDumpComponent : public DumpComponent {
+
 private:
     bool isEmpty = true;
     JsonDumpComponent* lastChild = nullptr;

@@ -1,9 +1,7 @@
 #ifndef GMX_TOOLS_DUMP_STRATEGY_H
 #define GMX_TOOLS_DUMP_STRATEGY_H
 
-#include "gromacs/utility/real.h"
 #include "gromacs/utility/iserializer.h"
-#include "gromacs/utility/basedefinitions.h"
 #include "gromacs/utility/enumerationhelpers.h"
 #include "gromacs/utility/arrayref.h"
 #include "gromacs/utility/keyvaluetree.h"
@@ -16,10 +14,10 @@
 #include <vector>
 
 #include "gromacs/tools/dump/dump_component.h"
+#include "gromacs/tools/dump/dump_settings.h"
 
 #define DIM 3
 
-using Value = std::variant<std::string, int, int64_t, long unsigned int, double, real, gmx_bool>;
 using AtomGroupIndices = std::vector<int>;
 const gmx_bool bMDPformat = FALSE;
 
@@ -59,17 +57,21 @@ public:
 
     virtual void pr_ivec(const char* title, const int vec[], int n) = 0;
 
-    virtual void pr_ivec_row(const char* title, const int vec[], int n) = 0;
+    virtual void pr_rvec(const char* title, const real vec[], int n) = 0;
     
     virtual void pr_ivecs(const char* title, const ivec vec[], int n) = 0;
 
-    virtual void pr_ivec_block(const char* title, const int vec[], int n) = 0;
+    virtual void pr_rvecs(const char* title, const rvec vec[], int n) = 0;
 
-    virtual void pr_rvec(const char* title, const real vec[], int n) = 0;
+    virtual void pr_ivec_row(const char* title, const int vec[], int n) = 0;
 
     virtual void pr_rvec_row(const char* title, const real vec[], int n) = 0;
 
-    virtual void pr_rvecs(const char* title, const rvec vec[], int n) = 0;
+    virtual void pr_dvec_row(const char* title, const double vec[], int n) = 0;
+
+    virtual void pr_svec_row(const char* title, const char* vec[], int n) = 0;
+
+    virtual void pr_ivec_block(const char* title, const int vec[], int n) = 0;
 
     virtual void pr_matrix(const char* title, const rvec* m) = 0;
 

@@ -47,13 +47,17 @@ public:
     void pr_vec_attributes(const char* title, int i, const char** names, char** values, int n) override;
 
     void pr_ivec(const char* title, const int vec[], int n) override;
-    void pr_ivec_row(const char* title, const int vec[], int n) override;
-    void pr_ivecs(const char* title, const ivec vec[], int n) override;
-    void pr_ivec_block(const char* title, const int vec[], int n) override;
-
     void pr_rvec(const char* title, const real vec[], int n) override;
-    void pr_rvec_row(const char* title, const real vec[], int n) override;
+
+    void pr_ivecs(const char* title, const ivec vec[], int n) override;
     void pr_rvecs(const char* title, const rvec vec[], int n) override;
+
+    void pr_ivec_row(const char* title, const int vec[], int n) override;
+    void pr_rvec_row(const char* title, const real vec[], int n) override;
+    void pr_dvec_row(const char* title, const double vec[], int n) override;
+    void pr_svec_row(const char* title, const char* vec[], int n) override;
+
+    void pr_ivec_block(const char* title, const int vec[], int n) override;
     
     void pr_matrix(const char* title, const rvec* m) override;
 

@@ -8,7 +8,7 @@
 #include "gromacs/topology/idef.h"
 #include "gromacs/utility/fatalerror.h"
 
-using Value = std::variant<std::string, int, int64_t, long unsigned int, double, real, gmx_bool>;
+#include "gromacs/tools/dump/dump_settings.h"
 
 struct KeyFormatValue {
     const char* key;

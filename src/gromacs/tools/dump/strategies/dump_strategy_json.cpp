@@ -105,6 +105,14 @@ void DumpJsonStrategy::pr_rvec_row(const char* title, const real vec[], int n)
 {
 }
 
+void DumpJsonStrategy::pr_dvec_row(const char* title, const double vec[], int n)
+{
+}
+
+void DumpJsonStrategy::pr_svec_row(const char* title, const char* vec[], int n)
+{
+}
+
 void DumpJsonStrategy::pr_rvecs(const char* title, const rvec vec[], int n) {
     const char* fshort = "%12.5e";
     const char* flong  = "%15.8e";
