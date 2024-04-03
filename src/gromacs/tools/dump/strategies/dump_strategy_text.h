@@ -59,7 +59,7 @@ public:
     
     void pr_tpx_header(const TpxFileHeader* sh) override;
 
-    // Tutaj pokracuj
+    // Tu pokracuj
     void pr_sim_annealing(const char* title, const SimulatedAnnealing sa[], int n) override;
     void pr_grps(gmx::ArrayRef<const AtomGroupIndices> grps, const char* const* const* grpname) override;
     void pr_group_stats(gmx::EnumerationArray<SimulationAtomGroupType, std::vector<int>>* gcount) override;

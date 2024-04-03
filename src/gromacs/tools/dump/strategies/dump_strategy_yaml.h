@@ -1,5 +1,5 @@
-#ifndef GMX_TOOLS_DUMP_STRATEGY_JSON_H
-#define GMX_TOOLS_DUMP_STRATEGY_JSON_H
+#ifndef GMX_TOOLS_DUMP_STRATEGY_YAML_H
+#define GMX_TOOLS_DUMP_STRATEGY_YAML_H
 
 #define XX 0
 #define YY 1
@@ -10,23 +10,23 @@
 #include "gromacs/utility/basedefinitions.h"
 #include "gromacs/utility/real.h"
 #include "gromacs/tools/dump/dump_strategy.h"
-#include "gromacs/tools/dump/components/dump_components_json.h"
+#include "gromacs/tools/dump/components/dump_components_yaml.h"
 
-class DumpJsonStrategy : public DumpStrategy {
+class YamlStrategy : public DumpStrategy {
 private:
-    std::stack<JsonDumpComponent*> componentsStack;
+    std::stack<YamlComponent*> componentsStack;
 public:
-    DumpJsonStrategy(FILE* fp) {
-        JsonDumpComponent* root = new JsonRootComponent(fp);
+    YamlStrategy(FILE* fp) {
+        YamlComponent* root = new YamlRootComponent(fp);
         componentsStack.push(root);
     }
 
-    ~DumpJsonStrategy() {
+    ~YamlStrategy() {
         while (componentsStack.size() > 1) {
             componentsStack.pop();
         }
         if (!componentsStack.empty()) {
-            JsonDumpComponent* comp = componentsStack.top();
+            YamlComponent* comp = componentsStack.top();
             componentsStack.pop();
             delete comp;
         }
@@ -65,41 +65,34 @@ public:
     
     void pr_tpx_header(const TpxFileHeader* sh) override;
     
+    // TODO: add pr vec of coords
     // Tu pokracuj
-    void pr_sim_annealing(const char* title, const SimulatedAnnealing sa[], int n) override;
-    void pr_grps(gmx::ArrayRef<const AtomGroupIndices> grps, const char* const* const* grpname) override;
-    void pr_group_stats(gmx::EnumerationArray<SimulationAtomGroupType, std::vector<int>>* gcount) override;
-    void pr_moltype(const int moltype, const char* moltypeName) override;
+    void pr_sim_annealing(const char* title, const SimulatedAnnealing sa[], int n) override {}
+    void pr_grps(gmx::ArrayRef<const AtomGroupIndices> grps, const char* const* const* grpname) override {}
+    void pr_group_stats(gmx::EnumerationArray<SimulationAtomGroupType, std::vector<int>>* gcount) override {}
+    void pr_moltype(const int moltype, const char* moltypeName) override {}
 
-    void pr_anneal_points(const char* title, const float vec[], int n) override;
-    void pr_functypes(const std::vector<int>& functype, const int n, const std::vector<t_iparams>& iparams) override;
+    void pr_anneal_points(const char* title, const float vec[], int n) override {}
+    void pr_functypes(const std::vector<int>& functype, const int n, const std::vector<t_iparams>& iparams) override {}
 
     void pr_grp_opt_agg(
         const rvec acceleration[], const int ngacc,
         const ivec nFreeze[], const int ngfrz,
         const int egp_flags[], const int ngener
-    ) override;
+    ) override {}
 
-    void pr_atoms(const t_atoms* atoms) override;
+    void pr_atoms(const t_atoms* atoms) override {}
     
-    void pr_list_i(const char* title, const int index, gmx::ArrayRef<const int> list) override;
+    void pr_list_i(const char* title, const int index, gmx::ArrayRef<const int> list) override {}
 
-    void pr_interaction_list(const std::string& title, const t_functype* functypes, const InteractionList& ilist, const t_iparams* iparams) override;
+    void pr_interaction_list(const std::string& title, const t_functype* functypes, const InteractionList& ilist, const t_iparams* iparams) override {}
 
-    void pr_groups(const SimulationGroups& groups) override;
+    void pr_groups(const SimulationGroups& groups) override {}
 
-    void pr_resinfo(const t_resinfo* resinfo, int n) override;
+    void pr_resinfo(const t_resinfo* resinfo, int n) override {}
     
-    void pr_cmap(const gmx_cmap_t* cmap_grid) override;
+    void pr_cmap(const gmx_cmap_t* cmap_grid) override {}
 
-    // void pr_int(const char* title, int i);
-    // void pr_int64(const char* title, int64_t i);
-    // void pr_real(const char* title, real r);
-    // void pr_double(const char* title, double d);
-    // void pr_reals(const char* title, const real vec[], int n);
-    // void pr_doubles(const char* title, const double* vec, int n);
-    // void pr_reals_of_dim(const char* title, const real* vec, int n, int dim);
-    // void pr_strings(const char* title, const char* const* const* nm, int n, gmx_bool bShowNumbers);
 };
 
 #endif

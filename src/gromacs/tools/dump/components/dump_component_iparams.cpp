@@ -206,21 +206,21 @@ std::vector<KeyFormatValue> getInteractionParameters(t_functype ftype, const t_i
             break;
         case F_FBPOSRES:
             values.push_back({"pos0", "%15.8e", std::array<real, 3>
-                    {iparams.posres.pos0[XX], 
-                    iparams.posres.pos0[YY],
-                    iparams.posres.pos0[ZZ]}
+                    {iparams.fbposres.pos0[XX], 
+                    iparams.fbposres.pos0[YY],
+                    iparams.fbposres.pos0[ZZ]}
             });
-            values.push_back({"geom", "%d", iparams.posres.geom});
-            values.push_back({"r", "%15.8e", iparams.posres.r});
-            values.push_back({"k", "%15.8e", iparams.posres.k});
+            values.push_back({"geom", "%d", iparams.fbposres.geom});
+            values.push_back({"r", "%15.8e", iparams.fbposres.r});
+            values.push_back({"k", "%15.8e", iparams.fbposres.k});
             break;
         case F_RBDIHS:
             // TODO:
-            for (int i = 0; i < NR_RBDIHS; i++)
-            {
-                sprintf(buffer + strlen(buffer), "srbcA[%d]", i);
-                values.push_back({buffer, "%15.8e", iparams.rbdihs.rbcA[i]});
-            }
+            // for (int i = 0; i < NR_RBDIHS; i++)
+            // {
+            //     sprintf(buffer + strlen(buffer), "srbcA[%d]", i);
+            //     values.push_back({buffer, "%15.8e", iparams.rbdihs.rbcA[i]});
+            // }
             // writer->ensureLineBreak();
             // for (int i = 0; i < NR_RBDIHS; i++)
             // {

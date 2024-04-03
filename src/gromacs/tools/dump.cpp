@@ -81,6 +81,7 @@
 #include "gromacs/tools/dump/builders/dump_builder_tpr.h"
 #include "gromacs/tools/dump/strategies/dump_strategy_json.h"
 #include "gromacs/tools/dump/strategies/dump_strategy_text.h"
+#include "gromacs/tools/dump/strategies/dump_strategy_yaml.h"
 
 namespace gmx
 {
@@ -120,6 +121,8 @@ void list_tpr(const char* fn,
         strategy = new DumpStrategyText(stdout);
     } else if (outputFormat_ == OutputFormat::Json) {
         strategy = new DumpJsonStrategy(stdout);
+    } else if (outputFormat_ == OutputFormat::Yaml) {
+        strategy = new YamlStrategy(stdout);
     }
 
     if (strategy != nullptr) {
