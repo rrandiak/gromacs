@@ -1,22 +1,22 @@
 #include "gromacs/tools/dump/strategies/dump_strategy_json.h"
 
-bool DumpJsonStrategy::available(const void* p, const char* title) {
+bool DumpJsonStrategy::available(const void* p, const std::string title) {
     if (!p) {
         componentsStack.top()->addJsonLeaf(title, "not_available");
     }
     return (p != nullptr);
 }
 
-void DumpJsonStrategy::pr_filename(const char* filename) {
+void DumpJsonStrategy::pr_filename(const std::string filename) {
     componentsStack.top()->addJsonLeaf("filename", filename);
 }
 
-void DumpJsonStrategy::pr_title(const char* title) {
+void DumpJsonStrategy::pr_title(const std::string title) {
     JsonDumpComponent* comp = componentsStack.top()->addJsonObject(title);
     componentsStack.push(comp);
 }
 
-void DumpJsonStrategy::pr_title_i(const char* title, int i) {
+void DumpJsonStrategy::pr_title_i(const std::string title, int i) {
     // fprintf(fp, "%s (%d):\n", title, n);
     std::string n_title;
     n_title += title;
@@ -26,7 +26,7 @@ void DumpJsonStrategy::pr_title_i(const char* title, int i) {
     componentsStack.push(comp);
 }
 
-void DumpJsonStrategy::pr_title_n(const char* title, int n) {
+void DumpJsonStrategy::pr_title_n(const std::string title, int n) {
     // fprintf(fp, "%s (%d):\n", title, n);
     std::string n_title;
     n_title += title;
@@ -37,7 +37,7 @@ void DumpJsonStrategy::pr_title_n(const char* title, int n) {
     componentsStack.push(comp);
 }
 
-void DumpJsonStrategy::pr_title_nxn(const char* title, int n1, int n2) {
+void DumpJsonStrategy::pr_title_nxn(const std::string title, int n1, int n2) {
     // fprintf(fp, "%s (%dx%d):\n", title, n1, n2);
     std::string nxn_title;
     nxn_title += title;
@@ -55,39 +55,39 @@ void DumpJsonStrategy::close_section() {
     componentsStack.pop();
 }
 
-void DumpJsonStrategy::pr_named_value(const char* name, const Value& value) {
+void DumpJsonStrategy::pr_named_value(const std::string name, const Value& value) {
     componentsStack.top()->addJsonLeaf(name, value);
 }
     
-void DumpJsonStrategy::pr_attribute(const char* name, const Value& value)
+void DumpJsonStrategy::pr_attribute(const std::string name, const Value& value)
 {
 }
 
-void DumpJsonStrategy::pr_attribute_quoted(const char* name, const std::string& value)
+void DumpJsonStrategy::pr_attribute_quoted(const std::string name, const std::string& value)
 {
 }
 
-void DumpJsonStrategy::pr_vec_attributes(const char* title, int i, const char** names, char** values, int n)
+void DumpJsonStrategy::pr_vec_attributes(const std::string title, int i, const char** names, char** values, int n)
 {
 }
 
-void DumpJsonStrategy::pr_ivec(const char* title, const int vec[], int n)
+void DumpJsonStrategy::pr_ivec(const std::string title, const int vec[], int n)
 {
 }
 
-void DumpJsonStrategy::pr_ivec_row(const char* title, const int vec[], int n)
+void DumpJsonStrategy::pr_ivec_row(const std::string title, const int vec[], int n)
 {
 }
     
-void DumpJsonStrategy::pr_ivecs(const char* title, const ivec vec[], int n)
+void DumpJsonStrategy::pr_ivecs(const std::string title, const ivec vec[], int n)
 {
 }
 
-void DumpJsonStrategy::pr_ivec_block(const char* title, const int vec[], int n)
+void DumpJsonStrategy::pr_ivec_block(const std::string title, const int vec[], int n)
 {
 }
 
-void DumpJsonStrategy::pr_rvec(const char* title, const real vec[], int n) {
+void DumpJsonStrategy::pr_rvec(const std::string title, const real vec[], int n) {
     if (available(vec, title)) {
         pr_title_n(title, n);
         for (int i = 0; i < n; i++) {
@@ -101,22 +101,22 @@ void DumpJsonStrategy::pr_rvec(const char* title, const real vec[], int n) {
     }
 }
 
-void DumpJsonStrategy::pr_rvec_row(const char* title, const real vec[], int n)
+void DumpJsonStrategy::pr_rvec_row(const std::string title, const real vec[], int n)
 {
 }
 
-void DumpJsonStrategy::pr_dvec_row(const char* title, const double vec[], int n)
+void DumpJsonStrategy::pr_dvec_row(const std::string title, const double vec[], int n)
 {
 }
 
-void DumpJsonStrategy::pr_svec_row(const char* title, const char* vec[], int n)
+void DumpJsonStrategy::pr_svec_row(const std::string title, const char* vec[], int n)
 {
 }
 
-void DumpJsonStrategy::pr_rvecs(const char* title, const rvec vec[], int n) {
-    const char* fshort = "%12.5e";
-    const char* flong  = "%15.8e";
-    const char* format = (getenv("GMX_PRINT_LONGFORMAT") != nullptr) ? flong : fshort;
+void DumpJsonStrategy::pr_rvecs(const std::string title, const rvec vec[], int n) {
+    const std::string fshort = "%12.5e";
+    const std::string flong  = "%15.8e";
+    const std::string format = (getenv("GMX_PRINT_LONGFORMAT") != nullptr) ? flong : fshort;
     int         i, j;
 
     if (available(vec, title)) {
@@ -138,7 +138,7 @@ void DumpJsonStrategy::pr_rvecs(const char* title, const rvec vec[], int n) {
     }
 }
 
-void DumpJsonStrategy::pr_matrix(const char* title, const rvec* m) {
+void DumpJsonStrategy::pr_matrix(const std::string title, const rvec* m) {
     if (bMDPformat) {
         pr_title(title);
         pr_named_value("x_x", m[XX][XX]);
@@ -161,7 +161,7 @@ void DumpJsonStrategy::pr_tpx_header(const TpxFileHeader* sh)
 {
 }
     
-void DumpJsonStrategy::pr_sim_annealing(const char* title, const SimulatedAnnealing sa[], int n)
+void DumpJsonStrategy::pr_sim_annealing(const std::string title, const SimulatedAnnealing sa[], int n)
 {
 }
 
@@ -169,7 +169,7 @@ void DumpJsonStrategy::pr_functypes(const std::vector<int>& functype, const int 
 {
 }
 
-void DumpJsonStrategy::pr_moltype(const int moltype, const char* moltypeName) 
+void DumpJsonStrategy::pr_moltype(const int moltype, const std::string moltypeName) 
 {
 }
 
@@ -181,7 +181,7 @@ void DumpJsonStrategy::pr_group_stats(gmx::EnumerationArray<SimulationAtomGroupT
 {
 }
 
-void DumpJsonStrategy::pr_anneal_points(const char* title, const float vec[], int n)
+void DumpJsonStrategy::pr_anneal_points(const std::string title, const float vec[], int n)
 {
 }
 
@@ -196,7 +196,7 @@ void DumpJsonStrategy::pr_grp_opt_agg(
 void DumpJsonStrategy::pr_atoms(const t_atoms* atoms)
 {}
     
-void DumpJsonStrategy::pr_list_i(const char* title, const int index, gmx::ArrayRef<const int> list)
+void DumpJsonStrategy::pr_list_i(const std::string title, const int index, gmx::ArrayRef<const int> list)
 {}
     
 void DumpJsonStrategy::pr_interaction_list(const std::string& title, const t_functype* functypes, const InteractionList& ilist, const t_iparams* iparams)

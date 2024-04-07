@@ -1,45 +1,23 @@
 #ifndef GMX_TOOLS_DUMP_BUILDER_TPR_H
 #define GMX_TOOLS_DUMP_BUILDER_TPR_H
 
+// TODO: remove?
 #include "gmxpre.h"
-
 #include "config.h"
+#include "gromacs/mdrun/mdmodules.h"
+#include "gromacs/fileio/tpxio.h"
 
-#include "gromacs/fileio/checkpoint.h"
-#include "gromacs/fileio/enxio.h"
-#include "gromacs/fileio/filetypes.h"
 #include "gromacs/fileio/gmxfio.h"
-#include "gromacs/fileio/mtxio.h"
-#include "gromacs/fileio/tngio.h"
-#include "gromacs/fileio/tpxio.h"
-#include "gromacs/fileio/trrio.h"
-#include "gromacs/fileio/xtcio.h"
-#include "gromacs/gmxpreprocess/gmxcpp.h"
-#include "gromacs/math/vecdump.h"
-#include "gromacs/mdrun/mdmodules.h"
-#include "gromacs/mdtypes/forcerec.h"
 #include "gromacs/mdtypes/inputrec.h"
-#include "gromacs/mdtypes/md_enums.h"
 #include "gromacs/mdtypes/state.h"
-#include "gromacs/options/basicoptions.h"
-#include "gromacs/options/filenameoption.h"
-#include "gromacs/options/ioptionscontainer.h"
 #include "gromacs/topology/mtop_util.h"
-#include "gromacs/topology/topology.h"
-#include "gromacs/trajectory/energyframe.h"
-#include "gromacs/trajectory/trajectoryframe.h"
-#include "gromacs/utility/arraysize.h"
-#include "gromacs/utility/basedefinitions.h"
-#include "gromacs/utility/fatalerror.h"
-#include "gromacs/utility/futil.h"
-#include "gromacs/utility/smalloc.h"
-#include "gromacs/utility/txtdump.h"
-
-#include "gromacs/mdrun/mdmodules.h"
-#include "gromacs/fileio/tpxio.h"
 
 #include "gromacs/tools/dump/dump_builder.h"
 #include "gromacs/tools/dump/dump_strategy.h"
+
+#include "gromacs/tools/dump/builders/qm_opts.h"
+
+#include "gromacs/tools/dump/builders/grp_opts.h"
 #include "gromacs/tools/dump/builders/dump_builders_inputrec.h"
 #include "gromacs/tools/dump/builders/dump_builders_topology.h"
 

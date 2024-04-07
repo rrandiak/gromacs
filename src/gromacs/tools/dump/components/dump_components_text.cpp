@@ -118,23 +118,23 @@ void TextDumpComponent::addGroupStats(gmx::EnumerationArray<SimulationAtomGroupT
     }
 }
 
-void TextDumpComponent::addAttribute(const char* name, const Value& value)
+void TextDumpComponent::addAttribute(const std::string name, const Value& value)
 {
-    fprintf(fp, "\n%*s%s=", indent, "", name);
+    fprintf(fp, "\n%*s%s=", indent, "", name.c_str());
     printValue(value);
 }
 
-void TextDumpComponent::printList(const char* title, int index, const gmx::ArrayRef<const int> list)
+void TextDumpComponent::printList(const std::string title, int index, const gmx::ArrayRef<const int> list)
 {
     // TODO: show numbers
     bool bShowNumbers = true;
     if (list.empty())
     {
-        fprintf(fp, "\n%*s%s[%d]={}", indent, "", title, index);
+        fprintf(fp, "\n%*s%s[%d]={}", indent, "", title.c_str(), index);
         return;
     }
 
-    int size = fprintf(fp, "\n%*s%s[%d][num=%zu]={", indent, "", title, bShowNumbers ? index : -1, list.size()) - 1;
+    int size = fprintf(fp, "\n%*s%s[%d][num=%zu]={", indent, "", title.c_str(), bShowNumbers ? index : -1, list.size()) - 1;
 
     bool isFirst = true;
     for (const int item : list)

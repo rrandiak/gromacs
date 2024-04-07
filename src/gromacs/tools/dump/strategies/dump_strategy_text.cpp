@@ -8,46 +8,46 @@ DumpStrategyText::DumpStrategyText(FILE* fp)
     componentsStack.push(root);
 }
 
-bool DumpStrategyText::available(const void* p, const char* title)
+bool DumpStrategyText::available(const void* p, const std::string title)
 {
     if (!p) {
-        componentsStack.top()->addFormattedTextLeaf("%s: %s", title, "not available");
+        componentsStack.top()->addFormattedTextLeaf("%s: %s", title.c_str(), "not available");
     }
     return (p != nullptr);
 }
 
-void DumpStrategyText::pr_filename(const char* filename)
+void DumpStrategyText::pr_filename(const std::string filename)
 {
     componentsStack.top()->printFilename(filename);
 }
 
-void DumpStrategyText::pr_title(const char* title)
+void DumpStrategyText::pr_title(const std::string title)
 {
     TextDumpComponent* comp = componentsStack.top()->addTextObject(title);
     componentsStack.push(comp);
 }
 
-void DumpStrategyText::pr_title_i(const char* title, int i)
+void DumpStrategyText::pr_title_i(const std::string title, int i)
 {
     TextDumpComponent* comp = componentsStack.top()->addTextObject(title, i);
     componentsStack.push(comp);
 }
 
-void DumpStrategyText::pr_title_n(const char* title, int n)
+void DumpStrategyText::pr_title_n(const std::string title, int n)
 {
-    int bufferSize = snprintf(nullptr, 0, "%s (%d)", title, n) + 1;
+    int bufferSize = snprintf(nullptr, 0, "%s (%d)", title.c_str(), n) + 1;
     std::string formattedString(bufferSize, '\0');
-    snprintf(&formattedString[0], bufferSize, "%s (%d)", title, n);
+    snprintf(&formattedString[0], bufferSize, "%s (%d)", title.c_str(), n);
 
     TextDumpComponent* comp = componentsStack.top()->addTextObject(formattedString.c_str());
     componentsStack.push(comp);
 }
 
-void DumpStrategyText::pr_title_nxn(const char* title, int n1, int n2)
+void DumpStrategyText::pr_title_nxn(const std::string title, int n1, int n2)
 {
-    int bufferSize = snprintf(nullptr, 0, "%s (%dx%d)", title, n1, n2) + 1;
+    int bufferSize = snprintf(nullptr, 0, "%s (%dx%d)", title.c_str(), n1, n2) + 1;
     std::string formattedString(bufferSize, '\0');
-    snprintf(&formattedString[0], bufferSize, "%s (%dx%d)", title, n1, n2);
+    snprintf(&formattedString[0], bufferSize, "%s (%dx%d)", title.c_str(), n1, n2);
 
     TextDumpComponent* comp = componentsStack.top()->addTextObject(formattedString.c_str());
     componentsStack.push(comp);
@@ -58,26 +58,26 @@ void DumpStrategyText::close_section()
     componentsStack.pop();
 }
 
-void DumpStrategyText::pr_named_value(const char* name, const Value& value)
+void DumpStrategyText::pr_named_value(const std::string name, const Value& value)
 {
     componentsStack.top()->addTextLeaf(name, value);
 }
 
-void DumpStrategyText::pr_attribute(const char* name, const Value& value)
+void DumpStrategyText::pr_attribute(const std::string name, const Value& value)
 {
     componentsStack.top()->addAttribute(name, value);
 }
 
-void DumpStrategyText::pr_attribute_quoted(const char* name, const std::string& value)
+void DumpStrategyText::pr_attribute_quoted(const std::string name, const std::string& value)
 {
-    componentsStack.top()->addFormattedTextLeaf("%s=\"%s\"", name, value.c_str());
+    componentsStack.top()->addFormattedTextLeaf("%s=\"%s\"", name.c_str(), value.c_str());
 }
     
-void DumpStrategyText::pr_vec_attributes(const char* title, int i, const char** names, char** values, int n)
+void DumpStrategyText::pr_vec_attributes(const std::string title, int i, const char** names, char** values, int n)
 {
     bool bShowNumbers = true;
     componentsStack.top()->addFormattedTextLeaf(
-        "%s[%d]={", title, bShowNumbers ? i : -1
+        "%s[%d]={", title.c_str(), bShowNumbers ? i : -1
     );
     for (int j = 0; j < n - 1; j++)
     {
@@ -86,11 +86,11 @@ void DumpStrategyText::pr_vec_attributes(const char* title, int i, const char** 
     componentsStack.top()->printFormattedText("%s=\"%s\"}", names[n - 1], values[n - 1]);
 }
 
-void DumpStrategyText::pr_ivec(const char* title, const int vec[], int n)
+void DumpStrategyText::pr_ivec(const std::string title, const int vec[], int n)
 {
 }
 
-void DumpStrategyText::pr_ivec_row(const char* title, const int vec[], int n)
+void DumpStrategyText::pr_ivec_row(const std::string title, const int vec[], int n)
 {
     // fprintf(out, "annealing-npoints%s", bMDPformat ? " = " : ":");
     // for (i = 0; (i < opts->ngtc); i++)
@@ -99,46 +99,46 @@ void DumpStrategyText::pr_ivec_row(const char* title, const int vec[], int n)
     // }
     // fprintf(out, "\n");
     TextDumpComponent* comp = componentsStack.top();
-    comp->addFormattedTextLeaf("%s%s", title, bMDPformat ? " = " : ":");
+    comp->addFormattedTextLeaf("%s%s", title.c_str(), bMDPformat ? " = " : ":");
     for (int i = 0; i < n; i++)
     {
         comp->printFormattedText("  %10d", vec[i]);
     }
 }
     
-void DumpStrategyText::pr_ivecs(const char* title, const ivec vec[], int n)
+void DumpStrategyText::pr_ivecs(const std::string title, const ivec vec[], int n)
 {
 }
 
-void DumpStrategyText::pr_ivec_block(const char* title, const int vec[], int n)
+void DumpStrategyText::pr_ivec_block(const std::string title, const int vec[], int n)
 {
 }
 
-void DumpStrategyText::pr_rvec(const char* title, const real vec[], int n) {
+void DumpStrategyText::pr_rvec(const std::string title, const real vec[], int n) {
     if (available(vec, title))
     {
         pr_title_n(title, n);
         TextDumpComponent* comp = componentsStack.top();
         for (int i = 0; i < n; i++)
         {
-            comp->addFormattedTextLeaf("%s[%d]=%12.5e", title, i, vec[i]);
+            comp->addFormattedTextLeaf("%s[%d]=%12.5e", title.c_str(), i, vec[i]);
         }
         close_section();
     }
 }
 
-void DumpStrategyText::pr_rvec_row(const char* title, const real vec[], int n) {
+void DumpStrategyText::pr_rvec_row(const std::string title, const real vec[], int n) {
     if (available(vec, title))
     {
         TextDumpComponent* comp = componentsStack.top();
-        comp->addFormattedTextLeaf("%s%s", title, bMDPformat ? " = " : ":");
+        comp->addFormattedTextLeaf("%s%s", title.c_str(), bMDPformat ? " = " : ":");
         for (int i = 0; i < n; i++)
         {
             comp->printFormattedText("  %10g", vec[i]);
         }
     }
 }
-void DumpStrategyText::pr_dvec_row(const char* title, const double vec[], int n)
+void DumpStrategyText::pr_dvec_row(const std::string title, const double vec[], int n)
 {
     if (available(vec, title))
     {
@@ -151,7 +151,7 @@ void DumpStrategyText::pr_dvec_row(const char* title, const double vec[], int n)
     }
 }
 
-void DumpStrategyText::pr_svec_row(const char* title, const char* vec[], int n)
+void DumpStrategyText::pr_svec_row(const std::string title, const char* vec[], int n)
 {
     if (available(vec, title))
     {
@@ -164,11 +164,11 @@ void DumpStrategyText::pr_svec_row(const char* title, const char* vec[], int n)
     }
 }
 
-void DumpStrategyText::pr_rvecs(const char* title, const rvec vec[], int n)
+void DumpStrategyText::pr_rvecs(const std::string title, const rvec vec[], int n)
 {
-    const char* fshort = "%12.5e";
-    const char* flong  = "%15.8e";
-    const char* format = (getenv("GMX_PRINT_LONGFORMAT") != nullptr) ? flong : fshort;
+    const std::string fshort = "%12.5e";
+    const std::string flong  = "%15.8e";
+    const std::string format = (getenv("GMX_PRINT_LONGFORMAT") != nullptr) ? flong : fshort;
     int         i, j;
 
     if (available(vec, title)) {
@@ -176,7 +176,7 @@ void DumpStrategyText::pr_rvecs(const char* title, const rvec vec[], int n)
         TextDumpComponent* comp = componentsStack.top();
 
         for (i = 0; i < n; i++) {
-            comp->addFormattedTextLeaf("%s[%5d]=", title, i);
+            comp->addFormattedTextLeaf("%s[%5d]=", title.c_str(), i);
             comp->addTextVectorLeaf(vec[i], DIM);
         }
 
@@ -184,7 +184,7 @@ void DumpStrategyText::pr_rvecs(const char* title, const rvec vec[], int n)
     }
 }
 
-void DumpStrategyText::pr_matrix(const char* title, const rvec* m) {
+void DumpStrategyText::pr_matrix(const std::string title, const rvec* m) {
     if (bMDPformat) {
         // fprintf(fp,
         //         "%-10s    = %g %g %g %g %g %g\n",
@@ -277,7 +277,7 @@ void DumpStrategyText::pr_tpx_header(const TpxFileHeader* sh)
 
 // Tutaj pokracuj
     
-void DumpStrategyText::pr_sim_annealing(const char* title, const SimulatedAnnealing sa[], int n)
+void DumpStrategyText::pr_sim_annealing(const std::string title, const SimulatedAnnealing sa[], int n)
 {
     // fprintf(out, "annealing%s", bMDPformat ? " = " : ":");
     // for (i = 0; (i < opts->ngtc); i++)
@@ -286,7 +286,7 @@ void DumpStrategyText::pr_sim_annealing(const char* title, const SimulatedAnneal
     // }
     // fprintf(out, "\n");
     TextDumpComponent* comp = componentsStack.top();
-    comp->addFormattedTextLeaf("%s%s", title, bMDPformat ? " = " : ":");
+    comp->addFormattedTextLeaf("%s%s", title.c_str(), bMDPformat ? " = " : ":");
     for (int i = 0; i < n; i++)
     {
         comp->printFormattedText("  %10s", enumValueToString(sa[i]));
@@ -314,10 +314,10 @@ void DumpStrategyText::pr_grps(gmx::ArrayRef<const AtomGroupIndices> grps, const
 }
 
 // Toto ostava
-void DumpStrategyText::pr_moltype(const int moltype, const char* moltypeName) 
+void DumpStrategyText::pr_moltype(const int moltype, const std::string moltypeName) 
 {
     componentsStack.top()->addFormattedTextLeaf(
-        "%-20s = %d \"%s\"", "moltype", moltype, moltypeName
+        "%-20s = %d \"%s\"", "moltype", moltype, moltypeName.c_str()
     );
 }
 
@@ -328,9 +328,9 @@ void DumpStrategyText::pr_group_stats(gmx::EnumerationArray<SimulationAtomGroupT
 }
 
 // Toto ostava
-void DumpStrategyText::pr_anneal_points(const char* title, const float vec[], int n)
+void DumpStrategyText::pr_anneal_points(const std::string title, const float vec[], int n)
 {
-    componentsStack.top()->addFormattedTextLeaf("%s [%d]:\t", title, n);
+    componentsStack.top()->addFormattedTextLeaf("%s [%d]:\t", title.c_str(), n);
     for (int i = 0; (i < vec[i]); i++)
     {
         componentsStack.top()->printFormattedText("  %10.1f", vec[i]);
@@ -516,7 +516,7 @@ void DumpStrategyText::pr_atoms(const t_atoms* atoms)
     close_section();
 }
 
-void DumpStrategyText::pr_list_i(const char* title, const int index, gmx::ArrayRef<const int> list)
+void DumpStrategyText::pr_list_i(const std::string title, const int index, gmx::ArrayRef<const int> list)
 {
     componentsStack.top()->printList(title, index, list);
 }
@@ -732,7 +732,7 @@ void DumpStrategyText::pr_cmap(const gmx_cmap_t* cmap_grid)
     }
 }
 
-// void DumpStrategyText::pr_reals(const char* title, const real* vec, int n)
+// void DumpStrategyText::pr_reals(const std::string title, const real* vec, int n)
 // {
 //     // if (available(fp, vec, indent, title))
 //     // {
@@ -746,7 +746,7 @@ void DumpStrategyText::pr_cmap(const gmx_cmap_t* cmap_grid)
 //     // }
 // }
 
-// void DumpStrategyText::pr_doubles(const char* title, const double* vec, int n)
+// void DumpStrategyText::pr_doubles(const std::string title, const double* vec, int n)
 // {
 //     // if (available(fp, vec, indent, title))
 //     // {
@@ -760,11 +760,11 @@ void DumpStrategyText::pr_cmap(const gmx_cmap_t* cmap_grid)
 //     // }
 // }
 
-// void DumpStrategyText::pr_reals_of_dim(const char* title, const real* vec, int n, int dim)
+// void DumpStrategyText::pr_reals_of_dim(const std::string title, const real* vec, int n, int dim)
 // {
-//     // const char* fshort = "%12.5e";
-//     // const char* flong  = "%15.8e";
-//     // const char* format = (getenv("GMX_PRINT_LONGFORMAT") != nullptr) ? flong : fshort;
+//     // const std::string fshort = "%12.5e";
+//     // const std::string flong  = "%15.8e";
+//     // const std::string format = (getenv("GMX_PRINT_LONGFORMAT") != nullptr) ? flong : fshort;
 
 //     // if (available(fp, vec, indent, title))
 //     // {
@@ -786,13 +786,13 @@ void DumpStrategyText::pr_cmap(const gmx_cmap_t* cmap_grid)
 //     // }
 // }
 
-// void DumpStrategyText::pr_int(const char* title, int i)
+// void DumpStrategyText::pr_int(const std::string title, int i)
 // {
 //     // pr_indent(fp, indent);
 //     // fprintf(fp, "%-30s = %d\n", title, i);
 // }
 
-// void DumpStrategyText::pr_int64(const char* title, int64_t i)
+// void DumpStrategyText::pr_int64(const std::string title, int64_t i)
 // {
 //     // char buf[STEPSTRSIZE];
 
@@ -800,26 +800,26 @@ void DumpStrategyText::pr_cmap(const gmx_cmap_t* cmap_grid)
 //     // fprintf(fp, "%-30s = %s\n", title, gmx_step_str(i, buf));
 // }
 
-// void DumpStrategyText::pr_real(const char* title, real r)
+// void DumpStrategyText::pr_real(const std::string title, real r)
 // {
 //     // pr_indent(fp, indent);
 //     // fprintf(fp, "%-30s = %g\n", title, r);
 // }
 
-// void DumpStrategyText::pr_double(const char* title, double d)
+// void DumpStrategyText::pr_double(const std::string title, double d)
 // {
 //     // pr_indent(fp, indent);
 //     // fprintf(fp, "%-30s = %g\n", title, d);
 // }
 
-// void DumpStrategyText::pr_str(const char* title, const char* s)
+// void DumpStrategyText::pr_str(const std::string title, const char* s)
 // {
 //     // pr_indent(fp, indent);
 //     // fprintf(fp, "%-30s = %s\n", title, s);
 //     componentsStack.top()->addFormattedTextLeaf("%-30s = %s\n", title, s);
 // }
 
-// void DumpStrategyText::pr_strings(const char* title, const char* const* const* nm, int n, gmx_bool bShowNumbers)
+// void DumpStrategyText::pr_strings(const std::string title, const char* const* const* nm, int n, gmx_bool bShowNumbers)
 // {
 //     // if (available(fp, nm, indent, title))
 //     // {

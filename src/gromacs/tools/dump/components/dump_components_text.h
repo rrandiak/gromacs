@@ -47,8 +47,8 @@ public:
     void addGroupStats(gmx::EnumerationArray<SimulationAtomGroupType, std::vector<int>>* gcount);
     void printFilename(const std::string& filename);
     void printFormattedText(const char* format, ...);
-    void addAttribute(const char* name, const Value& value); 
-    void printList(const char* title, int index, const gmx::ArrayRef<const int> list);
+    void addAttribute(const std::string name, const Value& value); 
+    void printList(const std::string title, int index, const gmx::ArrayRef<const int> list);
 };
 
 class TextObjectComponent : public TextDumpComponent {
