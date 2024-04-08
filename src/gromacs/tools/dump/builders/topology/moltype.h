@@ -5,6 +5,8 @@
 #include "gromacs/utility/strconvert.h"
 
 #include "gromacs/tools/dump/dump_builder.h"
+
+#include "gromacs/tools/dump/builders/common/atoms.h"
 #include "gromacs/tools/dump/builders/common/list_of_lists.h"
 
 class MoltypeBuilder : DumpBuilder {

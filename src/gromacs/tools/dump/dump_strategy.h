@@ -18,10 +18,11 @@
 
 #define DIM 3
 
-using AtomGroupIndices = std::vector<int>;
-const gmx_bool bMDPformat = FALSE;
-
 class DumpStrategy {
+public:
+    gmx_bool bMDPformat = FALSE;
+    gmx_bool bShowNumbers = TRUE;
+    gmx_bool bShowParameters = FALSE;
 public:
     virtual ~DumpStrategy() = default;
 
@@ -41,7 +42,7 @@ public:
     virtual void pr_title_n(const std::string title, int n) = 0;
 
     //! Prints a title for a dumped section with 2D dimension suffixed (in NxM format).
-    virtual void pr_title_nxn(const std::string title, int n, int m) = 0;
+    virtual void pr_title_nxm(const std::string title, int n, int m) = 0;
 
     virtual void close_section() = 0;
 
@@ -54,10 +55,11 @@ public:
 
     virtual void pr_attribute(const std::string name, const Value& value) = 0;
 
-    // Merge with pr_attribute
     virtual void pr_attribute_quoted(const std::string name, const std::string& value) = 0;
 
     virtual void pr_vec_attributes(const std::string title, int i, const char** names, char** values, int n) = 0;
+
+    virtual void pr_residue(const t_resinfo* resinfo, int n) = 0;
 
     virtual void pr_ivec(const std::string title, const int vec[], int n) = 0;
 
@@ -75,27 +77,21 @@ public:
 
     virtual void pr_svec_row(const std::string title, const char* vec[], int n) = 0;
 
+    virtual void pr_sa_vec_row(const std::string title, const SimulatedAnnealing sa[], int n) = 0;
+            
+    virtual void pr_ap_vec_row(const std::string title, const float vec[], int n) = 0;
+
     virtual void pr_ivec_block(const std::string title, const int vec[], int n) = 0;
 
     virtual void pr_matrix(const std::string title, const rvec* m) = 0;
 
     virtual void pr_kvtree(const gmx::KeyValueTreeObject kvTree) = 0;
 
-    virtual void pr_tpx_header(const TpxFileHeader* sh) = 0;
+    virtual void pr_moltype(const int moltype, const std::string typeName) = 0;
 
-    // Tutaj pokracuj
+    virtual void pr_atom(const t_atom* atom, const int i) = 0;
 
     virtual void pr_grps(gmx::ArrayRef<const AtomGroupIndices> grps, const char* const* const* grpname) = 0;
-
-    virtual void pr_sim_annealing(const std::string title, const SimulatedAnnealing sa[], int n) = 0;
-
-    virtual void pr_group_stats(gmx::EnumerationArray<SimulationAtomGroupType, std::vector<int>>* gcount) = 0;
-
-    virtual void pr_moltype(const int moltype, const std::string typeName) = 0;
-            
-    virtual void pr_anneal_points(const std::string title, const float vec[], int n) = 0;
-
-    virtual void pr_functypes(const std::vector<int>& functype, const int n, const std::vector<t_iparams>& iparams) = 0;
 
     virtual void pr_grp_opt_agg(
         const rvec acceleration[], const int ngacc,
@@ -103,15 +99,17 @@ public:
         const int egp_flags[], const int ngener
     ) = 0;
 
-    virtual void pr_atoms(const t_atoms* atoms) = 0;
+    virtual void pr_groups(const SimulationGroups& groups) = 0;
+
+    virtual void pr_group_stats(gmx::EnumerationArray<SimulationAtomGroupType, std::vector<int>>* gcount) = 0;
 
     virtual void pr_list_i(const std::string title, const int index, gmx::ArrayRef<const int> list) = 0;
 
+    virtual void pr_iparams(t_functype ftype, const t_iparams& iparams) = 0;
+    
+    virtual void pr_functypes(const std::vector<int>& functype, const int n, const std::vector<t_iparams>& iparams) = 0;
+
     virtual void pr_interaction_list(const std::string& title, const t_functype* functypes, const InteractionList& ilist, const t_iparams* iparams) = 0;
-
-    virtual void pr_groups(const SimulationGroups& groups) = 0;
-
-    virtual void pr_resinfo(const t_resinfo* resinfo, int n) = 0;
 
     virtual void pr_cmap(const gmx_cmap_t* cmap_grid) = 0;
 };

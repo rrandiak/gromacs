@@ -4,7 +4,7 @@ void MoltypeBuilder::build(DumpStrategy* strategy)
 {
     strategy->pr_title_i("moltype", index);
     strategy->pr_attribute_quoted("name", *(moltype->name));
-    strategy->pr_atoms(&(moltype->atoms));
+    AtomsBuilder(&(moltype->atoms)).build(strategy);
     ListOfListsBuilder("excls", moltype->excls).build(strategy);
     for (int i = 0; (i < F_NRE); i++)
     {

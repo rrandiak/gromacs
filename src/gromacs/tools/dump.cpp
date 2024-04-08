@@ -78,10 +78,11 @@
 #include "gromacs/utility/smalloc.h"
 #include "gromacs/utility/txtdump.h"
 
-#include "gromacs/tools/dump/directors/tpr.h"
-#include "gromacs/tools/dump/strategies/dump_strategy_json.h"
-#include "gromacs/tools/dump/strategies/dump_strategy_text.h"
-#include "gromacs/tools/dump/strategies/dump_strategy_yaml.h"
+#include "gromacs/tools/dump/directors/tpr_director.h"
+#include "gromacs/tools/dump/dump_strategy.h"
+#include "gromacs/tools/dump/strategies/json_strategy.h"
+#include "gromacs/tools/dump/strategies/text_strategy.h"
+#include "gromacs/tools/dump/strategies/yaml_strategy.h"
 
 namespace gmx
 {
@@ -108,25 +109,25 @@ void list_tpr(const char* fn,
               const char* mdpfn,
               gmx_bool    bSysTop,
               gmx_bool    bOriginalInputrec,
-              OutputFormat outputFormat_)
+              OutputFormat outputFormat_,
+              std::vector<TprSection> tprSections_)
 {
-    DumpBuilderTpr dumpBuilder = DumpBuilderTpr(fn,
-                                                bShowNumbers,
-                                                bShowParameters,
-                                                mdpfn,
-                                                bSysTop,
-                                                bOriginalInputrec);
+    TprDirector tprDirector = TprDirector(
+        fn, mdpfn, bOriginalInputrec, tprSections_
+    );
+
     DumpStrategy* strategy = nullptr;
     if (outputFormat_ == OutputFormat::PlainText) {
-        strategy = new DumpStrategyText(stdout);
+        strategy = new TextStrategy(stdout);
     } else if (outputFormat_ == OutputFormat::Json) {
-        strategy = new DumpJsonStrategy(stdout);
+        strategy = new JsonStrategy(stdout);
     } else if (outputFormat_ == OutputFormat::Yaml) {
         strategy = new YamlStrategy(stdout);
     }
 
     if (strategy != nullptr) {
-        dumpBuilder.build(strategy);
+        strategy->bShowNumbers = bShowNumbers;
+        tprDirector.build(strategy);
         delete strategy;
     }
 }
@@ -577,6 +578,7 @@ private:
     bool bSysTop_           = false;
     bool bOriginalInputrec_ = false;
     OutputFormat outputFormat_;
+    std::vector<TprSection> tprSections_ = {};
     //! \}
     //! Commandline file options
     //! \{
@@ -647,7 +649,7 @@ void Dump::initOptions(IOptionsContainer* options, ICommandLineOptionsModuleSett
     options->addOption(
             EnumOption<OutputFormat>("format").enumValue(c_outputFormatNames).store(&outputFormat_).defaultValue(OutputFormat::PlainText).description("Output format"));
     options->addOption(
-            EnumOption<OutputFormat>("format").enumValue(c_outputFormatNames).store(&outputFormat_).defaultValue(OutputFormat::PlainText).description("Output format"));
+            EnumOption<TprSection>("section").enumValue(c_tprSectionNames).storeVector(&tprSections_).allowMultiple().description("Dump section to be built"));
 }
 
 void Dump::optionsFinished()
@@ -667,7 +669,8 @@ int Dump::run()
                  outputMdpFilename_.empty() ? nullptr : outputMdpFilename_.c_str(),
                  bSysTop_,
                  bOriginalInputrec_,
-                 outputFormat_);
+                 outputFormat_,
+                 tprSections_);
     }
     else if (!inputTrajectoryFilename_.empty())
     {

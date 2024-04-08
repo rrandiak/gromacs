@@ -5,7 +5,7 @@ void GroupOptionsBuilder::build(DumpStrategy* strategy) {
     // TODO: print enum vector
     int i, m, j;
 
-    if (!bMDPformat)
+    if (!false)
     {
         strategy->pr_title("grpopts");
     }
@@ -36,7 +36,7 @@ void GroupOptionsBuilder::build(DumpStrategy* strategy) {
     // fprintf(out, "\n");
     strategy->pr_rvec_row("tau-t", opts->tau_t, opts->ngtc);
     
-    if (!bMDPformat)
+    if (!false)
     {
         strategy->close_section();
     }
@@ -48,7 +48,7 @@ void GroupOptionsBuilder::build(DumpStrategy* strategy) {
     //     fprintf(out, "  %10s", enumValueToString(opts->annealing[i]));
     // }
     // fprintf(out, "\n");
-    strategy->pr_sim_annealing("annealing", opts->annealing, opts->ngtc);
+    strategy->pr_sa_vec_row("annealing", opts->annealing, opts->ngtc);
 
     // fprintf(out, "annealing-npoints%s" ? " = " : ":");
     // for (i = 0; (i < opts->ngtc); i++)
@@ -68,14 +68,14 @@ void GroupOptionsBuilder::build(DumpStrategy* strategy) {
             //     fprintf(out, "  %10.1f", opts->anneal_time[i][j]);
             // }
             // fprintf(out, "\n");
-            strategy->pr_anneal_points("annealing-time", opts->anneal_time[i], opts->anneal_npoints[i]);
+            strategy->pr_ap_vec_row("annealing-time", opts->anneal_time[i], opts->anneal_npoints[i]);
             // fprintf(out, "annealing-temp [%d]:\t", i);
             // for (j = 0; (j < opts->anneal_npoints[i]); j++)
             // {
             //     fprintf(out, "  %10.1f", opts->anneal_temp[i][j]);
             // }
             // fprintf(out, "\n");
-            strategy->pr_anneal_points("annealing-temp", opts->anneal_temp[i], opts->anneal_npoints[i]);
+            strategy->pr_ap_vec_row("annealing-temp", opts->anneal_temp[i], opts->anneal_npoints[i]);
         }
     }
 

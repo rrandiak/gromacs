@@ -24,6 +24,7 @@ private:
 
 public:
     YamlComponent(FILE* fp, int indent) : DumpComponent(fp, indent) {}
+    ~YamlComponent() = default;
 
     YamlObjectComponent* addYamlObject(const std::string& name);
     YamlArrayComponent* addYamlArray(const std::string& name);
@@ -36,12 +37,14 @@ class YamlObjectComponent : public YamlComponent {
 public:
     YamlObjectComponent(FILE* fp, int indent, const std::string& name)
             : YamlComponent(fp, indent) {}
+    ~YamlObjectComponent() = default;
 };
 
 class YamlArrayComponent : public YamlComponent {
 public:
     YamlArrayComponent(FILE* fp, int indent, const std::string& name)
             : YamlComponent(fp, indent) {}
+    ~YamlArrayComponent() = default;
 
     YamlObjectComponent* addYamlObject(const std::string& name);
 };
@@ -52,6 +55,7 @@ public:
             : YamlComponent(fp, indent) {
         fprintf(fp, "\n%*s\"%s\": [", indent, "", name.c_str());
     }
+    ~YamlInlineArrayComponent() = default;
 
     void close() {
         fprintf(fp, "]");
@@ -63,6 +67,10 @@ public:
     YamlRootComponent(FILE* fp)
             : YamlComponent(fp, 0) {
         fprintf(fp, "---");
+    }
+
+    ~YamlRootComponent() {
+        fprintf(fp, "\n");
     }
 };
 

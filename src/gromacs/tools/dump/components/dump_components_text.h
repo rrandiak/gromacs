@@ -74,6 +74,8 @@ public:
 
         va_end(args);
     }
+    
+    virtual ~TextObjectComponent() = default;
 };
 
 class TextArrayComponent : public TextDumpComponent {
@@ -82,6 +84,8 @@ public:
             : TextDumpComponent(fp, indent + indentValue) {
         fprintf(fp, "\n%*s%s:", indent, "", name.c_str());
     }
+
+    virtual ~TextArrayComponent() = default;
 };
 
 class TextRootComponent : public TextDumpComponent {

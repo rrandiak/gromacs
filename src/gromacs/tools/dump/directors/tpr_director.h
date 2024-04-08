@@ -29,8 +29,8 @@
 enum class TprSection : int
 {
     InputRec,
-    QmOpts,
-    GroupOpts,
+    QmOptions,
+    GroupOptions,
     TpxHeader,
     Topology,
     Box,
@@ -64,33 +64,24 @@ const gmx::EnumerationArray<TprSection, const char*> c_tprSectionNames = {
     "group_statistics"
 };
 
-class DumpBuilderTpr : public DumpBuilder {
+class TprDirector : public DumpBuilder {
 private:
     const char* fileName;
-    gmx_bool bShowNumbers;
-    gmx_bool bShowParameters;
     const char* mdpFileName;
-    gmx_bool bSysTop;
     gmx_bool bOriginalInputrec;
+    std::vector<TprSection> sections;
+
+    t_state state;
+    gmx_mtop_t mtop;
+    TpxFileHeader tpx;
+    t_inputrec ir;
 
 public:
-    DumpBuilderTpr(const char* fn,
-                   gmx_bool bShowNumbers,
-                   gmx_bool bShowParameters,
-                   const char* mdpfn,
-                   gmx_bool bSysTop,
-                   gmx_bool bOriginalInputrec)
-        : fileName(fn),
-          bShowNumbers(bShowNumbers),
-          bShowParameters(bShowParameters),
-          mdpFileName(mdpfn),
-          bSysTop(bSysTop),
-          bOriginalInputrec(bOriginalInputrec) {}
-    
+    TprDirector(const char* fn, const char* mdpfn, gmx_bool bOriginalInputrec, std::vector<TprSection> sections);
     void build(DumpStrategy* strategy) override;
 
 private:
-    void buildSection(const char* section, DumpStrategy* strategy);
+    void buildSection(TprSection section, DumpStrategy* strategy);
 };
 
 #endif

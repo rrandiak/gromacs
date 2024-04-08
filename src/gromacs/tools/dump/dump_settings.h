@@ -9,6 +9,7 @@
 #include "gromacs/utility/real.h"
 
 // using Value = std::variant<std::string, int, int64_t, long unsigned int, double, real, gmx_bool, std::array<real, DIM>>;
-using Value = std::variant<std::string, int, int64_t, long unsigned int, double, real, gmx_bool, std::array<real, 3>>;
+using AtomGroupIndices = std::vector<int>;
+using Value = std::variant<std::string, int, int64_t, long unsigned int, double, real, char, gmx_bool, std::array<real, 3>>;
 
 #endif

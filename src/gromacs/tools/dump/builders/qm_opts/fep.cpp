@@ -9,7 +9,7 @@ void FepBuilder::build(DumpStrategy* strategy)
     strategy->pr_named_value("delta-lambda", fep->delta_lambda);
     strategy->pr_named_value("nstdhdl", fep->nstdhdl);
 
-    if (!bMDPformat)
+    if (!strategy->bMDPformat)
     {
         strategy->pr_named_value("n-lambdas", fep->n_lambda);
     }

@@ -101,7 +101,7 @@ void QmOptionsBuilder::build(DumpStrategy* strategy) {
     strategy->pr_named_value("userreal3", ir->userreal3);
     strategy->pr_named_value("userreal4", ir->userreal4);
 
-    if (!bMDPformat)
+    if (!strategy->bMDPformat)
     {
         strategy->pr_kvtree(*ir->params);
     }

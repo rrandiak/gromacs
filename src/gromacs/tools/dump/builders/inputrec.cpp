@@ -5,7 +5,7 @@ void InputRecBuilder::build(DumpStrategy* strategy) {
     const char* infbuf = "inf";
 
     if (strategy->available(ir, title)) {
-        if (!bMDPformat) {
+        if (!strategy->bMDPformat) {
             strategy->pr_title(title);
         }
         /* Try to make this list appear in the same order as the
@@ -112,7 +112,7 @@ void InputRecBuilder::build(DumpStrategy* strategy) {
         strategy->pr_named_value("refcoord-scaling", enumValueToString(ir->pressureCouplingOptions.refcoord_scaling));
 
         // TODO: pr_dim_rvec
-        if (bMDPformat) {
+        if (strategy->bMDPformat) {
         //     fprintf(fp, "posres-com  = %g %g %g\n", ir->posres_com[XX], ir->posres_com[YY], ir->posres_com[ZZ]);
         //     fprintf(fp, "posres-comB = %g %g %g\n", ir->posres_comB[XX], ir->posres_comB[YY], ir->posres_comB[ZZ]);
         } else {
@@ -123,7 +123,7 @@ void InputRecBuilder::build(DumpStrategy* strategy) {
         // /* QMMM */
         strategy->pr_named_value("QMMM", gmx::boolToString(ir->bQMMM));
 
-        if (!bMDPformat) {
+        if (!strategy->bMDPformat) {
             strategy->close_section();
         }
     }

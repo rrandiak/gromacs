@@ -8,10 +8,10 @@
 
 class AtomsBuilder : DumpBuilder {
 private:
-    const t_atoms atoms;
+    const t_atoms* atoms;
 
 public:
-    AtomsBuilder(const t_atoms& atoms) : atoms(atoms) {}
+    AtomsBuilder(const t_atoms* atoms) : atoms(atoms) {}
     void build(DumpStrategy* strategy) override;
 };
 

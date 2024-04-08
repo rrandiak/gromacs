@@ -4,7 +4,7 @@ void SimulationGroupsBuilder::build(DumpStrategy* strategy)
 {
     strategy->pr_grps(groups.groups, groups.groupNames.data());
 
-    strategy->pr_title_i("grpname", groups.groupNames.size());
+    strategy->pr_title_n("grpname", groups.groupNames.size());
     const char* names[] = {"name"};
     for (size_t i = 0; i < groups.groupNames.size(); i++)
     {
