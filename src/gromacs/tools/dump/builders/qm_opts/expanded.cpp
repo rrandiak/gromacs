@@ -1,4 +1,4 @@
-#include "gromacs/tools/dump/builders/expanded.h"
+#include "expanded.h"
 
 void ExpandedBuilder::build(DumpStrategy* strategy)
 {

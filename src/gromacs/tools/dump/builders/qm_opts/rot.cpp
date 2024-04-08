@@ -1,4 +1,4 @@
-#include "gromacs/tools/dump/builders/rot.h"
+#include "rot.h"
 
 void RotBuilder::build(DumpStrategy* strategy)
 {

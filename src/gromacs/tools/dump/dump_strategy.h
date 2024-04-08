@@ -47,6 +47,10 @@ public:
 
     //! Prints a named value.
     virtual void pr_named_value(const std::string name, const Value& value) = 0;
+    
+    virtual void pr_named_value_short_format(const std::string name, const Value& value) = 0;
+
+    virtual void pr_named_value_scientific(const std::string name, const real& value) = 0;
 
     virtual void pr_attribute(const std::string name, const Value& value) = 0;
 

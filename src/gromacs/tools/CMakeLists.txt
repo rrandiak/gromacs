@@ -37,6 +37,10 @@ add_library(tools INTERFACE)
 file(GLOB TOOLS_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/dump/builders/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/dump/builders/common/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/dump/builders/qm_opts/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/dump/builders/topology/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/dump/directors/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/dump/strategies/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/dump/components/*.cpp
 )

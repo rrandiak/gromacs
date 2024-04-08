@@ -1,6 +1,6 @@
 #include "gromacs/tools/dump/builders/qm_opts.h"
 
-void DumpBuilderQmOpts::build(DumpStrategy* strategy) {
+void QmOptionsBuilder::build(DumpStrategy* strategy) {
     strategy->pr_title("qm-opts");
     strategy->pr_named_value("ngQM", ir->opts.ngQM);
 

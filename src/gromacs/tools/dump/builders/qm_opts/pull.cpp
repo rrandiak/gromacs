@@ -1,4 +1,4 @@
-#include "gromacs/tools/dump/builders/pull.h"
+#include "pull.h"
 
 void PullBuilder::build(DumpStrategy* strategy)
 {

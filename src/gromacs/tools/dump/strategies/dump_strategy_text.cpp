@@ -63,6 +63,16 @@ void DumpStrategyText::pr_named_value(const std::string name, const Value& value
     componentsStack.top()->addTextLeaf(name, value);
 }
 
+void DumpStrategyText::pr_named_value_short_format(const std::string name, const Value& value)
+{
+    componentsStack.top()->addAlignedTextLeaf(name, value, 6);
+}
+
+void DumpStrategyText::pr_named_value_scientific(const std::string name, const real& value)
+{
+    componentsStack.top()->addFormattedTextLeaf("%-*s = %e", 6, name.c_str(), value);
+}
+
 void DumpStrategyText::pr_attribute(const std::string name, const Value& value)
 {
     componentsStack.top()->addAttribute(name, value);
@@ -254,25 +264,6 @@ void DumpStrategyText::pr_kvtree(const gmx::KeyValueTreeObject kvTree)
 
 void DumpStrategyText::pr_tpx_header(const TpxFileHeader* sh)
 {
-    if (!available(sh, "header"))
-    {
-        return;
-    }
-
-    pr_title("header");
-    TextDumpComponent* comp = componentsStack.top();
-
-    comp->addAlignedTextLeaf("bIr", sh->bIr ? "present" : "not present", 6);
-    comp->addAlignedTextLeaf("bBox", sh->bBox ? "present" : "not present", 6);
-    comp->addAlignedTextLeaf("bTop", sh->bTop ? "present" : "not present", 6);
-    comp->addAlignedTextLeaf("bX", sh->bX ? "present" : "not present", 6);
-    comp->addAlignedTextLeaf("bV", sh->bV ? "present" : "not present", 6);
-    comp->addAlignedTextLeaf("bF", sh->bF ? "present" : "not present", 6);
-    comp->addAlignedTextLeaf("natoms", sh->natoms, 6);
-    comp->addFormattedTextLeaf("lambda = %e", sh->lambda);
-    comp->addAlignedTextLeaf("buffer size", sh->sizeOfTprBody, 6);
-
-    close_section();
 }
 
 // Tutaj pokracuj
@@ -322,6 +313,7 @@ void DumpStrategyText::pr_moltype(const int moltype, const std::string moltypeNa
 }
 
 // Toto ostava
+// TODO: prerobit na pr_group_stat
 void DumpStrategyText::pr_group_stats(gmx::EnumerationArray<SimulationAtomGroupType, std::vector<int>>* gcount)
 {
     componentsStack.top()->addGroupStats(gcount);

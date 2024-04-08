@@ -36,6 +36,8 @@ public:
     void close_section() override;
 
     void pr_named_value(const std::string name, const Value& value) override;
+    void pr_named_value_short_format(const std::string name, const Value& value) override;
+    void pr_named_value_scientific(const std::string name, const real& value) override;
     void pr_attribute(const std::string name, const Value& value) override;
     void pr_attribute_quoted(const std::string name, const std::string& value) override;
     void pr_vec_attributes(const std::string title, int i, const char** names, char** values, int n) override;

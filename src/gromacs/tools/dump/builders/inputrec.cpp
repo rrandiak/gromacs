@@ -1,6 +1,6 @@
-#include "gromacs/tools/dump/builders/dump_builders_inputrec.h"
+#include "inputrec.h"
 
-void DumpBuilderInputRec::build(DumpStrategy* strategy) {
+void InputRecBuilder::build(DumpStrategy* strategy) {
     const char* title = "inputrec";
     const char* infbuf = "inf";
 
@@ -18,7 +18,7 @@ void DumpBuilderInputRec::build(DumpStrategy* strategy) {
         strategy->pr_named_value("nsteps", ir->nsteps);
         strategy->pr_named_value("init-step", ir->init_step);
         strategy->pr_named_value("simulation-part", ir->simulation_part);
-        DumpBuilderMts(ir->useMts).build(strategy);
+        MtsBuilder(ir->useMts).build(strategy);
         strategy->pr_named_value("mass-repartition-factor", ir->massRepartitionFactor);
         strategy->pr_named_value("comm-mode", enumValueToString(ir->comm_mode));
         strategy->pr_named_value("nstcomm", ir->nstcomm);
@@ -122,12 +122,16 @@ void DumpBuilderInputRec::build(DumpStrategy* strategy) {
 
         // /* QMMM */
         strategy->pr_named_value("QMMM", gmx::boolToString(ir->bQMMM));
-        strategy->close_section();
+
+        if (!bMDPformat) {
+            strategy->close_section();
+        }
     }
 }
 
-void DumpBuilderMts::build(DumpStrategy* strategy)
+void MtsBuilder::build(DumpStrategy* strategy)
 {
+    // TODO: finish
     strategy->pr_named_value("mts", gmx::boolToString(useMts));
 
     // if (useMts) {

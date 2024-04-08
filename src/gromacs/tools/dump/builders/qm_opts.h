@@ -4,21 +4,20 @@
 #include "gromacs/mdtypes/inputrec.h"
 
 #include "gromacs/tools/dump/dump_builder.h"
-#include "gromacs/tools/dump/builders/awh.h"
-#include "gromacs/tools/dump/builders/expanded.h"
-#include "gromacs/tools/dump/builders/fep.h"
-#include "gromacs/tools/dump/builders/pull.h"
-#include "gromacs/tools/dump/builders/rot.h"
-#include "gromacs/tools/dump/builders/swap.h"
-#include "gromacs/tools/dump/builders/dump_builders_inputrec.h"
 
-class DumpBuilderQmOpts : public DumpBuilder {
+#include "qm_opts/awh.h"
+#include "qm_opts/expanded.h"
+#include "qm_opts/fep.h"
+#include "qm_opts/pull.h"
+#include "qm_opts/rot.h"
+#include "qm_opts/swap.h"
+
+class QmOptionsBuilder : public DumpBuilder {
 private:
     const t_inputrec* ir;
 
 public:
-    DumpBuilderQmOpts(const t_inputrec* ir) : ir(ir) {}
-    
+    QmOptionsBuilder(const t_inputrec* ir) : ir(ir) {}
     void build(DumpStrategy* strategy) override;
 };
 

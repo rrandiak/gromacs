@@ -1,10 +1,9 @@
-#include "gromacs/tools/dump/builders/dump_builder_tpr.h"
+#include "tpr.h"
 
 void DumpBuilderTpr::build(DumpStrategy* strategy) {
     FILE*      gp;
     t_state    state;
     gmx_mtop_t mtop;
-    t_topology top;
 
     TpxFileHeader tpx = readTpxHeader(fileName, true);
     t_inputrec    ir;
@@ -21,29 +20,18 @@ void DumpBuilderTpr::build(DumpStrategy* strategy) {
     }
 
     if (!mdpFileName) {
-        if (bSysTop) {
-            top = gmx_mtop_t_to_t_topology(&mtop, false);
-        }
-
         if (strategy->available(&tpx, fileName)) {
             strategy->pr_filename(fileName);
 
-            DumpBuilderInputRec(tpx.bIr ? &ir : nullptr).build(strategy);
+            InputRecBuilder(tpx.bIr ? &ir : nullptr).build(strategy);
 
-            DumpBuilderQmOpts(&ir).build(strategy);
+            QmOptionsBuilder(&ir).build(strategy);
 
-            GrpOptsBuilder(&(ir.opts)).build(strategy);
+            GroupOptionsBuilder(&(ir.opts)).build(strategy);
 
-            strategy->pr_tpx_header(&tpx);
-
-            if (!bSysTop)
-            {
-                DumpBuilderMTop(&mtop, bShowNumbers, bShowParameters).build(strategy);
-            }
-            else
-            {
-                DumpBuilderTop(&top, bShowNumbers, bShowParameters).build(strategy);
-            }
+            TpxHeaderBuilder(&tpx).build(strategy);
+                
+            TopologyBuilder(&mtop).build(strategy);
 
             strategy->pr_rvecs("box", tpx.bBox ? state.box : nullptr, DIM);
             strategy->pr_rvecs("box_rel", tpx.bBox ? state.box_rel : nullptr, DIM);
@@ -59,25 +47,11 @@ void DumpBuilderTpr::build(DumpStrategy* strategy) {
             strategy->pr_rvecs("v", tpx.bV ? state.v.rvec_array() : nullptr, state.numAtoms());
         }
 
-        DumpBuilderGroupStats(&mtop.groups, mtop.natoms).build(strategy);
+        GroupStatsBuilder(&mtop.groups, mtop.natoms).build(strategy);
     }
 }
 
-void DumpBuilderGroupStats::build(DumpStrategy* strategy) {
-    gmx::EnumerationArray<SimulationAtomGroupType, std::vector<int>> gcount;
-
-    for (auto group : keysOf(gcount))
-    {
-        gcount[group].resize(groups->groups[group].size());
-    }
-
-    for (int i = 0; (i < natoms); i++)
-    {
-        for (auto group : keysOf(gcount))
-        {
-            gcount[group][getGroupType(*groups, group, i)]++;
-        }
-    }
-
-    strategy->pr_group_stats(&gcount);
+void TprDirector::buildSection(const char* section, DumpStrategy* strategy) {
+    
+    switch
 }

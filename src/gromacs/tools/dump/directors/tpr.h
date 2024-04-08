@@ -15,14 +15,54 @@
 #include "gromacs/tools/dump/dump_builder.h"
 #include "gromacs/tools/dump/dump_strategy.h"
 
-#include "gromacs/tools/dump/builders/qm_opts.h"
 
 #include "gromacs/tools/dump/builders/grp_opts.h"
-#include "gromacs/tools/dump/builders/dump_builders_inputrec.h"
-#include "gromacs/tools/dump/builders/dump_builders_topology.h"
+#include "gromacs/tools/dump/builders/grp_stats.h"
+#include "gromacs/tools/dump/builders/inputrec.h"
+#include "gromacs/tools/dump/builders/qm_opts.h"
+#include "gromacs/tools/dump/builders/topology.h"
+#include "gromacs/tools/dump/builders/tpx_header.h"
 
 #include "gromacs/mdtypes/inputrec.h"
 #include "gromacs/fileio/tpxio.h"
+
+enum class TprSection : int
+{
+    InputRec,
+    QmOpts,
+    GroupOpts,
+    TpxHeader,
+    Topology,
+    Box,
+    BoxRel,
+    BoxV,
+    PresPrev,
+    SvirPrev,
+    FvirPrev,
+    NosehooverXI,
+    X,
+    V,
+    GroupStats,
+    Count
+};
+
+const gmx::EnumerationArray<TprSection, const char*> c_tprSectionNames = {
+    "inputrec",
+    "qm-opts",
+    "grpopts",
+    "header",
+    "topology",
+    "box",
+    "box_rel",
+    "boxv",
+    "pres_prev",
+    "svir_prev",
+    "fvir_prev",
+    "nosehoover_xi",
+    "x",
+    "v",
+    "group_statistics"
+};
 
 class DumpBuilderTpr : public DumpBuilder {
 private:
@@ -48,17 +88,9 @@ public:
           bOriginalInputrec(bOriginalInputrec) {}
     
     void build(DumpStrategy* strategy) override;
-};
 
-class DumpBuilderGroupStats : public DumpBuilder {
 private:
-    const SimulationGroups* groups;
-    const int natoms;
-
-public:
-    DumpBuilderGroupStats(const SimulationGroups* groups, const int natoms) : groups(groups), natoms(natoms) {}
-
-    void build(DumpStrategy* strategy) override;
+    void buildSection(const char* section, DumpStrategy* strategy);
 };
 
 #endif

@@ -1,4 +1,4 @@
-#include "gromacs/tools/dump/builders/awh.h"
+#include "awh.h"
 
 void AwhBuilder::build(DumpStrategy* strategy)
 {

@@ -1,4 +1,4 @@
-#include "gromacs/tools/dump/builders/fep.h"
+#include "fep.h"
 
 void FepBuilder::build(DumpStrategy* strategy)
 {

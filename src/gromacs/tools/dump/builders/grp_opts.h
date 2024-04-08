@@ -5,12 +5,12 @@
 
 #include "gromacs/tools/dump/dump_builder.h"
 
-class GrpOptsBuilder : public DumpBuilder {
+class GroupOptionsBuilder : public DumpBuilder {
 private:
     const t_grpopts* opts;
 
 public:
-    GrpOptsBuilder(const t_grpopts* opts) : opts(opts) {}
+    GroupOptionsBuilder(const t_grpopts* opts) : opts(opts) {}
     void build(DumpStrategy* strategy) override;
 };
 

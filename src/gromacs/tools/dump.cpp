@@ -78,7 +78,7 @@
 #include "gromacs/utility/smalloc.h"
 #include "gromacs/utility/txtdump.h"
 
-#include "gromacs/tools/dump/builders/dump_builder_tpr.h"
+#include "gromacs/tools/dump/directors/tpr.h"
 #include "gromacs/tools/dump/strategies/dump_strategy_json.h"
 #include "gromacs/tools/dump/strategies/dump_strategy_text.h"
 #include "gromacs/tools/dump/strategies/dump_strategy_yaml.h"
@@ -576,6 +576,7 @@ private:
     bool bShowParams_       = false;
     bool bSysTop_           = false;
     bool bOriginalInputrec_ = false;
+    OutputFormat outputFormat_;
     //! \}
     //! Commandline file options
     //! \{
@@ -587,7 +588,6 @@ private:
     std::string inputMatrixFilename_;
     std::string outputMdpFilename_;
     //! \}
-    OutputFormat outputFormat_;
 };
 
 void Dump::initOptions(IOptionsContainer* options, ICommandLineOptionsModuleSettings* settings)
@@ -644,6 +644,8 @@ void Dump::initOptions(IOptionsContainer* options, ICommandLineOptionsModuleSett
             BooleanOption("sys").store(&bShowParams_).defaultValue(false).description("List the atoms and bonded interactions for the whole system instead of for each molecule type"));
     options->addOption(
             BooleanOption("orgir").store(&bShowParams_).defaultValue(false).description("Show input parameters from tpr as they were written by the version that produced the file, instead of how the current version reads them"));
+    options->addOption(
+            EnumOption<OutputFormat>("format").enumValue(c_outputFormatNames).store(&outputFormat_).defaultValue(OutputFormat::PlainText).description("Output format"));
     options->addOption(
             EnumOption<OutputFormat>("format").enumValue(c_outputFormatNames).store(&outputFormat_).defaultValue(OutputFormat::PlainText).description("Output format"));
 }

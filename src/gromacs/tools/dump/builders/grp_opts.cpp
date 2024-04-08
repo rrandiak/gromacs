@@ -1,6 +1,6 @@
 #include "grp_opts.h"
 
-void GrpOptsBuilder::build(DumpStrategy* strategy) {
+void GroupOptionsBuilder::build(DumpStrategy* strategy) {
     // TODO: ensure prev formatting
     // TODO: print enum vector
     int i, m, j;
