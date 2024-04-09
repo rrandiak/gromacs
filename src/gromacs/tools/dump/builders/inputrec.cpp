@@ -18,7 +18,7 @@ void InputRecBuilder::build(DumpStrategy* strategy) {
         strategy->pr_named_value("nsteps", ir->nsteps);
         strategy->pr_named_value("init-step", ir->init_step);
         strategy->pr_named_value("simulation-part", ir->simulation_part);
-        MtsBuilder(ir->useMts).build(strategy);
+        MtsBuilder(ir->useMts, ir->mtsLevels).build(strategy);
         strategy->pr_named_value("mass-repartition-factor", ir->massRepartitionFactor);
         strategy->pr_named_value("comm-mode", enumValueToString(ir->comm_mode));
         strategy->pr_named_value("nstcomm", ir->nstcomm);
@@ -111,10 +111,9 @@ void InputRecBuilder::build(DumpStrategy* strategy) {
         // Refcoord-scaling is also needed for other algorithms that affect the box
         strategy->pr_named_value("refcoord-scaling", enumValueToString(ir->pressureCouplingOptions.refcoord_scaling));
 
-        // TODO: pr_dim_rvec
         if (strategy->bMDPformat) {
-        //     fprintf(fp, "posres-com  = %g %g %g\n", ir->posres_com[XX], ir->posres_com[YY], ir->posres_com[ZZ]);
-        //     fprintf(fp, "posres-comB = %g %g %g\n", ir->posres_comB[XX], ir->posres_comB[YY], ir->posres_comB[ZZ]);
+            strategy->pr_posrec_vec_row("posres-com", ir->posres_com);
+            strategy->pr_posrec_vec_row("posres-comB", ir->posres_comB);
         } else {
             strategy->pr_rvec("posres-com", ir->posres_com, DIM);
             strategy->pr_rvec("posres-comB", ir->posres_comB, DIM);
@@ -131,27 +130,26 @@ void InputRecBuilder::build(DumpStrategy* strategy) {
 
 void MtsBuilder::build(DumpStrategy* strategy)
 {
-    // TODO: finish
     strategy->pr_named_value("mts", gmx::boolToString(useMts));
 
-    // if (useMts) {
-    //     for (int mtsIndex = 1; mtsIndex < static_cast<int>(mtsLevels.size()); mtsIndex++) {
-    //         const auto&       mtsLevel = mtsLevels[mtsIndex];
-    //         const std::string forceKey = gmx::formatString("mts-level%d-forces", mtsIndex + 1);
-    //         std::string       forceGroups;
+    if (useMts) {
+        for (int mtsIndex = 1; mtsIndex < static_cast<int>(mtsLevels.size()); mtsIndex++) {
+            const auto&       mtsLevel = mtsLevels[mtsIndex];
+            const std::string forceKey = gmx::formatString("mts-level%d-forces", mtsIndex + 1);
+            std::string       forceGroups;
 
-    //         for (int i = 0; i < static_cast<int>(gmx::MtsForceGroups::Count); i++) {
-    //             if (mtsLevel.forceGroups[i]) {
-    //                 if (!forceGroups.empty()) {
-    //                     forceGroups += " ";
-    //                 }
-    //                 forceGroups += gmx::mtsForceGroupNames[i];
-    //             }
-    //         }
+            for (int i = 0; i < static_cast<int>(gmx::MtsForceGroups::Count); i++) {
+                if (mtsLevel.forceGroups[i]) {
+                    if (!forceGroups.empty()) {
+                        forceGroups += " ";
+                    }
+                    forceGroups += gmx::mtsForceGroupNames[i];
+                }
+            }
 
-    //         PS(forceKey.c_str(), forceGroups.c_str());
-    //         const std::string factorKey = gmx::formatString("mts-level%d-factor", mtsIndex + 1);
-    //         PI(factorKey.c_str(), mtsLevel.stepFactor);
-    //     }
-    // }
+            strategy->pr_named_value(forceKey.c_str(), forceGroups.c_str());
+            const std::string factorKey = gmx::formatString("mts-level%d-factor", mtsIndex + 1);
+            strategy->pr_named_value(factorKey.c_str(), mtsLevel.stepFactor);
+        }
+    }
 }

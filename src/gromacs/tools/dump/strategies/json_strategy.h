@@ -49,6 +49,7 @@ public:
     void pr_svec_row(const std::string title, const char* vec[], int n) override;
     void pr_sa_vec_row(const std::string title, const SimulatedAnnealing sa[], int n) override;
     void pr_ap_vec_row(const std::string title, const float vec[], int n) override;
+    void pr_posrec_vec_row(const std::string title, const real vec[]) override;
 
     void pr_ivec_block(const std::string title, const int vec[], int n) override;
     

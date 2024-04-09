@@ -19,7 +19,7 @@ class JsonDumpComponent : public DumpComponent {
 private:
     bool isEmpty = true;
     JsonDumpComponent* lastChild = nullptr;
-    DumpValueComponent* valueComponent = nullptr;
+    ValueComponent valueComponent;
 
     void printValue(const Value& value);
     void printSeparator();
@@ -28,14 +28,10 @@ protected:
     void cleanLastChild();
 
 public:
-    JsonDumpComponent(FILE* fp, int indent) : DumpComponent(fp, indent) {
-        valueComponent = new DumpValueComponent(fp);
-    }
+    JsonDumpComponent(FILE* fp, int indent) : DumpComponent(fp, indent) ,valueComponent(fp) {}
 
     virtual ~JsonDumpComponent() {
-        // printf("---cleaning last child %p\n", lastChild);
         cleanLastChild();
-        delete valueComponent;
     }
 
     JsonObjectComponent* addJsonObject(const std::string& name);

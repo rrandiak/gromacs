@@ -29,8 +29,7 @@ void PullBuilder::build(DumpStrategy* strategy)
 void PullGroupBuilder::build(DumpStrategy* strategy)
 {
     strategy->pr_title_i("pull-group", index);
-    // TODO:
-    // strategy->pr_ivec_block(fp, indent, "atom", pgrp->ind.data(), pgrp->ind.size());
+    strategy->pr_ivec_block("atom", pgrp->ind.data(), pgrp->ind.size());
     strategy->pr_rvec("weight", pgrp->weight.data(), pgrp->weight.size());
     strategy->pr_named_value("pbcatom", pgrp->pbcatom);
     strategy->close_section();
@@ -45,7 +44,6 @@ void PullCoordBuilder::build(DumpStrategy* strategy)
         strategy->pr_named_value("potential-provider", pcrd->externalPotentialProvider.c_str());
     }
     strategy->pr_named_value("geometry", enumValueToString(pcrd->eGeom));
-    // TODO: maybe use some of other pr_* methods?
     for (int g = 0; g < pcrd->ngroup; g++)
     {
         std::string buffer = gmx::formatString("group[%d]", g);

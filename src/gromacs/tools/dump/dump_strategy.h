@@ -81,6 +81,8 @@ public:
             
     virtual void pr_ap_vec_row(const std::string title, const float vec[], int n) = 0;
 
+    virtual void pr_posrec_vec_row(const std::string title, const real vec[]) = 0;
+
     virtual void pr_ivec_block(const std::string title, const int vec[], int n) = 0;
 
     virtual void pr_matrix(const std::string title, const rvec* m) = 0;

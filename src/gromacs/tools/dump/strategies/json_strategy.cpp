@@ -190,6 +190,10 @@ void JsonStrategy::pr_sa_vec_row(const std::string title, const SimulatedAnneali
 void JsonStrategy::pr_ap_vec_row(const std::string title, const float vec[], int n)
 {
 }
+    
+void JsonStrategy::pr_posrec_vec_row(const std::string title, const real vec[])
+{
+}
 
 void JsonStrategy::pr_ivec_block(const std::string title, const int vec[], int n)
 {

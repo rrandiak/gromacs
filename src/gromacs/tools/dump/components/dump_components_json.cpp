@@ -12,7 +12,7 @@ void JsonDumpComponent::printValue(const Value& value) {
     if (std::holds_alternative<std::string>(value)) {
         fprintf(fp, "\"%s\"", std::get<std::string>(value).c_str());
     } else {
-        valueComponent->printValue(value);
+        valueComponent.printValue(value);
     }
 }
 

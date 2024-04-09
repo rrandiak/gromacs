@@ -8,26 +8,38 @@
 #include "gromacs/utility/cstringutil.h"
 #include "gromacs/tools/dump/dump_component.h"
 
-class DumpValueComponent : public DumpComponent {
+class ValueComponent : public DumpComponent {
 public:
-    DumpValueComponent(FILE* fp) : DumpComponent(fp, 0) {}
+    ValueComponent(FILE* fp) : DumpComponent(fp, 0) {}
 
     void printValue(const Value& value) {
-        if (std::holds_alternative<gmx_bool>(value)) {
+        if (std::holds_alternative<gmx_bool>(value))
+        {
             fprintf(fp, "%s", std::get<gmx_bool>(value) ? "true" : "false");
-        } else if (std::holds_alternative<int>(value)) {
+        }
+        else if (std::holds_alternative<int>(value))
+        {
             fprintf(fp, "%d", std::get<int>(value));
-        } else if (std::holds_alternative<long unsigned int>(value)) {
-            fprintf(stderr, "Warning: long unsigned int not supported\n");
+        }
+        else if (std::holds_alternative<long unsigned int>(value))
+        {
             fprintf(fp, "%ld", std::get<long unsigned int>(value));
-        } else if (std::holds_alternative<double>(value)) {
-            fprintf(fp, "%f", std::get<double>(value));
-        } else if (std::holds_alternative<std::string>(value)) {
+        }
+        else if (std::holds_alternative<double>(value))
+        {
+            fprintf(fp, "%g", std::get<double>(value));
+        }
+        else if (std::holds_alternative<std::string>(value))
+        {
             fprintf(fp, "%s", std::get<std::string>(value).c_str());
-        } else if (std::holds_alternative<int64_t>(value)) {
+        }
+        else if (std::holds_alternative<int64_t>(value))
+        {
             char buf[STEPSTRSIZE];
             fprintf(fp, "%s", gmx_step_str(std::get<int64_t>(value), buf));
-        } else if (std::holds_alternative<real>(value)) {
+        }
+        else if (std::holds_alternative<real>(value))
+        {
             fprintf(fp, "%g", std::get<real>(value));
         }
     }

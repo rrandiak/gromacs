@@ -187,6 +187,10 @@ void YamlStrategy::pr_sa_vec_row(const std::string title, const SimulatedAnneali
 void YamlStrategy::pr_ap_vec_row(const std::string title, const float vec[], int n)
 {
 }
+    
+void YamlStrategy::pr_posrec_vec_row(const std::string title, const real vec[])
+{
+}
 
 void YamlStrategy::pr_ivec_block(const std::string title, const int vec[], int n)
 {
