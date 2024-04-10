@@ -5,6 +5,7 @@
 
 #include "gromacs/utility/basedefinitions.h"
 #include "gromacs/utility/real.h"
+
 #include "gromacs/tools/dump/dump_strategy.h"
 #include "gromacs/tools/dump/components/dump_components_text.h"
 #include "gromacs/tools/dump/components/dump_component_iparams.h"

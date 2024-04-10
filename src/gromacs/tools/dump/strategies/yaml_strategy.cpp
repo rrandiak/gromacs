@@ -42,35 +42,20 @@ void YamlStrategy::pr_title(const std::string title)
 
 void YamlStrategy::pr_title_i(const std::string title, int i)
 {
-    std::string n_title;
-    n_title += title;
-    n_title += " ";
-    n_title += std::to_string(i);
-    YamlComponent* comp = componentsStack.top()->addYamlObject(n_title);
+    YamlComponent* comp = componentsStack.top()->addYamlObject(title, i);
+    // comp->printKeyValue("index", i);
     componentsStack.push(comp);
 }
 
 void YamlStrategy::pr_title_n(const std::string title, int n)
 {
-    std::string n_title;
-    n_title += title;
-    n_title += " (";
-    n_title += std::to_string(n);
-    n_title += ")";
-    YamlComponent* comp = componentsStack.top()->addYamlObject(n_title);
+    YamlComponent* comp = componentsStack.top()->addYamlObject(gmx::formatString("%s (%d)", title.c_str(), n));
     componentsStack.push(comp);
 }
 
 void YamlStrategy::pr_title_nxm(const std::string title, int n, int m)
 {
-    std::string nxn_title;
-    nxn_title += title;
-    nxn_title += " (";
-    nxn_title += std::to_string(n);
-    nxn_title += "x";
-    nxn_title += std::to_string(m);
-    nxn_title += ")";
-    YamlComponent* comp = componentsStack.top()->addYamlObject(nxn_title);
+    YamlComponent* comp = componentsStack.top()->addYamlArray(gmx::formatString("%s (%dx%d)", title.c_str(), n, m));
     componentsStack.push(comp);
 }
 
@@ -91,22 +76,39 @@ void YamlStrategy::pr_named_value_short_format(const std::string name, const Val
 
 void YamlStrategy::pr_named_value_scientific(const std::string name, const real& value)
 {
+    pr_named_value(name, value);
 }
     
 void YamlStrategy::pr_attribute(const std::string name, const Value& value)
 {
+    pr_named_value(name, value);
 }
 
 void YamlStrategy::pr_attribute_quoted(const std::string name, const std::string& value)
 {
+    pr_named_value(name, "\"" + value + "\"");
 }
 
 void YamlStrategy::pr_vec_attributes(const std::string title, int i, const char** names, char** values, int n)
 {
+    pr_title(title);
+    YamlComponent* comp = componentsStack.top();
+    comp->printKeyValue("index", i);
+
+    for (int j = 0; j < n; j++)
+    {
+        comp->printKeyValue(names[j], values[j]);
+    }
+    componentsStack.pop();
 }
 
 void YamlStrategy::pr_residue(const t_resinfo* resinfo, int i)
 {
+    YamlInlineObject* inlineObject = componentsStack.top()->addYamlInlineObject();
+    inlineObject->printKeyValue("name", *(resinfo->name));
+    inlineObject->printKeyValue("nr", resinfo->nr);
+    inlineObject->printKeyValue("ic", gmx::formatString("'%c'", resinfo->ic == '\0' ? ' ' : resinfo->ic));
+    delete inlineObject;
 }
 
 void YamlStrategy::pr_ivec(const std::string title, const int vec[], int n)
@@ -118,15 +120,12 @@ void YamlStrategy::pr_rvec(const std::string title, const real vec[], int n)
     if (available(vec, title))
     {
         pr_title_n(title, n);
-        YamlComponent* comp = componentsStack.top();
-        for (int i = 0; i < n; i++)
+        YamlInlineArrayComponent* comp = componentsStack.top()->addYamlInlineArray();
+        for (int i = 0; i < DIM; i++)
         {
-            std::string cord_title;
-            cord_title += "x";
-            cord_title += std::to_string(i);
-            comp->printKeyValue(cord_title.c_str(), vec[i]);
-            // fprintf(fp, "%s[%d]=%12.5e\n", title, bShowNumbers ? i : -1, vec[i]);
+            comp->printValue(vec[i]);
         }
+        delete comp;
         componentsStack.pop();
     }
 }
@@ -148,16 +147,12 @@ void YamlStrategy::pr_rvecs(const std::string title, const rvec vec[], int n)
 
         for (i = 0; i < n; i++)
         {
+            YamlInlineArrayComponent* comp = componentsStack.top()->addYamlInlineArray();
             for (j = 0; j < DIM; j++)
             {
-                std::string cord_title;
-                cord_title += "x";
-                cord_title += std::to_string(i);
-                cord_title += "_";
-                cord_title += "y";
-                cord_title += std::to_string(j);
-                pr_named_value(cord_title.c_str(), vec[i][j]);
+                comp->printValue(vec[i][j]);
             }
+            delete comp;
         }
 
         componentsStack.pop();
@@ -166,30 +161,80 @@ void YamlStrategy::pr_rvecs(const std::string title, const rvec vec[], int n)
 
 void YamlStrategy::pr_ivec_row(const std::string title, const int vec[], int n)
 {
+    YamlInlineArrayComponent* comp = componentsStack.top()->addYamlInlineArray(title);
+    for (int i = 0; i < n; i++)
+    {
+        comp->printValue(vec[i]);
+    }
+    delete comp;
 }
 
 void YamlStrategy::pr_rvec_row(const std::string title, const real vec[], int n)
 {
+    if (available(vec, title))
+    {
+        YamlInlineArrayComponent* comp = componentsStack.top()->addYamlInlineArray(title);
+        for (int i = 0; i < n; i++)
+        {
+            comp->printValue(vec[i]);
+        }
+        delete comp;
+    }
 }
 
 void YamlStrategy::pr_dvec_row(const std::string title, const double vec[], int n)
 {
+    if (available(vec, title))
+    {
+        YamlInlineArrayComponent* comp = componentsStack.top()->addYamlInlineArray(title);
+        for (int i = 0; i < n; i++)
+        {
+            comp->printValue(vec[i]);
+        }
+        delete comp;
+    }
 }
 
 void YamlStrategy::pr_svec_row(const std::string title, const char* vec[], int n)
 {
+    if (available(vec, title))
+    {
+        YamlInlineArrayComponent* comp = componentsStack.top()->addYamlInlineArray(title);
+        for (int i = 0; i < n; i++)
+        {
+            comp->printValue(vec[i]);
+        }
+        delete comp;
+    }
 }
 
 void YamlStrategy::pr_sa_vec_row(const std::string title, const SimulatedAnnealing sa[], int n)
 {
+    YamlInlineArrayComponent* comp = componentsStack.top()->addYamlInlineArray(title);
+    for (int i = 0; i < n; i++)
+    {
+        comp->printValue(enumValueToString(sa[i]));
+    }
+    delete comp;
 }
 
 void YamlStrategy::pr_ap_vec_row(const std::string title, const float vec[], int n)
 {
+    YamlInlineArrayComponent* comp = componentsStack.top()->addYamlInlineArray(title);
+    for (int i = 0; i < n; i++)
+    {
+        comp->printValue(vec[i]);
+    }
+    delete comp;
 }
     
 void YamlStrategy::pr_posrec_vec_row(const std::string title, const real vec[])
 {
+    YamlInlineArrayComponent* comp = componentsStack.top()->addYamlInlineArray(title);
+    comp->printValue(vec[XX]);
+    comp->printValue(vec[YY]);
+    comp->printValue(vec[ZZ]);
+    delete comp;
 }
 
 void YamlStrategy::pr_ivec_block(const std::string title, const int vec[], int n)
@@ -200,14 +245,18 @@ void YamlStrategy::pr_matrix(const std::string title, const rvec* m)
 {
     if (bMDPformat)
     {
-        pr_title(title);
-        pr_named_value("x_x", m[XX][XX]);
-        pr_named_value("y_y", m[YY][YY]);
-        pr_named_value("z_z", m[ZZ][ZZ]);
-        pr_named_value("x_y", m[XX][YY]);
-        pr_named_value("x_z", m[XX][ZZ]);
-        pr_named_value("y_z", m[YY][ZZ]);
-        componentsStack.pop();
+        YamlArrayComponent* comp = componentsStack.top()->addYamlArray(title);
+        YamlInlineArrayComponent* array1 = comp->addYamlInlineArray();
+        array1->printValue(m[XX][XX]);
+        array1->printValue(m[YY][YY]);
+        array1->printValue(m[ZZ][ZZ]);
+        YamlInlineArrayComponent* array2 = comp->addYamlInlineArray();
+        array2->printValue(m[XX][YY]);
+        array2->printValue(m[XX][ZZ]);
+        array2->printValue(m[YY][ZZ]);
+        delete array2;
+        delete array1;
+        delete comp;
     }
     else
     {
@@ -217,18 +266,92 @@ void YamlStrategy::pr_matrix(const std::string title, const rvec* m)
 
 void YamlStrategy::pr_kvtree(const gmx::KeyValueTreeObject kvTree)
 {
+    for (const auto& prop : kvTree.properties())
+    {
+        const auto& value = prop.value();
+        if (value.isObject())
+        {
+            pr_title(prop.key().c_str());
+            pr_kvtree(value.asObject());
+            close_section();
+        }
+        else if (value.isArray()
+                 && std::all_of(value.asArray().values().begin(),
+                                value.asArray().values().end(),
+                                [](const auto& elem) { return elem.isObject(); }))
+        {
+            pr_title(prop.key().c_str());
+            for (const auto& elem : value.asArray().values())
+            {
+                pr_kvtree(elem.asObject());
+            }
+            close_section();
+        }
+        else
+        {
+            if (value.isArray())
+            {
+                // for (const auto& elem : value.asArray().values())
+                // {
+                //     GMX_RELEASE_ASSERT(
+                //             !elem.isObject() && !elem.isArray(),
+                //             "Only arrays of simple types and array of objects are implemented. "
+                //             "Arrays of arrays and mixed arrays are not supported.");
+                //     componentsStack.top()->printFormattedText(" ");
+                //     componentsStack.top()->printFormattedText(simpleValueToString(elem).c_str());
+                // }
+                // componentsStack.top()->printFormattedText(" ]");
+            }
+            else
+            {
+                pr_named_value(prop.key().c_str(), simpleValueToString(value));
+            }
+
+        }
+    }
 }
 
-void YamlStrategy::pr_moltype(const int moltype, const std::string typeName)
+void YamlStrategy::pr_moltype(const int moltype, const std::string moltypeName)
 {
+    pr_title_i("moltype", moltype);
+    componentsStack.top()->printKeyValue("moltypeName", moltypeName.c_str());
+    componentsStack.pop();
 }
 
 void YamlStrategy::pr_atom(const t_atom* atom, const int i)
 {
+    pr_title_i("atom", i);
+    
+    YamlInlineObject* comp = componentsStack.top()->addYamlInlineObject();
+    comp->printKeyValue("type", atom->type);
+    comp->printKeyValue("typeB", atom->typeB);
+    comp->printKeyValue("ptype", enumValueToString(atom->ptype));
+    comp->printKeyValue("m", atom->m);
+    comp->printKeyValue("q", atom->q);
+    comp->printKeyValue("mB", atom->mB);
+    comp->printKeyValue("qB", atom->qB);
+    comp->printKeyValue("resind", atom->resind);
+    comp->printKeyValue("atomnumber", atom->atomnumber);
+
+    componentsStack.pop();
 }
 
 void YamlStrategy::pr_grps(gmx::ArrayRef<const AtomGroupIndices> grps, const char* const* const* grpname)
 {
+    int index = 0;
+    for (const auto& group : grps)
+    {
+        YamlComponent* comp = componentsStack.top()->addYamlObject("grp", shortName(static_cast<SimulationAtomGroupType>(index)));
+        comp->printKeyValue("nr", group.size());
+        YamlInlineArrayComponent* arrayComp = comp->addYamlInlineArray("name");
+        for (const auto& entry : group)
+        {
+            arrayComp->printValue(*(grpname[entry]));
+        }
+        delete arrayComp;
+        delete comp;
+        index++;
+    }
 }
 
 void YamlStrategy::pr_grp_opt_agg(
@@ -237,10 +360,81 @@ void YamlStrategy::pr_grp_opt_agg(
     const int egp_flags[], const int ngener
 )
 {
+    int i, m;
+
+    YamlInlineArrayComponent* comp = componentsStack.top()->addYamlInlineArray("acc");
+    for (i = 0; i < ngacc; i++)
+    {
+        for (m = 0; m < DIM; m++)
+        {
+            comp->printValue(acceleration[i][m]);
+        }
+    }
+    delete comp;
+
+    comp = componentsStack.top()->addYamlInlineArray("nfreeze");
+    for (i = 0; i < ngfrz; i++)
+    {
+        for (m = 0; m < DIM; m++)
+        {
+            comp->printValue(nFreeze[i][m] ? "Y" : "N");
+        }
+    }
+    delete comp;
+
+    YamlArrayComponent* array = componentsStack.top()->addYamlArray("energygrp-flags");
+    for (i = 0; (i < ngener); i++)
+    {
+        YamlInlineArrayComponent* inlineArray = array->addYamlInlineArray();
+        for (m = 0; m < ngener; m++)
+        {
+            inlineArray->printValue(egp_flags[ngener * i + m]);
+        }
+        delete inlineArray;
+    }
+    delete array;
 }
 
 void YamlStrategy::pr_groups(const SimulationGroups& groups)
 {
+    pr_title("groups");
+
+    YamlInlineObject* allocated = componentsStack.top()->addYamlInlineObject("allocated");
+    int nat_max = 0;
+    for (auto group : keysOf(groups.groups))
+    {
+        allocated->printKeyValue(shortName(group), groups.numberOfGroupNumbers(group));
+        nat_max = std::max(nat_max, groups.numberOfGroupNumbers(group));
+    }
+    delete allocated;
+
+    YamlInlineObject* groupnr;
+    if (nat_max == 0)
+    {
+        groupnr = componentsStack.top()->addYamlInlineObject("allocated");
+        groupnr->printKeyValue("index", "*");
+        for (auto gmx_unused group : keysOf(groups.groups))
+        {
+            groupnr->printKeyValue(shortName(group), 0);
+        }
+        delete groupnr;
+    }
+    else
+    {
+        for (int i = 0; i < nat_max; i++)
+        {
+            groupnr = componentsStack.top()->addYamlInlineObject("groupnr");
+            groupnr->printKeyValue("index", i);
+            for (auto group : keysOf(groups.groups))
+            {
+                groupnr->printKeyValue(shortName(group),
+                    !groups.groupNumbers[group].empty() ? groups.groupNumbers[group][i] : 0);
+            }
+            delete groupnr;
+        }
+    }
+
+    componentsStack.pop();
 }
 
 void YamlStrategy::pr_group_stats(gmx::EnumerationArray<SimulationAtomGroupType, std::vector<int>>* gcount)

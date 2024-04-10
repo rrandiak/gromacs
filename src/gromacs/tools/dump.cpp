@@ -99,7 +99,7 @@ enum class OutputFormat : int
 };
 
 const gmx::EnumerationArray<OutputFormat, const char*> c_outputFormatNames = {
-    { "text", "json", "yml" }
+    { "text", "json", "yaml" }
 };
 
 //! Dump a TPR file

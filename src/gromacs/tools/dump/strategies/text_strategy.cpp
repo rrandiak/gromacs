@@ -242,14 +242,17 @@ void TextStrategy::pr_ivec_block(const std::string title, const int vec[], int n
 }
 
 void TextStrategy::pr_matrix(const std::string title, const rvec* m) {
-    if (bMDPformat) {
+    if (bMDPformat)
+    {
         TextComponent* comp = componentsStack.top();
         comp->addFormattedTextLeaf("%-10s   ", title);
         comp->printFormattedText("%g %g %g %g %g %g\n",
             m[XX][XX], m[YY][YY], m[ZZ][ZZ],
             m[XX][YY], m[XX][ZZ], m[YY][ZZ]
         );
-    } else {
+    }
+    else
+    {
         pr_rvecs(title, m, DIM);
     }
 }
