@@ -304,7 +304,15 @@ void YamlStrategy::pr_kvtree(const gmx::KeyValueTreeObject kvTree)
             }
             else
             {
-                pr_named_value(prop.key().c_str(), simpleValueToString(value));
+                std::string strValue = simpleValueToString(value);
+                if (value.isType<std::string>() && strValue.empty())
+                {
+                    pr_named_value(prop.key(), "\"\"");
+                }
+                else
+                {
+                    pr_named_value(prop.key(), strValue);
+                }
             }
 
         }
@@ -332,6 +340,7 @@ void YamlStrategy::pr_atom(const t_atom* atom, const int i)
     comp->printKeyValue("qB", atom->qB);
     comp->printKeyValue("resind", atom->resind);
     comp->printKeyValue("atomnumber", atom->atomnumber);
+    delete comp;
 
     componentsStack.pop();
 }
@@ -439,24 +448,173 @@ void YamlStrategy::pr_groups(const SimulationGroups& groups)
 
 void YamlStrategy::pr_group_stats(gmx::EnumerationArray<SimulationAtomGroupType, std::vector<int>>* gcount)
 {
+    pr_title("Group statistics");
+
+    int atot;
+    for (auto group : keysOf(*gcount))
+    {
+        atot = 0;
+        pr_title(shortName(group));
+
+        YamlInlineArrayComponent* inlineArray = componentsStack.top()->addYamlInlineArray("atoms");
+        for (const auto& entry : (*gcount)[group])
+        {
+            inlineArray->printValue(entry);
+            atot += entry;
+        }
+        delete inlineArray;
+
+        componentsStack.top()->printKeyValue("total atoms", atot);
+        close_section();
+    }
+
+    close_section();
 }
 
 void YamlStrategy::pr_list_i(const std::string title, const int index, gmx::ArrayRef<const int> list)
 {
+    pr_title_i(title, index);
+
+    componentsStack.top()->printKeyValue("num", list.size());
+
+    YamlInlineArrayComponent* inlineArray = componentsStack.top()->addYamlInlineArray();
+    for (const int item : list)
+    {
+        inlineArray->printValue(item);
+    }
+    delete inlineArray;
+
+    close_section();
 }
     
 void YamlStrategy::pr_iparams(t_functype ftype, const t_iparams& iparams)
 {
+    YamlComponent* comp = componentsStack.top();
+    std::vector<KeyFormatValue> kfvs = getInteractionParameters(ftype, iparams);
+
+    for (size_t j = 0; j < kfvs.size(); j++)
+    {
+        if (std::holds_alternative<std::array<real, 3>>(kfvs[j].value))
+        {
+            YamlInlineArrayComponent* inlineArray = comp->addYamlInlineArray(kfvs[j].key);
+            std::array<real, 3> arr = std::get<std::array<real, 3>>(kfvs[j].value);
+            for (int k = 0; k < DIM; k++)
+            {
+                inlineArray->printValue(arr[k]);
+            }
+            delete inlineArray;
+        }
+        else
+        {
+            comp->printKeyValue(kfvs[j].key, kfvs[j].value);
+        }
+    }
 }
 
 void YamlStrategy::pr_functypes(const std::vector<int>& functype, const int n, const std::vector<t_iparams>& iparams)
 {
+    pr_title("functypes");
+
+    for (int i = 0; i < n; i++)
+    {
+        if (bShowNumbers)
+        {
+            pr_title_i("functype", i);
+        }
+        else
+        {
+            pr_title("functype");
+        }
+        pr_iparams(functype[i], iparams[i]);
+        close_section();
+    }
+
+    close_section();
 }
 
 void YamlStrategy::pr_interaction_list(const std::string& title, const t_functype* functypes, const InteractionList& ilist, const t_iparams* iparams)
 {
+    pr_title(title.c_str());
+    componentsStack.top()->printKeyValue("nr", ilist.size());
+
+    if (ilist.empty())
+    {
+        close_section();
+        return;
+    }
+
+    YamlArrayComponent* array = componentsStack.top()->addYamlArray("iatoms");
+
+    int j = 0;
+    for (int i = 0; i < ilist.size();)
+    {
+        YamlInlineObject* inlineObject = array->addYamlInlineObject();
+        const int type  = ilist.iatoms[i];
+        const int ftype = functypes[type];
+        if (bShowNumbers)
+        {
+            inlineObject->printKeyValue("index", j);
+            inlineObject->printKeyValue("type", type);
+        }
+        j++;
+        inlineObject->printKeyValue("function", interaction_function[ftype].name);
+        YamlInlineArrayComponent* inlineArray = inlineObject->addYamlInlineArray("atoms");
+        for (int k = 0; k < interaction_function[ftype].nratoms; k++)
+        {
+            inlineArray->printValue(ilist.iatoms[i + 1 + k]);
+        }
+        delete inlineArray;
+        if (bShowParameters)
+        {
+            pr_iparams(ftype, iparams[type]);
+        }
+        delete inlineObject;
+        i += 1 + interaction_function[ftype].nratoms;
+    }
+
+    delete array;
+    close_section();
 }
 
 void YamlStrategy::pr_cmap(const gmx_cmap_t* cmap_grid)
 {
+    const real dx = cmap_grid->grid_spacing != 0 ? 360.0 / cmap_grid->grid_spacing : 0;
+
+    const int nelem = cmap_grid->grid_spacing * cmap_grid->grid_spacing;
+
+    if (!available(cmap_grid, "cmap"))
+    {
+        return;
+    }
+
+    pr_title("cmap");
+
+    for (gmx::Index i = 0; i < gmx::ssize(cmap_grid->cmapdata); i++)
+    {
+        real idx = -180.0;
+
+        if (bShowNumbers)
+        {
+            pr_title("grid");
+        }
+        else
+        {
+            pr_title_i("grid", i);
+        }
+
+        for (int j = 0; j < nelem; j++)
+        {
+            YamlInlineObject* inlineObject = componentsStack.top()->addYamlInlineObject();
+
+            inlineObject->printKeyValue("V", cmap_grid->cmapdata[i].cmap[j * 4]);
+            inlineObject->printKeyValue("dVdx", cmap_grid->cmapdata[i].cmap[j * 4 + 1]);
+            inlineObject->printKeyValue("dVdy", cmap_grid->cmapdata[i].cmap[j * 4 + 2]);
+            inlineObject->printKeyValue("d2dV", cmap_grid->cmapdata[i].cmap[j * 4 + 3]);
+
+            delete inlineObject;
+        }
+        close_section();
+    }
+
+    close_section();
 }

@@ -5,7 +5,7 @@ void MolblockBuilder::build(DumpStrategy* strategy)
     strategy->pr_named_value("#molblock", molblock.size());
     for (size_t mb = 0; mb < molblock.size(); mb++)
     {
-        strategy->pr_title_n("molblock", mb);
+        strategy->pr_title_i("molblock", mb);
         // fprintf(fp, "%-20s = %d \"%s\"\n", "moltype", molb->type, *(molt[molb->type].name));
         strategy->pr_moltype(molblock[mb].type, *(moltype[molblock[mb].type].name));
         strategy->pr_named_value("#molecules", molblock[mb].nmol);

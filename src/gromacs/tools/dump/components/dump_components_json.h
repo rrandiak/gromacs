@@ -12,23 +12,23 @@
 #define JSON_INDENT 2
     
 class JsonObjectComponent;
+class JsonInlineArray;
 class JsonArrayComponent;
 
 class JsonDumpComponent : public DumpComponent {
-
-private:
+protected:
     bool isEmpty = true;
     JsonDumpComponent* lastChild = nullptr;
     ValueComponent valueComponent;
 
-    void printValue(const Value& value);
+    void printFormattedValue(const Value& value);
     void printSeparator();
 
 protected:
     void cleanLastChild();
 
 public:
-    JsonDumpComponent(FILE* fp, int indent) : DumpComponent(fp, indent) ,valueComponent(fp) {}
+    JsonDumpComponent(FILE* fp, int indent) : DumpComponent(fp, indent), valueComponent(fp) {}
 
     virtual ~JsonDumpComponent() {
         cleanLastChild();
@@ -36,8 +36,9 @@ public:
 
     JsonObjectComponent* addJsonObject(const std::string& name);
     JsonArrayComponent* addJsonArray(const std::string& name);
-    void addJsonLeaf(const std::string& key, const Value& value);
-    void addJsonLeaf(const Value& value);
+    JsonInlineArray* addInlineArray();
+    void printKeyValue(const std::string& key, const Value& value);
+    void printValue(const Value& value);
 };
 
 class JsonObjectComponent : public JsonDumpComponent {
@@ -51,6 +52,19 @@ public:
         cleanLastChild();
         fprintf(fp, "\n%*s}", indent, "");
     }
+};
+
+class JsonInlineArray : public JsonDumpComponent {
+public:
+    JsonInlineArray(FILE* fp, int indent)
+            : JsonDumpComponent(fp, indent) {}
+
+    virtual ~JsonInlineArray() {
+        cleanLastChild();
+        fprintf(fp, "]");
+    }
+
+    void printValue(const Value& value);
 };
 
 class JsonArrayComponent : public JsonDumpComponent {

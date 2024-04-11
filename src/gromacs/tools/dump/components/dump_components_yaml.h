@@ -84,6 +84,9 @@ public:
         fprintf(fp, "}");
     }
 
+    YamlInlineArrayComponent* addYamlInlineArray();
+    YamlInlineArrayComponent* addYamlInlineArray(std::string name);
+
     void printKeyValue(const std::string name, const Value& value)
     {
         if (isEmpty)

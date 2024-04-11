@@ -24,14 +24,14 @@ bool JsonStrategy::available(const void* p, const std::string title)
 {
     if (!p)
     {
-        componentsStack.top()->addJsonLeaf(title, "not_available");
+        componentsStack.top()->printKeyValue(title, "Not available");
     }
     return (p != nullptr);
 }
 
 void JsonStrategy::pr_filename(const std::string filename)
 {
-    componentsStack.top()->addJsonLeaf("filename", filename);
+    componentsStack.top()->printKeyValue("filename", filename);
 }
 
 void JsonStrategy::pr_title(const std::string title)
@@ -42,50 +42,30 @@ void JsonStrategy::pr_title(const std::string title)
 
 void JsonStrategy::pr_title_i(const std::string title, int i)
 {
-    // fprintf(fp, "%s (%d):\n", title, n);
-    std::string n_title;
-    n_title += title;
-    n_title += " ";
-    n_title += std::to_string(i);
-    JsonDumpComponent* comp = componentsStack.top()->addJsonObject(n_title);
+    JsonDumpComponent* comp = componentsStack.top()->addJsonObject(gmx::formatString("%s (%d)", title.c_str(), i));
     componentsStack.push(comp);
 }
 
 void JsonStrategy::pr_title_n(const std::string title, int n)
 {
-    // fprintf(fp, "%s (%d):\n", title, n);
-    std::string n_title;
-    n_title += title;
-    n_title += " (";
-    n_title += std::to_string(n);
-    n_title += ")";
-    JsonDumpComponent* comp = componentsStack.top()->addJsonObject(n_title);
+    JsonDumpComponent* comp = componentsStack.top()->addJsonArray(gmx::formatString("%s (%d)", title.c_str(), n));
     componentsStack.push(comp);
 }
 
 void JsonStrategy::pr_title_nxm(const std::string title, int n, int m)
 {
-    // fprintf(fp, "%s (%dx%d):\n", title, n1, n2);
-    std::string nxn_title;
-    nxn_title += title;
-    nxn_title += " (";
-    nxn_title += std::to_string(n);
-    nxn_title += "x";
-    nxn_title += std::to_string(m);
-    nxn_title += ")";
-    JsonDumpComponent* comp = componentsStack.top()->addJsonObject(nxn_title);
+    JsonDumpComponent* comp = componentsStack.top()->addJsonArray(gmx::formatString("%s (%dx%d)", title.c_str(), n, m));
     componentsStack.push(comp);
 }
 
 void JsonStrategy::close_section()
 {
-    // delete componentsStack.top();
     componentsStack.pop();
 }
 
 void JsonStrategy::pr_named_value(const std::string name, const Value& value)
 {
-    componentsStack.top()->addJsonLeaf(name, value);
+    componentsStack.top()->printKeyValue(name, value);
 }
     
 void JsonStrategy::pr_named_value_short_format(const std::string name, const Value& value) 
@@ -95,18 +75,30 @@ void JsonStrategy::pr_named_value_short_format(const std::string name, const Val
     
 void JsonStrategy::pr_named_value_scientific(const std::string name, const real& value)
 {
+    pr_named_value(name, gmx::formatString("%e", value));
 }
     
 void JsonStrategy::pr_attribute(const std::string name, const Value& value)
 {
+    pr_named_value(name, value);
 }
 
 void JsonStrategy::pr_attribute_quoted(const std::string name, const std::string& value)
 {
+    pr_named_value(name, value);
 }
 
 void JsonStrategy::pr_vec_attributes(const std::string title, int i, const char** names, char** values, int n)
 {
+    pr_title(title);
+    JsonDumpComponent* comp = componentsStack.top();
+    comp->printKeyValue("index", i);
+
+    for (int j = 0; j < n; j++)
+    {
+        comp->printKeyValue(names[j], values[j]);
+    }
+    componentsStack.pop();
 }
 
 void JsonStrategy::pr_residue(const t_resinfo* resinfo, int n)
@@ -124,11 +116,7 @@ void JsonStrategy::pr_rvec(const std::string title, const real vec[], int n)
         pr_title_n(title, n);
         for (int i = 0; i < n; i++)
         {
-            std::string cord_title;
-            cord_title += "x";
-            cord_title += std::to_string(i);
-            pr_named_value(cord_title.c_str(), vec[i]);
-            // fprintf(fp, "%s[%d]=%12.5e\n", title, bShowNumbers ? i : -1, vec[i]);
+            componentsStack.top()->printValue(vec[i]);
         }
         componentsStack.pop();
     }
@@ -151,15 +139,11 @@ void JsonStrategy::pr_rvecs(const std::string title, const rvec vec[], int n)
 
         for (i = 0; i < n; i++)
         {
+            // TODO: change to normal array and refactor component
+            JsonInlineArray* inlineArray = componentsStack.top()->addInlineArray();
             for (j = 0; j < DIM; j++)
             {
-                std::string cord_title;
-                cord_title += "x";
-                cord_title += std::to_string(i);
-                cord_title += "_";
-                cord_title += "y";
-                cord_title += std::to_string(j);
-                pr_named_value(cord_title.c_str(), vec[i][j]);
+                inlineArray->printValue(vec[i][j]);
             }
         }
 

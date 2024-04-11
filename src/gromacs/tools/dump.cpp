@@ -110,25 +110,31 @@ void list_tpr(const char* fn,
               gmx_bool    bSysTop,
               gmx_bool    bOriginalInputrec,
               OutputFormat outputFormat_,
+              std::string outputFilename_,
               std::vector<TprSection> tprSections_)
 {
+    FILE* fp = outputFilename_.empty() ? stdout : fopen(outputFilename_.c_str(), "w");
     TprDirector tprDirector = TprDirector(
         fn, mdpfn, bOriginalInputrec, tprSections_
     );
 
     DumpStrategy* strategy = nullptr;
     if (outputFormat_ == OutputFormat::PlainText) {
-        strategy = new TextStrategy(stdout);
+        strategy = new TextStrategy(fp);
     } else if (outputFormat_ == OutputFormat::Json) {
-        strategy = new JsonStrategy(stdout);
+        strategy = new JsonStrategy(fp);
     } else if (outputFormat_ == OutputFormat::Yaml) {
-        strategy = new YamlStrategy(stdout);
+        strategy = new YamlStrategy(fp);
     }
 
     if (strategy != nullptr) {
         strategy->bShowNumbers = bShowNumbers;
         tprDirector.build(strategy);
         delete strategy;
+    }
+
+    if (!outputFilename_.empty()) {
+        fclose(fp);
     }
 }
 
@@ -577,7 +583,7 @@ private:
     bool bShowParams_       = false;
     bool bSysTop_           = false;
     bool bOriginalInputrec_ = false;
-    OutputFormat outputFormat_;
+    OutputFormat outputFormat_ = OutputFormat::PlainText;
     std::vector<TprSection> tprSections_ = {};
     //! \}
     //! Commandline file options
@@ -589,6 +595,7 @@ private:
     std::string inputTopologyFilename_;
     std::string inputMatrixFilename_;
     std::string outputMdpFilename_;
+    std::string outputFilename_;
     //! \}
 };
 
@@ -649,6 +656,8 @@ void Dump::initOptions(IOptionsContainer* options, ICommandLineOptionsModuleSett
     options->addOption(
             EnumOption<OutputFormat>("format").enumValue(c_outputFormatNames).store(&outputFormat_).defaultValue(OutputFormat::PlainText).description("Output format"));
     options->addOption(
+            FileNameOption("output").outputFile().store(&outputFilename_).description("Output file to write dump to (if omitted, dumps to stdout)"));
+    options->addOption(
             EnumOption<TprSection>("section").enumValue(c_tprSectionNames).storeVector(&tprSections_).allowMultiple().description("Dump section to be built"));
 }
 
@@ -670,6 +679,7 @@ int Dump::run()
                  bSysTop_,
                  bOriginalInputrec_,
                  outputFormat_,
+                 outputFilename_,
                  tprSections_);
     }
     else if (!inputTrajectoryFilename_.empty())

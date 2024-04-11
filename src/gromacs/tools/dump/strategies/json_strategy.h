@@ -9,6 +9,8 @@
 
 #include "gromacs/utility/basedefinitions.h"
 #include "gromacs/utility/real.h"
+#include "gromacs/utility/stringutil.h"
+
 #include "gromacs/tools/dump/dump_strategy.h"
 #include "gromacs/tools/dump/components/dump_components_json.h"
 

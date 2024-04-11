@@ -8,7 +8,7 @@ void JsonDumpComponent::printSeparator() {
     }
 }
 
-void JsonDumpComponent::printValue(const Value& value) {
+void JsonDumpComponent::printFormattedValue(const Value& value) {
     if (std::holds_alternative<std::string>(value)) {
         fprintf(fp, "\"%s\"", std::get<std::string>(value).c_str());
     } else {
@@ -31,6 +31,15 @@ JsonObjectComponent* JsonDumpComponent::addJsonObject(const std::string& name) {
     return jsonObject;
 }
 
+JsonInlineArray* JsonDumpComponent::addInlineArray() {
+    cleanLastChild();
+    printSeparator();
+    fprintf(fp, "\n%*s[", indent + JSON_INDENT, "");
+    JsonInlineArray* jsonArray = new JsonInlineArray(fp, indent + JSON_INDENT);
+    lastChild = jsonArray;
+    return jsonArray;
+}
+
 JsonArrayComponent* JsonDumpComponent::addJsonArray(const std::string& name) {
     cleanLastChild();
     printSeparator();
@@ -39,16 +48,26 @@ JsonArrayComponent* JsonDumpComponent::addJsonArray(const std::string& name) {
     return jsonArray;
 }
 
-void JsonDumpComponent::addJsonLeaf(const std::string& key, const Value& value) {
+void JsonDumpComponent::printKeyValue(const std::string& key, const Value& value) {
     cleanLastChild();
     printSeparator();
     fprintf(fp, "\n%*s\"%s\": ", indent + JSON_INDENT, "", key.c_str());
-    printValue(value);
+    printFormattedValue(value);
 }
 
-void JsonDumpComponent::addJsonLeaf(const Value& value) {
+void JsonDumpComponent::printValue(const Value& value) {
     cleanLastChild();
     printSeparator();
     fprintf(fp, "\n%*s", indent + JSON_INDENT, "");
-    printValue(value);
+    printFormattedValue(value);
+}
+
+void JsonInlineArray::printValue(const Value& value) {
+    cleanLastChild();
+    if (!isEmpty) {
+        fprintf(fp, ", ");
+    } else {
+        isEmpty = false;
+    }
+    printFormattedValue(value);
 }

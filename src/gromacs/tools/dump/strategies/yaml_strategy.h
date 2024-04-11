@@ -8,6 +8,7 @@
 #include "gromacs/utility/stringutil.h"
 
 #include "gromacs/tools/dump/dump_strategy.h"
+#include "gromacs/tools/dump/components/dump_component_iparams.h"
 #include "gromacs/tools/dump/components/dump_components_yaml.h"
 
 class YamlStrategy : public DumpStrategy {
