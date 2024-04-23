@@ -87,7 +87,7 @@ public:
 
     virtual void pr_sa_vec_row(const std::string title, const SimulatedAnnealing sa[], int n) = 0;
             
-    virtual void pr_ap_vec_row(const std::string title, const float vec[], int n) = 0;
+    virtual void pr_ap_vec_row(const std::string title, const float vec[], int n, int index) = 0;
 
     virtual void pr_posrec_vec_row(const std::string title, const real vec[]) = 0;
 

@@ -64,6 +64,7 @@ void TextStrategy::pr_title_nxm(const std::string title, int n, int m)
 
 void TextStrategy::pr_title_list(const std::string title)
 {
+    // Intetionally left blank
 }
 
 void TextStrategy::pr_title_atom_names(int n)
@@ -78,6 +79,7 @@ void TextStrategy::close_section()
 
 void TextStrategy::close_list()
 {
+    // Intetionally left blank
 }
 
 void TextStrategy::pr_named_value(const std::string name, const Value& value)
@@ -239,10 +241,10 @@ void TextStrategy::pr_sa_vec_row(const std::string title, const SimulatedAnneali
     }
 }
 
-void TextStrategy::pr_ap_vec_row(const std::string title, const float vec[], int n)
+void TextStrategy::pr_ap_vec_row(const std::string title, const float vec[], int n, int index)
 {
-    componentsStack.top()->addFormattedTextLeaf("%s [%d]:\t", title.c_str(), n);
-    for (int i = 0; (i < vec[i]); i++)
+    componentsStack.top()->addFormattedTextLeaf("%s [%d]:\t", title.c_str(), index);
+    for (int i = 0; (i < n); i++)
     {
         componentsStack.top()->printFormattedText("  %10.1f", vec[i]);
     }
@@ -489,7 +491,17 @@ void TextStrategy::pr_iparams(t_functype ftype, const t_iparams& iparams)
 
     for (size_t j = 0; j < kfvs.size(); j++)
     {
-        comp->printFormattedText(", %s=", kfvs[j].key);
+        // Temporary hack to make line break in text format
+        if (kfvs[j].key == nullptr)
+        {
+            comp->printFormattedText("\n%s=", kfvs[++j].key);
+            fprintf(stderr, "key: %s, size: %d, index: %d\n", kfvs[j].key, kfvs.size(), j);
+        }
+        else
+        {
+            comp->printFormattedText(", %s=", kfvs[j].key);
+        }
+
         if (std::holds_alternative<int>(kfvs[j].value))
         {
             comp->printFormattedText(kfvs[j].format, std::get<int>(kfvs[j].value));

@@ -215,50 +215,80 @@ std::vector<KeyFormatValue> getInteractionParameters(t_functype ftype, const t_i
             values.push_back({"k", "%15.8e", iparams.fbposres.k});
             break;
         case F_RBDIHS:
-            // TODO:
-            // for (int i = 0; i < NR_RBDIHS; i++)
-            // {
-            //     sprintf(buffer + strlen(buffer), "srbcA[%d]", i);
-            //     values.push_back({buffer, "%15.8e", iparams.rbdihs.rbcA[i]});
-            // }
+            for (int i = 0; i < NR_RBDIHS; i++)
+            {
+                const char* key_ = gmx::formatString("rbcA[%d]", i).c_str();
+                size_t length = strlen(key_);
+                char* key = (char*)malloc(length + 1);
+                strcpy(key, key_);
+                values.push_back({
+                    key,
+                    "%15.8e",
+                    iparams.rbdihs.rbcA[i]
+                });
+            }
+            // Temporary hack to make line break in text format
             // writer->ensureLineBreak();
-            // for (int i = 0; i < NR_RBDIHS; i++)
-            // {
-            //     writer->writeStringFormatted(
-            //             "%srbcB[%d]=%15.8e", i == 0 ? "" : ", ", i, iparams.rbdihs.rbcB[i]);
-            // }
-            // writer->ensureLineBreak();
+            values.push_back({nullptr, "", 0});
+            for (int i = 0; i < NR_RBDIHS; i++)
+            {
+                const char* key_ = gmx::formatString("rbcB[%d]", i).c_str();
+                size_t length = strlen(key_);
+                char* key = (char*)malloc(length + 1);
+                strcpy(key, key_);
+                values.push_back({
+                    key,
+                    "%15.8e",
+                    iparams.rbdihs.rbcB[i]
+                });
+            }
             break;
         case F_FOURDIHS:
         {
             /* Use the OPLS -> Ryckaert-Bellemans formula backwards to get
              * the OPLS potential constants back.
              */
-            // TODO:
-            // const real* rbcA = iparams.rbdihs.rbcA;
-            // const real* rbcB = iparams.rbdihs.rbcB;
-            // real        VA[4], VB[4];
+            const real* rbcA = iparams.rbdihs.rbcA;
+            const real* rbcB = iparams.rbdihs.rbcB;
+            real        VA[4], VB[4];
 
-            // VA[3] = -0.25 * rbcA[4];
-            // VA[2] = -0.5 * rbcA[3];
-            // VA[1] = 4.0 * VA[3] - rbcA[2];
-            // VA[0] = 3.0 * VA[2] - 2.0 * rbcA[1];
+            VA[3] = -0.25 * rbcA[4];
+            VA[2] = -0.5 * rbcA[3];
+            VA[1] = 4.0 * VA[3] - rbcA[2];
+            VA[0] = 3.0 * VA[2] - 2.0 * rbcA[1];
 
-            // VB[3] = -0.25 * rbcB[4];
-            // VB[2] = -0.5 * rbcB[3];
-            // VB[1] = 4.0 * VB[3] - rbcB[2];
-            // VB[0] = 3.0 * VB[2] - 2.0 * rbcB[1];
+            VB[3] = -0.25 * rbcB[4];
+            VB[2] = -0.5 * rbcB[3];
+            VB[1] = 4.0 * VB[3] - rbcB[2];
+            VB[0] = 3.0 * VB[2] - 2.0 * rbcB[1];
 
-            // for (int i = 0; i < NR_FOURDIHS; i++)
-            // {
-            //     writer->writeStringFormatted("%sFourA[%d]=%15.8e", i == 0 ? "" : ", ", i, VA[i]);
-            // }
+            for (int i = 0; i < NR_FOURDIHS; i++)
+            {
+                const char* key_ = gmx::formatString("FourA[%d]", i).c_str();
+                size_t length = strlen(key_);
+                char* key = (char*)malloc(length + 1);
+                strcpy(key, key_);
+                values.push_back({
+                    key,
+                    "%15.8e",
+                    VA[i]
+                });
+            }
+            // Temporary hack to make line break in text format
             // writer->ensureLineBreak();
-            // for (int i = 0; i < NR_FOURDIHS; i++)
-            // {
-            //     writer->writeStringFormatted("%sFourB[%d]=%15.8e", i == 0 ? "" : ", ", i, VB[i]);
-            // }
-            // writer->ensureLineBreak();
+            values.push_back({nullptr, "", 0});
+            for (int i = 0; i < NR_FOURDIHS; i++)
+            {
+                const char* key_ = gmx::formatString("FourB[%d]", i).c_str();
+                size_t length = strlen(key_);
+                char* key = (char*)malloc(length + 1);
+                strcpy(key, key_);
+                values.push_back({
+                    key,
+                    "%15.8e",
+                    VB[i]
+                });
+            }
             break;
         }
 
@@ -315,13 +345,12 @@ std::vector<KeyFormatValue> getInteractionParameters(t_functype ftype, const t_i
             values.push_back({"cpA", "%12.5e", iparams.pdihs.cpA});
             break;
         case F_CBTDIHS:
-            // TODO:
-            // writer->writeLineFormatted("kphi=%15.8e", iparams.cbtdihs.cbtcA[0]);
-            // for (int i = 1; i < NR_CBTDIHS; i++)
-            // {
-            //     writer->writeStringFormatted(", cbtcA[%d]=%15.8e", i - 1, iparams.cbtdihs.cbtcA[i]);
-            // }
-            // writer->ensureLineBreak();
+            values.push_back({"kphi", "%15.8e", iparams.cbtdihs.cbtcA[0]});
+            for (int i = 1; i < NR_CBTDIHS; i++)
+            {
+                const char* key = gmx::formatString("cbtcA[%d]", i - 1).c_str();
+                values.push_back({key, "%15.8e", iparams.cbtdihs.cbtcA[i]});
+            }
             break;
         default:
             gmx_fatal(FARGS,

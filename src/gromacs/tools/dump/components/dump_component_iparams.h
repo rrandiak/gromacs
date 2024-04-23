@@ -10,6 +10,8 @@
 
 #include "gromacs/tools/dump/dump_settings.h"
 
+// TODO: as component that takes components (text, json, yaml) that prints such structures
+
 struct KeyFormatValue {
     const char* key;
     const char* format;
@@ -18,8 +20,6 @@ struct KeyFormatValue {
     KeyFormatValue(const char* k, const char* f, const Value v)
         : key(k), format(f), value(v) {}
 };
-
-// TODO: as component that takes function that prints this
 
 std::vector<KeyFormatValue> getInteractionParameters(t_functype ftype, const t_iparams &iparams);
 

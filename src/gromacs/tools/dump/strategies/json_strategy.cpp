@@ -256,7 +256,7 @@ void JsonStrategy::pr_sa_vec_row(const std::string title, const SimulatedAnneali
     }
 }
 
-void JsonStrategy::pr_ap_vec_row(const std::string title, const float vec[], int n)
+void JsonStrategy::pr_ap_vec_row(const std::string title, const float vec[], int n, int index)
 {
     JsonArrayComponent* array = componentsStack.top()->addJsonArray(title);
     for (int i = 0; i < n; i++)

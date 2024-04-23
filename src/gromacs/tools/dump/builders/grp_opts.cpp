@@ -26,8 +26,10 @@ void GroupOptionsBuilder::build(DumpStrategy* strategy) {
     {
         if (opts->anneal_npoints[i] > 0)
         {
-            strategy->pr_ap_vec_row("annealing-time", opts->anneal_time[i], opts->anneal_npoints[i]);
-            strategy->pr_ap_vec_row("annealing-temp", opts->anneal_temp[i], opts->anneal_npoints[i]);
+            // strategy->pr_ap_vec_row("annealing-time", opts->anneal_time[i], opts->anneal_npoints[i]);
+            strategy->pr_ap_vec_row("annealing-time", opts->anneal_time[i], opts->anneal_npoints[i], i);
+            // strategy->pr_ap_vec_row("annealing-temp", opts->anneal_temp[i], opts->anneal_npoints[i]);
+            strategy->pr_ap_vec_row("annealing-temp", opts->anneal_temp[i], opts->anneal_npoints[i], i);
         }
     }
 

@@ -267,7 +267,7 @@ void YamlStrategy::pr_sa_vec_row(const std::string title, const SimulatedAnneali
     delete comp;
 }
 
-void YamlStrategy::pr_ap_vec_row(const std::string title, const float vec[], int n)
+void YamlStrategy::pr_ap_vec_row(const std::string title, const float vec[], int n, int index)
 {
     YamlInlineArrayComponent* comp = componentsStack.top()->addYamlInlineArray(title);
     for (int i = 0; i < n; i++)
