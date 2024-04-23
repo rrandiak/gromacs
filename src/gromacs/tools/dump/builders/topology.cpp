@@ -28,7 +28,7 @@ void MTopBuilder::build(DumpStrategy* strategy)
     // fprintf(fp, "name=\"%s\"\n", *(mtop->name));
     // strategy->pr_name(*(mtop->name));
     strategy->pr_attribute_quoted("name", *(mtop->name));
-    strategy->pr_named_value("#atoms", mtop->natoms);
+    strategy->pr_count("atoms", mtop->natoms);
     MolblockBuilder(mtop->molblock, mtop->moltype).build(strategy);
     strategy->pr_named_value("bIntermolecularInteractions", gmx::boolToString(mtop->bIntermolecularInteractions));
     // if (mtop->bIntermolecularInteractions)
@@ -48,10 +48,15 @@ void MTopBuilder::build(DumpStrategy* strategy)
     FFParamsBuilder(mtop->ffparams).build(strategy);
     // pr_ffparams(fp, indent, "ffparams", &(mtop->ffparams), bShowNumbers);
     // for (size_t mt = 0; mt < mtop->moltype.size(); mt++)
-    for (size_t mt = 0; mt < mtop->moltype.size(); mt++)
+    if (mtop->moltype.size() > 0)
     {
-        MoltypeBuilder(&(mtop->moltype[mt]), mt, mtop->ffparams).build(strategy);
-        // pr_moltype(fp, indent, "moltype", &mtop->moltype[mt], mt, &mtop->ffparams, bShowNumbers, bShowParameters);
+        strategy->pr_title_list("moltype");
+        for (size_t mt = 0; mt < mtop->moltype.size(); mt++)
+        {
+            MoltypeBuilder(&(mtop->moltype[mt]), mt, mtop->ffparams).build(strategy);
+            // pr_moltype(fp, indent, "moltype", &mtop->moltype[mt], mt, &mtop->ffparams, bShowNumbers, bShowParameters);
+        }
+        strategy->close_list();
     }
     // pr_groups(fp, indent, mtop->groups, bShowNumbers);
     SimulationGroupsBuilder(mtop->groups).build(strategy);

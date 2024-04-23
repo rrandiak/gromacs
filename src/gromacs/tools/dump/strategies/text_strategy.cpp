@@ -62,9 +62,22 @@ void TextStrategy::pr_title_nxm(const std::string title, int n, int m)
     componentsStack.push(comp);
 }
 
+void TextStrategy::pr_title_list(const std::string title)
+{
+}
+
+void TextStrategy::pr_title_atom_names(int n)
+{
+    pr_title_n("atom", n);
+}
+
 void TextStrategy::close_section()
 {
     componentsStack.pop();
+}
+
+void TextStrategy::close_list()
+{
 }
 
 void TextStrategy::pr_named_value(const std::string name, const Value& value)
@@ -80,6 +93,11 @@ void TextStrategy::pr_named_value_short_format(const std::string name, const Val
 void TextStrategy::pr_named_value_scientific(const std::string name, const real& value)
 {
     componentsStack.top()->addFormattedTextLeaf("%-*s = %e", 6, name.c_str(), value);
+}
+
+void TextStrategy::pr_count(const std::string name, const Value& value)
+{
+    pr_named_value(gmx::formatString("#%s", name.c_str()), value);
 }
 
 void TextStrategy::pr_attribute(const std::string name, const Value& value)

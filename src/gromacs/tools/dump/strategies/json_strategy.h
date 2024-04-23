@@ -12,6 +12,7 @@
 #include "gromacs/utility/stringutil.h"
 
 #include "gromacs/tools/dump/dump_strategy.h"
+#include "gromacs/tools/dump/components/dump_component_iparams.h"
 #include "gromacs/tools/dump/components/dump_components_json.h"
 
 class JsonStrategy : public DumpStrategy {
@@ -28,11 +29,15 @@ public:
     void pr_title_i(const std::string title, int i) override;
     void pr_title_n(const std::string title, int n) override;
     void pr_title_nxm(const std::string title, int n, int m) override;
+    void pr_title_list(const std::string title) override;
+    void pr_title_atom_names(int n) override;
     void close_section() override;
+    void close_list() override;
 
     void pr_named_value(const std::string name, const Value& value) override;
     void pr_named_value_short_format(const std::string name, const Value& value) override;
     void pr_named_value_scientific(const std::string name, const real& value) override;
+    void pr_count(const std::string name, const Value& value) override;
 
     void pr_attribute(const std::string name, const Value& value) override;
     void pr_attribute_quoted(const std::string name, const std::string& value) override;

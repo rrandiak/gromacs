@@ -17,7 +17,7 @@ void AtomsBuilder::build(DumpStrategy* strategy)
 
         // TODO:
         // strategy->pr_atoms(atoms->atom, atoms->nr);
-        strategy->pr_title_n("atom", atoms->nr);
+        strategy->pr_title_atom_names(atoms->nr);
         const char* atomAttributeNames[] = {"name"};
         for (int i = 0; (i < atoms->nr); i++)
         {

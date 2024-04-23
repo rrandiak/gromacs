@@ -16,6 +16,8 @@ void ListOfListsBuilder::build(DumpStrategy* strategy)
     // pr_indent(fp, indent);
     // fprintf(fp, "numElements=%d\n", lists->numElements());
 
+    strategy->pr_title_list(title.c_str());
+
     for (gmx::Index i = 0; i < lists.ssize(); i++)
     {
         // gmx::ArrayRef<const int> list = (*lists)[i];
@@ -47,5 +49,7 @@ void ListOfListsBuilder::build(DumpStrategy* strategy)
         // }
         // fprintf(fp, "}\n");
     }
+
+    strategy->close_list();
     strategy->close_section();
 }

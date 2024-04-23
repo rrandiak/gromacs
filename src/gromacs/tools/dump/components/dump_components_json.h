@@ -34,8 +34,10 @@ public:
         cleanLastChild();
     }
 
+    JsonObjectComponent* addJsonObject();
     JsonObjectComponent* addJsonObject(const std::string& name);
     JsonArrayComponent* addJsonArray(const std::string& name);
+    JsonArrayComponent* addJsonArray();
     JsonInlineArray* addInlineArray();
     void printKeyValue(const std::string& key, const Value& value);
     void printValue(const Value& value);
@@ -43,10 +45,7 @@ public:
 
 class JsonObjectComponent : public JsonDumpComponent {
 public:
-    JsonObjectComponent(FILE* fp, int indent, const std::string& name)
-            : JsonDumpComponent(fp, indent) {
-        fprintf(fp, "\n%*s\"%s\": {", indent, "", name.c_str());
-    }
+    JsonObjectComponent(FILE* fp, int indent) : JsonDumpComponent(fp, indent) {}
 
     virtual ~JsonObjectComponent() {
         cleanLastChild();
@@ -69,10 +68,7 @@ public:
 
 class JsonArrayComponent : public JsonDumpComponent {
 public:
-    JsonArrayComponent(FILE* fp, int indent, const std::string& name)
-            : JsonDumpComponent(fp, indent) {
-        fprintf(fp, "\n%*s\"%s\": [", indent, "", name.c_str());
-    }
+    JsonArrayComponent(FILE* fp, int indent) : JsonDumpComponent(fp, indent) {}
 
     virtual ~JsonArrayComponent() {
         cleanLastChild();

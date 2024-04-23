@@ -49,7 +49,7 @@ void YamlStrategy::pr_title_i(const std::string title, int i)
 
 void YamlStrategy::pr_title_n(const std::string title, int n)
 {
-    YamlComponent* comp = componentsStack.top()->addYamlObject(gmx::formatString("%s (%d)", title.c_str(), n));
+    YamlComponent* comp = componentsStack.top()->addYamlArray(gmx::formatString("%ss", title.c_str()));
     componentsStack.push(comp);
 }
 
@@ -59,7 +59,23 @@ void YamlStrategy::pr_title_nxm(const std::string title, int n, int m)
     componentsStack.push(comp);
 }
 
+void YamlStrategy::pr_title_list(const std::string title)
+{
+    YamlComponent* comp = componentsStack.top()->addYamlArray(title);
+    componentsStack.push(comp);
+}
+
+void YamlStrategy::pr_title_atom_names(int n)
+{
+    pr_title_n("atom-name", n);
+}
+
 void YamlStrategy::close_section()
+{
+    componentsStack.pop();
+}
+
+void YamlStrategy::close_list()
 {
     componentsStack.pop();
 }
@@ -77,6 +93,11 @@ void YamlStrategy::pr_named_value_short_format(const std::string name, const Val
 void YamlStrategy::pr_named_value_scientific(const std::string name, const real& value)
 {
     pr_named_value(name, value);
+}
+    
+void YamlStrategy::pr_count(const std::string name, const Value& value)
+{
+    pr_named_value(gmx::formatString("%s-count", name.c_str()), value);
 }
     
 void YamlStrategy::pr_attribute(const std::string name, const Value& value)
@@ -113,6 +134,17 @@ void YamlStrategy::pr_residue(const t_resinfo* resinfo, int i)
 
 void YamlStrategy::pr_ivec(const std::string title, const int vec[], int n)
 {
+    if (available(vec, title))
+    {
+        pr_title_n(title, n);
+        YamlInlineArrayComponent* comp = componentsStack.top()->addYamlInlineArray();
+        for (int i = 0; i < n; i++)
+        {
+            comp->printValue(vec[i]);
+        }
+        delete comp;
+        componentsStack.pop();
+    }
 }
 
 void YamlStrategy::pr_rvec(const std::string title, const real vec[], int n)
@@ -121,7 +153,7 @@ void YamlStrategy::pr_rvec(const std::string title, const real vec[], int n)
     {
         pr_title_n(title, n);
         YamlInlineArrayComponent* comp = componentsStack.top()->addYamlInlineArray();
-        for (int i = 0; i < DIM; i++)
+        for (int i = 0; i < n; i++)
         {
             comp->printValue(vec[i]);
         }
@@ -132,6 +164,23 @@ void YamlStrategy::pr_rvec(const std::string title, const real vec[], int n)
     
 void YamlStrategy::pr_ivecs(const std::string title, const ivec vec[], int n)
 {
+    if (available(vec, title))
+    {
+        int i, j;
+        pr_title_nxm(title, n, DIM);
+
+        for (i = 0; i < n; i++)
+        {
+            YamlInlineArrayComponent* comp = componentsStack.top()->addYamlInlineArray();
+            for (j = 0; j < DIM; j++)
+            {
+                comp->printValue(vec[i][j]);
+            }
+            delete comp;
+        }
+
+        componentsStack.pop();
+    }
 }
 
 void YamlStrategy::pr_rvecs(const std::string title, const rvec vec[], int n)
@@ -291,16 +340,15 @@ void YamlStrategy::pr_kvtree(const gmx::KeyValueTreeObject kvTree)
         {
             if (value.isArray())
             {
-                // for (const auto& elem : value.asArray().values())
-                // {
-                //     GMX_RELEASE_ASSERT(
-                //             !elem.isObject() && !elem.isArray(),
-                //             "Only arrays of simple types and array of objects are implemented. "
-                //             "Arrays of arrays and mixed arrays are not supported.");
-                //     componentsStack.top()->printFormattedText(" ");
-                //     componentsStack.top()->printFormattedText(simpleValueToString(elem).c_str());
-                // }
-                // componentsStack.top()->printFormattedText(" ]");
+                YamlInlineArrayComponent *inlineArray =  componentsStack.top()->addYamlInlineArray(prop.key().c_str());
+                for (const auto& elem : value.asArray().values())
+                {
+                    GMX_RELEASE_ASSERT(
+                            !elem.isObject() && !elem.isArray(),
+                            "Only arrays of simple types and array of objects are implemented. "
+                            "Arrays of arrays and mixed arrays are not supported.");
+                    inlineArray->printValue(simpleValueToString(elem).c_str());
+                }
             }
             else
             {
@@ -321,16 +369,15 @@ void YamlStrategy::pr_kvtree(const gmx::KeyValueTreeObject kvTree)
 
 void YamlStrategy::pr_moltype(const int moltype, const std::string moltypeName)
 {
-    pr_title_i("moltype", moltype);
     componentsStack.top()->printKeyValue("moltypeName", moltypeName.c_str());
-    componentsStack.pop();
 }
 
 void YamlStrategy::pr_atom(const t_atom* atom, const int i)
 {
-    pr_title_i("atom", i);
+    // pr_title_i("atom", i);
     
     YamlInlineObject* comp = componentsStack.top()->addYamlInlineObject();
+    comp->printKeyValue("index", i);
     comp->printKeyValue("type", atom->type);
     comp->printKeyValue("typeB", atom->typeB);
     comp->printKeyValue("ptype", enumValueToString(atom->ptype));
@@ -342,15 +389,17 @@ void YamlStrategy::pr_atom(const t_atom* atom, const int i)
     comp->printKeyValue("atomnumber", atom->atomnumber);
     delete comp;
 
-    componentsStack.pop();
+    // componentsStack.pop();
 }
 
 void YamlStrategy::pr_grps(gmx::ArrayRef<const AtomGroupIndices> grps, const char* const* const* grpname)
 {
+    pr_title_list("grp-props");
     int index = 0;
     for (const auto& group : grps)
     {
-        YamlComponent* comp = componentsStack.top()->addYamlObject("grp", shortName(static_cast<SimulationAtomGroupType>(index)));
+        YamlComponent* comp = componentsStack.top()->addYamlObject("grp");
+        comp->printKeyValue("type", shortName(static_cast<SimulationAtomGroupType>(index)));
         comp->printKeyValue("nr", group.size());
         YamlInlineArrayComponent* arrayComp = comp->addYamlInlineArray("name");
         for (const auto& entry : group)
@@ -361,6 +410,7 @@ void YamlStrategy::pr_grps(gmx::ArrayRef<const AtomGroupIndices> grps, const cha
         delete comp;
         index++;
     }
+    close_list();
 }
 
 void YamlStrategy::pr_grp_opt_agg(
@@ -417,11 +467,13 @@ void YamlStrategy::pr_groups(const SimulationGroups& groups)
     }
     delete allocated;
 
+    pr_title_list("groups");
+
     YamlInlineObject* groupnr;
     if (nat_max == 0)
     {
-        groupnr = componentsStack.top()->addYamlInlineObject("allocated");
-        groupnr->printKeyValue("index", "*");
+        groupnr = componentsStack.top()->addYamlInlineObject("groupnr");
+        groupnr->printKeyValue("index", "all");
         for (auto gmx_unused group : keysOf(groups.groups))
         {
             groupnr->printKeyValue(shortName(group), 0);
@@ -443,6 +495,7 @@ void YamlStrategy::pr_groups(const SimulationGroups& groups)
         }
     }
 
+    close_list();
     componentsStack.pop();
 }
 
@@ -473,11 +526,12 @@ void YamlStrategy::pr_group_stats(gmx::EnumerationArray<SimulationAtomGroupType,
 
 void YamlStrategy::pr_list_i(const std::string title, const int index, gmx::ArrayRef<const int> list)
 {
-    pr_title_i(title, index);
+    pr_title(title);
 
+    componentsStack.top()->printKeyValue("index", index);
     componentsStack.top()->printKeyValue("num", list.size());
 
-    YamlInlineArrayComponent* inlineArray = componentsStack.top()->addYamlInlineArray();
+    YamlInlineArrayComponent* inlineArray = componentsStack.top()->addYamlInlineArray("values");
     for (const int item : list)
     {
         inlineArray->printValue(item);
@@ -513,23 +567,27 @@ void YamlStrategy::pr_iparams(t_functype ftype, const t_iparams& iparams)
 
 void YamlStrategy::pr_functypes(const std::vector<int>& functype, const int n, const std::vector<t_iparams>& iparams)
 {
-    pr_title("functypes");
+    YamlArrayComponent* array = componentsStack.top()->addYamlArray("functypes");
 
     for (int i = 0; i < n; i++)
     {
+        YamlObjectComponent* object;
         if (bShowNumbers)
         {
-            pr_title_i("functype", i);
+            object = array->addYamlObject("functype", i);
         }
         else
         {
-            pr_title("functype");
+            object = array->addYamlObject("functype");
         }
+        componentsStack.push(object);
+
         pr_iparams(functype[i], iparams[i]);
+
         close_section();
     }
 
-    close_section();
+    // delete array;
 }
 
 void YamlStrategy::pr_interaction_list(const std::string& title, const t_functype* functypes, const InteractionList& ilist, const t_iparams* iparams)
@@ -605,6 +663,12 @@ void YamlStrategy::pr_cmap(const gmx_cmap_t* cmap_grid)
         for (int j = 0; j < nelem; j++)
         {
             YamlInlineObject* inlineObject = componentsStack.top()->addYamlInlineObject();
+
+            if ((j % cmap_grid->grid_spacing) == 0)
+            {
+                inlineObject->printKeyValue("idx", idx);
+                idx += dx;
+            }
 
             inlineObject->printKeyValue("V", cmap_grid->cmapdata[i].cmap[j * 4]);
             inlineObject->printKeyValue("dVdx", cmap_grid->cmapdata[i].cmap[j * 4 + 1]);

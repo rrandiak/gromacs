@@ -23,10 +23,20 @@ void JsonDumpComponent::cleanLastChild() {
     }
 }
 
+JsonObjectComponent* JsonDumpComponent::addJsonObject() {
+    cleanLastChild();
+    printSeparator();
+    fprintf(fp, "\n%*s{", indent + JSON_INDENT, "");
+    JsonObjectComponent* jsonObject = new JsonObjectComponent(fp, indent + JSON_INDENT);
+    lastChild = jsonObject;
+    return jsonObject;
+}
+
 JsonObjectComponent* JsonDumpComponent::addJsonObject(const std::string& name) {
     cleanLastChild();
     printSeparator();
-    JsonObjectComponent* jsonObject = new JsonObjectComponent(fp, indent + JSON_INDENT, name);
+    fprintf(fp, "\n%*s\"%s\": {", indent + JSON_INDENT, "", name.c_str());
+    JsonObjectComponent* jsonObject = new JsonObjectComponent(fp, indent + JSON_INDENT);
     lastChild = jsonObject;
     return jsonObject;
 }
@@ -43,7 +53,17 @@ JsonInlineArray* JsonDumpComponent::addInlineArray() {
 JsonArrayComponent* JsonDumpComponent::addJsonArray(const std::string& name) {
     cleanLastChild();
     printSeparator();
-    JsonArrayComponent* jsonArray = new JsonArrayComponent(fp, indent + JSON_INDENT, name);
+    fprintf(fp, "\n%*s\"%s\": [", indent + JSON_INDENT, "", name.c_str());
+    JsonArrayComponent* jsonArray = new JsonArrayComponent(fp, indent + JSON_INDENT);
+    lastChild = jsonArray;
+    return jsonArray;
+}
+
+JsonArrayComponent* JsonDumpComponent::addJsonArray() {
+    cleanLastChild();
+    printSeparator();
+    fprintf(fp, "\n%*s[", indent + JSON_INDENT, "");
+    JsonArrayComponent* jsonArray = new JsonArrayComponent(fp, indent + JSON_INDENT);
     lastChild = jsonArray;
     return jsonArray;
 }

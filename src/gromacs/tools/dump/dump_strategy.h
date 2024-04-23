@@ -44,7 +44,13 @@ public:
     //! Prints a title for a dumped section with 2D dimension suffixed (in NxM format).
     virtual void pr_title_nxm(const std::string title, int n, int m) = 0;
 
+    virtual void pr_title_list(const std::string title) = 0;
+
+    virtual void pr_title_atom_names(int n) = 0;
+
     virtual void close_section() = 0;
+
+    virtual void close_list() = 0;
 
     //! Prints a named value.
     virtual void pr_named_value(const std::string name, const Value& value) = 0;
@@ -52,6 +58,8 @@ public:
     virtual void pr_named_value_short_format(const std::string name, const Value& value) = 0;
 
     virtual void pr_named_value_scientific(const std::string name, const real& value) = 0;
+
+    virtual void pr_count(const std::string name, const Value& value) = 0;
 
     virtual void pr_attribute(const std::string name, const Value& value) = 0;
 
