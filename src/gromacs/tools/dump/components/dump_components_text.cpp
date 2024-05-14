@@ -1,8 +1,18 @@
 #include "gromacs/tools/dump/components/dump_components_text.h"
 
-TextComponent* TextComponent::addSection(const std::string& name) {
+TextComponent* TextComponent::addSection(const std::string& name, const int withNextIndent) {
     fprintf(fp, "\n%*s%s:", indent, "", name.c_str());
-    return new TextComponent(fp, indent + indentValue);
+    return new TextComponent(fp, indent + withNextIndent);
+}
+
+TextComponent* TextComponent::addSection(const std::string& name) {
+    return addSection(name, TEXT_INDENT);
+}
+    
+TextComponent* TextComponent::addSectionWithIndent(const std::string& name, int indent_)
+{
+    fprintf(fp, "\n%*s%s:", indent_, "", name.c_str());
+    return new TextComponent(fp, indent_ + TEXT_INDENT);
 }
 
 TextComponent* TextComponent::addEmptySection()

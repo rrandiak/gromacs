@@ -79,7 +79,7 @@ void AwhBiasBuilder::build(DumpStrategy* strategy)
 
 void AwhBiasDimBuilder::build(DumpStrategy* strategy)
 {
-    strategy->pr_title(gmx::formatString("awh%d-dim%d", index, dimension));
+    strategy->pr_title_awh(gmx::formatString("awh%d-dim%d", index, dimension));
     strategy->pr_named_value("coord-provider", enumValueToString(awhDimParams->coordinateProvider()));
     strategy->pr_named_value("coord-index", awhDimParams->coordinateIndex() + 1);
     strategy->pr_named_value("start", awhDimParams->origin());

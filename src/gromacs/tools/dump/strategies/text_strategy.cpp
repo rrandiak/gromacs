@@ -1,6 +1,8 @@
 #include "text_strategy.h"
-
-int DumpComponent::indentValue = 3;
+#include "gromacs/tools/dump/components/dump_components_text.h"
+#include "gromacs/tools/dump/dump_component.h"
+#include "gromacs/topology/ifunc.h"
+#include "gromacs/utility/stringutil.h"
 
 TextStrategy::TextStrategy(FILE* fp)
 {
@@ -72,6 +74,36 @@ void TextStrategy::pr_title_atom_names(int n)
     pr_title_n("atom", n);
 }
 
+void TextStrategy::pr_title_pull_group(std::string title, int i)
+{
+    TextComponent* comp = componentsStack.top()->addSection(gmx::formatString("%s %d", title.c_str(), i), 2);
+    componentsStack.push(comp);
+}
+
+void TextStrategy::pr_title_pull_coord(std::string title, int i)
+{
+    TextComponent* comp = componentsStack.top()->addSection(gmx::formatString("%s %d", title.c_str(), i), 0);
+    componentsStack.push(comp);
+}
+
+void TextStrategy::pr_title_rot_group(std::string title, int i)
+{
+    TextComponent* comp = componentsStack.top()->addSection(gmx::formatString("%s %d", title.c_str(), i), 2);
+    componentsStack.push(comp);
+}
+
+void TextStrategy::pr_title_awh(std::string title)
+{
+    TextComponent* comp = componentsStack.top()->addSection(title, 1);
+    componentsStack.push(comp);
+}
+
+void TextStrategy::pr_title_all_lambdas(std::string title)
+{
+    TextComponent* comp = componentsStack.top()->addSectionWithIndent(title, 0);
+    componentsStack.push(comp);
+}
+
 void TextStrategy::close_section()
 {
     componentsStack.pop();
@@ -137,6 +169,16 @@ void TextStrategy::pr_residue(const t_resinfo* resinfo, int i)
 
 void TextStrategy::pr_ivec(const std::string title, const int vec[], int n)
 {
+    if (available(vec, title))
+    {
+        pr_title_n(title, n);
+        TextComponent* comp = componentsStack.top();
+        for (int i = 0; i < n; i++)
+        {
+            comp->addFormattedTextLeaf("%s[%d]=%d", title.c_str(), i, vec[i]);
+        }
+        close_section();
+    }
 }
 
 void TextStrategy::pr_rvec(const std::string title, const real vec[], int n) {
@@ -154,6 +196,27 @@ void TextStrategy::pr_rvec(const std::string title, const real vec[], int n) {
     
 void TextStrategy::pr_ivecs(const std::string title, const ivec vec[], int n)
 {
+    int i, j;
+
+    if (available(vec, title))
+    {
+        pr_title_nxm(title, n, DIM);
+        TextComponent* comp = componentsStack.top();
+
+        for (i = 0; i < n; i++)
+        {
+            comp->addFormattedTextLeaf("%s[%5d]={", title.c_str(), i);
+            for (j = 0; j < DIM - 1; j++)
+            {
+                comp->printFormattedText("%d", vec[i][j]);
+                comp->printFormattedText(", ");
+            }
+            comp->printFormattedText("%d", vec[i][DIM - 1]);
+            comp->printFormattedText("}");
+        }
+
+        componentsStack.pop();
+    }
 }
 
 void TextStrategy::pr_rvecs(const std::string title, const rvec vec[], int n)
@@ -259,6 +322,42 @@ void TextStrategy::pr_posrec_vec_row(const std::string title, const real vec[])
 
 void TextStrategy::pr_ivec_block(const std::string title, const int vec[], int n)
 {
+    int i, j;
+
+    if (available(vec, title))
+    {
+        pr_title_n(title, n);
+        i      = 0;
+        while (i < n)
+        {
+            j = i + 1;
+            while (j < n && vec[j] == vec[j - 1] + 1)
+            {
+                j++;
+            }
+            /* Print consecutive groups of 3 or more as blocks */
+            if (j - i < 3)
+            {
+                while (i < j)
+                {
+                    componentsStack.top()->addFormattedTextLeaf( "%s[%d]=%d", title.c_str(), bShowNumbers ? i : -1, vec[i]);
+                    i++;
+                }
+            }
+            else
+            {
+                componentsStack.top()->addFormattedTextLeaf(
+                        "%s[%d,...,%d] = {%d,...,%d}",
+                        title.c_str(),
+                        bShowNumbers ? i : -1,
+                        bShowNumbers ? j - 1 : -1,
+                        vec[i],
+                        vec[j - 1]);
+                i = j;
+            }
+        }
+        close_section();
+    }
 }
 
 void TextStrategy::pr_matrix(const std::string title, const rvec* m) {
@@ -284,25 +383,25 @@ void TextStrategy::pr_kvtree(const gmx::KeyValueTreeObject kvTree)
         const auto& value = prop.value();
         if (value.isObject())
         {
-            DumpComponent::setIndent(2);
-            pr_title(prop.key().c_str());
+            TextComponent* comp = componentsStack.top()->addSection(prop.key().c_str(), 2);
+            componentsStack.push(comp);
+            // pr_title(prop.key().c_str());
             pr_kvtree(value.asObject());
             close_section();
-            DumpComponent::setIndent(3);
         }
         else if (value.isArray()
                  && std::all_of(value.asArray().values().begin(),
                                 value.asArray().values().end(),
                                 [](const auto& elem) { return elem.isObject(); }))
         {
-            DumpComponent::setIndent(2);
-            pr_title(prop.key().c_str());
+            // pr_title(prop.key().c_str());
+            TextComponent* comp = componentsStack.top()->addSection(prop.key().c_str(), 2);
+            componentsStack.push(comp);
             for (const auto& elem : value.asArray().values())
             {
                 pr_kvtree(elem.asObject());
             }
             close_section();
-            DumpComponent::setIndent(3);
         }
         else
         {
@@ -489,13 +588,18 @@ void TextStrategy::pr_iparams(t_functype ftype, const t_iparams& iparams)
     TextComponent* comp = componentsStack.top();
     std::vector<KeyFormatValue> kfvs = getInteractionParameters(ftype, iparams);
 
+    if (kfvs.empty())
+    {
+        comp->printFormattedText("\n");
+        return;
+    }
+
     for (size_t j = 0; j < kfvs.size(); j++)
     {
         // Temporary hack to make line break in text format
         if (kfvs[j].key == nullptr)
         {
             comp->printFormattedText("\n%s=", kfvs[++j].key);
-            fprintf(stderr, "key: %s, size: %d, index: %d\n", kfvs[j].key, kfvs.size(), j);
         }
         else
         {
@@ -631,5 +735,30 @@ void TextStrategy::pr_cmap(const gmx_cmap_t* cmap_grid)
             comp->printFormattedText("%8.3f", cmap_grid->cmapdata[i].cmap[j * 4 + 3]);
         }
         comp->printFormattedText("\n");
+    }
+}
+
+void TextStrategy::pr_separate_dvdl(const std::string title, bool value)
+{
+    componentsStack.top()->printFormattedText("\n%18s =   %s", title.c_str(), value ? "TRUE" : "FALSE");
+}
+    
+void TextStrategy::pr_all_lambda(const std::string title, const double vec[], const int n_lambda)
+{
+    TextComponent* comp = componentsStack.top();
+    comp->printFormattedText("\n%18s = ", title.c_str());
+    for (int j = 0; j < n_lambda; j++)
+    {
+        comp->printFormattedText("  %10g", vec[j]);
+    }
+}
+
+void TextStrategy::pr_init_lambda_weights(const std::string title, const real vec[], const int n_lambda)
+{
+    TextComponent* comp = componentsStack.top()->addEmptySection();
+    comp->addFormattedTextLeaf("%s (%d):", title.c_str(), n_lambda);
+    for (int i = 0; i < n_lambda; i++)
+    {
+        comp->addFormattedTextLeaf("%s[%d]=%12.5e", title.c_str(), i, vec[i]);
     }
 }

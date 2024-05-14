@@ -21,17 +21,21 @@
 //! Actual line length for text dump output.
 #define USE_WIDTH ((LINE_WIDTH) - (RMARGIN))
 //! Default indentation for text dump output.
-// #define INDENT 3
+#define TEXT_INDENT 3
 
 class TextComponent : public DumpComponent {
 private:
     ValueComponent valueComponent;
+    int indentValue = TEXT_INDENT;
     
 public:
+    TextComponent(FILE* fp, int indent, int nextIndent) : DumpComponent(fp, indent), valueComponent(fp), indentValue(nextIndent) {}
     TextComponent(FILE* fp, int indent) : DumpComponent(fp, indent), valueComponent(fp) {}
     virtual ~TextComponent() = default;
 
+    TextComponent* addSection(const std::string& name, const int withIndent);
     TextComponent* addSection(const std::string& name);
+    TextComponent* addSectionWithIndent(const std::string& name, const int indent_);
     TextComponent* addEmptySection();
     void printLeaf(const std::string& key, const Value& value, const int align);
     void printAttribute(const std::string name, const Value& value); 

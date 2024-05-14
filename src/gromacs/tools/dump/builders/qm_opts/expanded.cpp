@@ -40,6 +40,6 @@ void ExpandedBuilder::build(DumpStrategy* strategy)
     strategy->pr_named_value("init-wl-delta", expanded->init_wl_delta);
     strategy->pr_named_value("wl-oneovert", gmx::boolToString(expanded->bWLoneovert));
 
-    strategy->pr_rvec("init-lambda-weights", expanded->init_lambda_weights.data(), n_lambda);
+    strategy->pr_init_lambda_weights("init-lambda-weights", expanded->init_lambda_weights.data(), n_lambda);
     strategy->pr_named_value("init-weights", gmx::boolToString(expanded->bInit_weights));
 }

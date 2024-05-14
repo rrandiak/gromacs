@@ -9,7 +9,6 @@
 
 class DumpComponent {
 protected:
-    static int indentValue;
     FILE* fp;
     int indent = 0;
 
@@ -26,8 +25,6 @@ public:
     {
         return indent;
     }
-
-    static void setIndent(int indent) { indentValue = indent; }
 };
 
 #endif

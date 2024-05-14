@@ -1,11 +1,13 @@
 #ifndef GMX_TOOLS_DUMP_STRATEGY_H
 #define GMX_TOOLS_DUMP_STRATEGY_H
 
+#include "gromacs/mdlib/vsite.h"
 #include "gromacs/utility/iserializer.h"
 #include "gromacs/utility/enumerationhelpers.h"
 #include "gromacs/utility/arrayref.h"
 #include "gromacs/utility/keyvaluetree.h"
 #include "gromacs/mdtypes/md_enums.h"
+#include "gromacs/mdtypes/inputrec.h"
 #include "gromacs/topology/topology_enums.h"
 #include "gromacs/topology/topology.h"
 #include "gromacs/fileio/tpxio.h"
@@ -47,6 +49,16 @@ public:
     virtual void pr_title_list(const std::string title) = 0;
 
     virtual void pr_title_atom_names(int n) = 0;
+
+    virtual void pr_title_pull_group(std::string title, int i) = 0;
+
+    virtual void pr_title_pull_coord(std::string title, int i) = 0;
+
+    virtual void pr_title_rot_group(std::string title, int i) = 0;
+
+    virtual void pr_title_awh(std::string title) = 0;
+
+    virtual void pr_title_all_lambdas(std::string title) = 0;
 
     virtual void close_section() = 0;
 
@@ -122,6 +134,12 @@ public:
     virtual void pr_interaction_list(const std::string& title, const t_functype* functypes, const InteractionList& ilist, const t_iparams* iparams) = 0;
 
     virtual void pr_cmap(const gmx_cmap_t* cmap_grid) = 0;
+
+    virtual void pr_separate_dvdl(const std::string title, bool value) = 0;
+    
+    virtual void pr_all_lambda(const std::string title, const double vec[], const int n_lambda) = 0;
+
+    virtual void pr_init_lambda_weights(const std::string title, const real vec[], const int n_lambda) = 0;
 };
 
 #endif

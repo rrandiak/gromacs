@@ -15,7 +15,7 @@ void RotBuilder::build(DumpStrategy* strategy)
 
 void RotGroupBuilder::build(DumpStrategy* strategy)
 {
-    strategy->pr_title_i("rot-group", index);
+    strategy->pr_title_rot_group("rot-group", index);
     strategy->pr_named_value("rot-type", enumValueToString(rotg->eType));
     strategy->pr_named_value("rot-massw", gmx::boolToString(rotg->bMassW));
     strategy->pr_ivec_block("atom", rotg->ind, rotg->nat);

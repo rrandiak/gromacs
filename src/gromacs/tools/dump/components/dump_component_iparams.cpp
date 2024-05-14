@@ -19,9 +19,10 @@ std::vector<KeyFormatValue> getInteractionParameters(t_functype ftype, const t_i
             values.push_back({"r2e", "%15.8e", iparams.cross_bb.r2e});
             values.push_back({"krr", "%15.8e", iparams.cross_bb.krr});
             break;
+            // Dump Inconsistency: 2nd 'r1e' instead of 'r2e'
         case F_CROSS_BOND_ANGLES:
             values.push_back({"r1e", "%15.8e", iparams.cross_ba.r1e});
-            values.push_back({"r2e", "%15.8e", iparams.cross_ba.r2e});
+            values.push_back({"r1e", "%15.8e", iparams.cross_ba.r2e});
             values.push_back({"r3e", "%15.8e", iparams.cross_ba.r3e});
             values.push_back({"krt", "%15.8e", iparams.cross_ba.krt});
             break;
@@ -81,11 +82,13 @@ std::vector<KeyFormatValue> getInteractionParameters(t_functype ftype, const t_i
             values.push_back({"kb", "%15.8e", iparams.cubic.kb});
             values.push_back({"kcub", "%15.8e", iparams.cubic.kcub});
             break;
+            // Dump Inconsistency - in old implementation 'writer->ensureEmptyLine()' does not function as expected
         case F_CONNBONDS: break;
         case F_FENEBONDS:
             values.push_back({"bm", "%15.8e", iparams.fene.bm});
             values.push_back({"kb", "%15.8e", iparams.fene.kb});
             break;
+            // Dump Inconsistency: ',' comma after kB value
         case F_RESTRBONDS:
             values.push_back({"lowA", "%15.8e", iparams.restraint.lowA});
             values.push_back({"up1A", "%15.8e", iparams.restraint.up1A});
@@ -94,7 +97,7 @@ std::vector<KeyFormatValue> getInteractionParameters(t_functype ftype, const t_i
             values.push_back({"lowB", "%15.8e", iparams.restraint.lowB});
             values.push_back({"up1B", "%15.8e", iparams.restraint.up1B});
             values.push_back({"up2B", "%15.8e", iparams.restraint.up2B});
-            values.push_back({"kB", "%15.8e", iparams.restraint.kB});
+            values.push_back({"kB", "%15.8e,", iparams.restraint.kB});
             break;
         case F_TABBONDS:
         case F_TABBONDSNC:
@@ -158,21 +161,24 @@ std::vector<KeyFormatValue> getInteractionParameters(t_functype ftype, const t_i
             values.push_back({"cpB", "%15.8e", iparams.pdihs.cpB});
             values.push_back({"mult", "%d", iparams.pdihs.mult});
             break;
+            // Dump Inconsistency: ')' at the end
         case F_DISRES:
             values.push_back({"label", "%4d", iparams.disres.label});
             values.push_back({"type", "%1d", iparams.disres.type});
             values.push_back({"low", "%15.8e", iparams.disres.low});
             values.push_back({"up1", "%15.8e", iparams.disres.up1});
             values.push_back({"up2", "%15.8e", iparams.disres.up2});
-            values.push_back({"kfac", "%15.8e", iparams.disres.kfac});
+            values.push_back({"fac", "%15.8e)", iparams.disres.kfac});
             break;
+            // Dump Inconsistency: ')' at the end
+            // Dump Inconsistency: label diffrently aligned then with F_DISRES
         case F_ORIRES:
             values.push_back({"ex", "%4d", iparams.orires.ex});
-            values.push_back({"label", "%4d", iparams.orires.label});
+            values.push_back({"label", "%d", iparams.orires.label});
             values.push_back({"power", "%4d", iparams.orires.power});
             values.push_back({"c", "%15.8e", iparams.orires.c});
             values.push_back({"obs", "%15.8e", iparams.orires.obs});
-            values.push_back({"kfac", "%15.8e", iparams.orires.kfac});
+            values.push_back({"kfac", "%15.8e)", iparams.orires.kfac});
             break;
         case F_DIHRES:
             values.push_back({"phiA", "%15.8e", iparams.dihres.phiA});
@@ -340,16 +346,30 @@ std::vector<KeyFormatValue> getInteractionParameters(t_functype ftype, const t_i
             values.push_back({"kthetaA", "%12.5e", iparams.harmonic.krA});
             values.push_back({"costheta0B", "%12.5e", iparams.harmonic.rB});
             values.push_back({"kthetaB", "%12.5e", iparams.harmonic.krB});
+            break;
         case F_RESTRDIHS:
             values.push_back({"phiA", "%12.5e", iparams.pdihs.phiA});
             values.push_back({"cpA", "%12.5e", iparams.pdihs.cpA});
             break;
+            // Dump Inconsistency: both new line and comma between parameters
         case F_CBTDIHS:
             values.push_back({"kphi", "%15.8e", iparams.cbtdihs.cbtcA[0]});
+            // Temporary hack to make line break in text format
+            // writer->ensureLineBreak();
+            values.push_back({nullptr, "", 0});
             for (int i = 1; i < NR_CBTDIHS; i++)
             {
-                const char* key = gmx::formatString("cbtcA[%d]", i - 1).c_str();
-                values.push_back({key, "%15.8e", iparams.cbtdihs.cbtcA[i]});
+                const char* key_ = i == 1
+                        ? gmx::formatString(", cbtcA[%d]", i - 1).c_str()
+                        : gmx::formatString("cbtcA[%d]", i - 1).c_str();
+                size_t length = strlen(key_);
+                char* key = (char*)malloc(length + 1);
+                strcpy(key, key_);
+                values.push_back({
+                    key,
+                    "%15.8e",
+                    iparams.cbtdihs.cbtcA[i]
+                });
             }
             break;
         default:

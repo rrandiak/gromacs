@@ -4,6 +4,7 @@
 #include <string>
 #include <variant>
 #include <array>
+#include <vector>
 
 #include "gromacs/utility/basedefinitions.h"
 #include "gromacs/utility/real.h"

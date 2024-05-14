@@ -27,6 +27,11 @@ public:
     void pr_title_nxm(const std::string title, int n, int m) override;
     void pr_title_list(const std::string title) override;
     void pr_title_atom_names(int n) override;
+    void pr_title_pull_group(std::string title, int i) override;
+    void pr_title_pull_coord(std::string title, int i) override;
+    void pr_title_rot_group(std::string title, int i) override;
+    void pr_title_awh(std::string title) override;
+    void pr_title_all_lambdas(std::string title) override;
     void close_section() override;
     void close_list() override;
 
@@ -81,6 +86,12 @@ public:
     void pr_interaction_list(const std::string& title, const t_functype* functypes, const InteractionList& ilist, const t_iparams* iparams) override;
     
     void pr_cmap(const gmx_cmap_t* cmap_grid) override;
+
+    void pr_separate_dvdl(const std::string title, bool value) override;
+    
+    void pr_all_lambda(const std::string title, const double vec[], const int n_lambda) override;
+     
+    void pr_init_lambda_weights(const std::string title, const real vec[], const int n_lambda) override;
 };
 
 #endif

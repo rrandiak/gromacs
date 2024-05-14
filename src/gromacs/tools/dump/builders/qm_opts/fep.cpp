@@ -1,4 +1,6 @@
 #include "fep.h"
+#include "gromacs/mdtypes/md_enums.h"
+#include "gromacs/topology/symtab.h"
 
 void FepBuilder::build(DumpStrategy* strategy)
 {
@@ -15,33 +17,22 @@ void FepBuilder::build(DumpStrategy* strategy)
     }
     if (fep->n_lambda > 0)
     {
-        // TODO: finish
-        // pr_indent(fp, indent);
-        // fprintf(fp, "separate-dvdl%s\n" ? " = " : ":");
-        // for (auto i : gmx::EnumerationArray<FreeEnergyPerturbationCouplingType, bool>::keys())
-        // {
-        //     fprintf(fp, "%18s = ", enumValueToString(i));
-        //     if (fep->separate_dvdl[i])
-        //     {
-        //         fprintf(fp, "  TRUE");
-        //     }
-        //     else
-        //     {
-        //         fprintf(fp, "  FALSE");
-        //     }
-        //     fprintf(fp, "\n");
-        // }
-        // fprintf(fp, "all-lambdas%s\n" ? " = " : ":");
-        // for (auto key : gmx::EnumerationArray<FreeEnergyPerturbationCouplingType, bool>::keys())
-        // {
-        //     fprintf(fp, "%18s = ", enumValueToString(key));
-        //     int i = static_cast<int>(key);
-        //     for (j = 0; j < fep->n_lambda; j++)
-        //     {
-        //         fprintf(fp, "  %10g", fep->all_lambda[i][j]);
-        //     }
-        //     fprintf(fp, "\n");
-        // }
+        // TODO: bMDPformat
+        strategy->pr_title("separate-dvdl");
+        for (auto i : gmx::EnumerationArray<FreeEnergyPerturbationCouplingType, bool>::keys())
+        {
+            strategy->pr_separate_dvdl(enumValueToString(i), fep->separate_dvdl[i]);
+        }
+        strategy->close_section();
+
+        // TODO: bMDPformat
+        strategy->pr_title_all_lambdas("all-lambdas");
+        for (auto key : gmx::EnumerationArray<FreeEnergyPerturbationCouplingType, bool>::keys())
+        {
+            int i = static_cast<int>(key);
+            strategy->pr_all_lambda(enumValueToString(key), fep->all_lambda[i].data(), fep->n_lambda);
+        }
+        strategy->close_section();
     }
     strategy->pr_named_value("calc-lambda-neighbors", fep->lambda_neighbors);
     strategy->pr_named_value("dhdl-print-energy", enumValueToString(fep->edHdLPrintEnergy));

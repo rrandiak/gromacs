@@ -1,4 +1,5 @@
 #include "json_strategy.h"
+#include "gromacs/math/vecdump.h"
     
 JsonStrategy::JsonStrategy(FILE* fp)
 {
@@ -68,6 +69,31 @@ void JsonStrategy::pr_title_list(const std::string title)
 void JsonStrategy::pr_title_atom_names(int n)
 {
     pr_title_n("atom-name", n);
+}
+
+void JsonStrategy::pr_title_pull_group(std::string title, int i)
+{
+    pr_title_i(title, i);
+}
+
+void JsonStrategy::pr_title_pull_coord(std::string title, int i)
+{
+    pr_title_i(title, i);
+}
+
+void JsonStrategy::pr_title_rot_group(std::string title, int i)
+{
+    pr_title_i(title, i);
+}
+
+void JsonStrategy::pr_title_awh(std::string title)
+{
+    pr_title(title);
+}
+
+void JsonStrategy::pr_title_all_lambdas(std::string title)
+{
+    pr_title(title);
 }
 
 void JsonStrategy::close_section()
@@ -622,4 +648,19 @@ void JsonStrategy::pr_cmap(const gmx_cmap_t* cmap_grid)
     }
 
     close_section();
+}
+
+void JsonStrategy::pr_separate_dvdl(const std::string title, bool value)
+{
+    pr_named_value(title, value);
+}
+    
+void JsonStrategy::pr_all_lambda(const std::string title, const double vec[], const int n_lambda)
+{
+    pr_dvec_row(title, vec, n_lambda);
+}
+
+void JsonStrategy::pr_init_lambda_weights(const std::string title, const real vec[], const int n_lambda)
+{
+    pr_rvec(title, vec, n_lambda);
 }

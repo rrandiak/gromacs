@@ -70,6 +70,31 @@ void YamlStrategy::pr_title_atom_names(int n)
     pr_title_n("atom-name", n);
 }
 
+void YamlStrategy::pr_title_pull_group(std::string title, int i)
+{
+    pr_title_i(title, i);
+}
+
+void YamlStrategy::pr_title_pull_coord(std::string title, int i)
+{
+    pr_title_i(title, i);
+}
+
+void YamlStrategy::pr_title_rot_group(std::string title, int i)
+{
+    pr_title_i(title, i);
+}
+
+void YamlStrategy::pr_title_awh(std::string title)
+{
+    pr_title(title);
+}
+
+void YamlStrategy::pr_title_all_lambdas(std::string title)
+{
+    pr_title(title);
+}
+
 void YamlStrategy::close_section()
 {
     componentsStack.pop();
@@ -681,4 +706,19 @@ void YamlStrategy::pr_cmap(const gmx_cmap_t* cmap_grid)
     }
 
     close_section();
+}
+
+void YamlStrategy::pr_separate_dvdl(const std::string title, bool value)
+{
+    pr_named_value(title, value);
+}
+    
+void YamlStrategy::pr_all_lambda(const std::string title, const double vec[], const int n_lambda)
+{
+    pr_dvec_row(title, vec, n_lambda);
+}
+
+void YamlStrategy::pr_init_lambda_weights(const std::string title, const real vec[], const int n_lambda)
+{
+    pr_rvec(title, vec, n_lambda);
 }

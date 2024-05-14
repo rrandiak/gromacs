@@ -28,7 +28,7 @@ void PullBuilder::build(DumpStrategy* strategy)
 
 void PullGroupBuilder::build(DumpStrategy* strategy)
 {
-    strategy->pr_title_i("pull-group", index);
+    strategy->pr_title_pull_group("pull-group", index);
     strategy->pr_ivec_block("atom", pgrp->ind.data(), pgrp->ind.size());
     strategy->pr_rvec("weight", pgrp->weight.data(), pgrp->weight.size());
     strategy->pr_named_value("pbcatom", pgrp->pbcatom);
@@ -37,7 +37,7 @@ void PullGroupBuilder::build(DumpStrategy* strategy)
 
 void PullCoordBuilder::build(DumpStrategy* strategy)
 {
-    strategy->pr_title_i("pull-coord", index);
+    strategy->pr_title_pull_coord("pull-coord", index);
     strategy->pr_named_value("type", enumValueToString(pcrd->eType));
     if (pcrd->eType == PullingAlgorithm::External)
     {
