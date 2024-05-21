@@ -788,4 +788,5 @@ void TextStrategy::pr_init_lambda_weights(const std::string title, const real ve
     {
         comp->addFormattedTextLeaf("%s[%d]=%12.5e", title.c_str(), i, vec[i]);
     }
+    delete comp;
 }

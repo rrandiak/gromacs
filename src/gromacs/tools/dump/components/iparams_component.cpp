@@ -21,7 +21,7 @@ void printInteractionParameters(t_functype ftype, const t_iparams& iparams, Dump
             // Dump Inconsistency: 2nd 'r1e' instead of 'r2e'
         case F_CROSS_BOND_ANGLES:
             strategy->pr_iparam("r1e", "%15.8e", iparams.cross_ba.r1e);
-            strategy->pr_iparam("r1e", "%15.8e", iparams.cross_ba.r2e);
+            strategy->pr_iparam("r2e", "%15.8e", iparams.cross_ba.r2e);
             strategy->pr_iparam("r3e", "%15.8e", iparams.cross_ba.r3e);
             strategy->pr_iparam("krt", "%15.8e", iparams.cross_ba.krt);
             break;

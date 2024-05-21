@@ -147,7 +147,8 @@ void YamlStrategy::pr_vec_attributes(const std::string title, int index, const c
     {
         comp->printKeyValue(names[j], values[j]);
     }
-    componentsStack.pop();
+
+    close_section();
 }
 
 void YamlStrategy::pr_residue(const t_resinfo* resinfo, [[maybe_unused]] const int index)
@@ -170,7 +171,7 @@ void YamlStrategy::pr_ivec(const std::string title, const int vec[], const int n
             comp->printValue(vec[i]);
         }
         delete comp;
-        componentsStack.pop();
+        close_section();
     }
 }
 
@@ -185,7 +186,7 @@ void YamlStrategy::pr_rvec(const std::string title, const real vec[], const int 
             comp->printValue(vec[i]);
         }
         delete comp;
-        componentsStack.pop();
+        close_section();
     }
 }
     
@@ -206,7 +207,7 @@ void YamlStrategy::pr_ivecs(const std::string title, const ivec vec[], const int
             delete comp;
         }
 
-        componentsStack.pop();
+        close_section();
     }
 }
 
@@ -231,7 +232,7 @@ void YamlStrategy::pr_rvecs(const std::string title, const rvec vec[], const int
             delete comp;
         }
 
-        componentsStack.pop();
+        close_section();
     }
 }
 
@@ -524,7 +525,7 @@ void YamlStrategy::pr_groups(const SimulationGroups& groups)
     }
 
     close_list();
-    componentsStack.pop();
+    close_section();
 }
 
 void YamlStrategy::pr_group_stats(gmx::EnumerationArray<SimulationAtomGroupType, std::vector<int>>* gcount)
@@ -588,6 +589,7 @@ void YamlStrategy::pr_iparam_reals_of_dim(std::string name, [[maybe_unused]] std
     {
         array->printValue(vec[i]);
     }
+    delete array;
 }
 
 void YamlStrategy::pr_functypes(const t_functype* functypes, const int n, const t_iparams* iparams)
@@ -611,6 +613,7 @@ void YamlStrategy::pr_functypes(const t_functype* functypes, const int n, const 
 
         close_section();
     }
+    delete array;
 }
 
 void YamlStrategy::pr_interaction_list(const std::string title, const t_functype* functypes, const InteractionList& ilist, const t_iparams* iparams)
@@ -668,21 +671,11 @@ void YamlStrategy::pr_cmap(const gmx_cmap_t* cmap_grid)
         return;
     }
 
-    pr_title("cmap");
+    pr_title_list("cmap-grids");
 
     for (gmx::Index i = 0; i < gmx::ssize(cmap_grid->cmapdata); i++)
     {
         real idx = -180.0;
-
-        if (bShowNumbers)
-        {
-            pr_title("grid");
-        }
-        else
-        {
-            pr_title_i("grid", i);
-        }
-
         for (int j = 0; j < nelem; j++)
         {
             YamlInlineObjectComponent* inlineObject = componentsStack.top()->addYamlInlineObject();
@@ -700,10 +693,9 @@ void YamlStrategy::pr_cmap(const gmx_cmap_t* cmap_grid)
 
             delete inlineObject;
         }
-        close_section();
     }
 
-    close_section();
+    close_list();
 }
 
 void YamlStrategy::pr_separate_dvdl(const std::string title, bool value)

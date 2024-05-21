@@ -621,21 +621,11 @@ void JsonStrategy::pr_cmap(const gmx_cmap_t* cmap_grid)
         return;
     }
 
-    pr_title("cmap");
+    pr_title_list("cmap-grids");
 
     for (gmx::Index i = 0; i < gmx::ssize(cmap_grid->cmapdata); i++)
     {
         real idx = -180.0;
-
-        if (bShowNumbers)
-        {
-            pr_title("grid");
-        }
-        else
-        {
-            pr_title_i("grid", i);
-        }
-
         for (int j = 0; j < nelem; j++)
         {
             JsonObjectComponent* object = componentsStack.top()->addJsonObject();
@@ -651,10 +641,9 @@ void JsonStrategy::pr_cmap(const gmx_cmap_t* cmap_grid)
             object->printKeyValue("dVdy", cmap_grid->cmapdata[i].cmap[j * 4 + 2]);
             object->printKeyValue("d2dV", cmap_grid->cmapdata[i].cmap[j * 4 + 3]);
         }
-        close_section();
     }
 
-    close_section();
+    close_list();
 }
 
 void JsonStrategy::pr_separate_dvdl(const std::string title, bool value)

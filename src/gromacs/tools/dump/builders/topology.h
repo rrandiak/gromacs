@@ -6,12 +6,6 @@
 
 #include "gromacs/topology/mtop_util.h"
 #include "gromacs/topology/topology.h"
-#include "gromacs/utility/strconvert.h"
-
-#include "topology/ff_params.h"
-#include "topology/molblock.h"
-#include "topology/moltype.h"
-#include "topology/sim_groups.h"
 
 class TopologyBuilder : DumpBuilder {
 private:
@@ -40,17 +34,65 @@ public:
     void build(DumpStrategy* strategy) override;
 };
 
-
-
-class DumpBuilderCmapGrid: DumpBuilder {
+class AtomsBuilder : DumpBuilder {
 private:
-    const gmx_cmap_t cmap;
-public:
-    DumpBuilderCmapGrid(const gmx_cmap_t& cmap) : cmap(cmap) {}
+    const t_atoms* atoms;
 
+public:
+    AtomsBuilder(const t_atoms* atoms) : atoms(atoms) {}
     void build(DumpStrategy* strategy) override;
 };
 
+class FFParamsBuilder : DumpBuilder {
+private:
+    const gmx_ffparams_t& ffparams;
 
+public:
+    FFParamsBuilder(const gmx_ffparams_t& ffparams) : ffparams(ffparams) {}
+    void build(DumpStrategy* strategy) override;
+};
+
+class ListOfListsBuilder: DumpBuilder {
+private:
+    const std::string& title;
+    const gmx::ListOfLists<int>& lists;
+
+public:
+    ListOfListsBuilder(const std::string& title, const gmx::ListOfLists<int>& lists)
+        : title(title), lists(lists) {}
+    void build(DumpStrategy* strategy) override;
+};
+
+class MolblockBuilder : DumpBuilder {
+private:
+    const std::vector<gmx_molblock_t>& molblock;
+    const std::vector<gmx_moltype_t>& moltype;
+
+public:
+    MolblockBuilder(const std::vector<gmx_molblock_t>& molblock, const std::vector<gmx_moltype_t>& moltype)
+        : molblock(molblock), moltype(moltype) {}
+    void build(DumpStrategy* strategy) override;
+};
+
+class MoltypeBuilder : DumpBuilder {
+private:
+    const gmx_moltype_t* moltype;
+    const int index;
+    const gmx_ffparams_t& ffparams;
+
+public:
+    MoltypeBuilder(const gmx_moltype_t* moltype, int index, const gmx_ffparams_t& ffparams)
+        : moltype(moltype), index(index), ffparams(ffparams) {}
+    void build(DumpStrategy* strategy) override;
+};
+
+class SimulationGroupsBuilder : DumpBuilder {
+private:
+    const SimulationGroups groups;
+
+public:
+    SimulationGroupsBuilder(const SimulationGroups& groups) : groups(groups) {}
+    void build(DumpStrategy* strategy) override;
+};
 
 #endif
