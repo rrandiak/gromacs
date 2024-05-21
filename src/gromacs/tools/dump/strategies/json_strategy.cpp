@@ -1,33 +1,34 @@
 #include "json_strategy.h"
-#include "gromacs/math/vecdump.h"
+
+#include "gromacs/tools/dump/components/json_components.h"
+#include "gromacs/utility/basedefinitions.h"
+#include "gromacs/utility/stringutil.h"
+#include "gromacs/topology/idef.h"
+
+#include "gromacs/tools/dump/components/iparams_component.h"
+#include "gromacs/tools/dump/dump_strategy.h"
     
-JsonStrategy::JsonStrategy(FILE* fp)
+JsonStrategy::JsonStrategy(FILE* file_pointer)
 {
-    JsonDumpComponent* root = new JsonRootComponent(fp);
+    JsonDumpComponent* root = new JsonRootComponent(file_pointer);
     componentsStack.push(root);
 }
 
 JsonStrategy::~JsonStrategy()
 {
-    while (componentsStack.size() > 1)
-    {
-        componentsStack.pop();
-    }
-    if (!componentsStack.empty())
-    {
-        JsonDumpComponent* comp = componentsStack.top();
-        componentsStack.pop();
-        delete comp;
-    }
+    GMX_RELEASE_ASSERT(
+            componentsStack.empty(),
+            "Components stack of strategies should be empty at the end. "
+            "Some dump section is not being closed properly.");
 }
 
-bool JsonStrategy::available(const void* p, const std::string title)
+bool JsonStrategy::available(const void* pointer, const std::string title)
 {
-    if (!p)
+    if (!pointer)
     {
         componentsStack.top()->printKeyValue(title, "Not available");
     }
-    return (p != nullptr);
+    return (pointer != nullptr);
 }
 
 void JsonStrategy::pr_filename(const std::string filename)
@@ -41,14 +42,14 @@ void JsonStrategy::pr_title(const std::string title)
     componentsStack.push(comp);
 }
 
-void JsonStrategy::pr_title_i(const std::string title, int i)
+void JsonStrategy::pr_title_i([[maybe_unused]] const std::string title, int index)
 {
     JsonDumpComponent* comp = componentsStack.top()->addJsonObject();
-    comp->printKeyValue("index", i);
+    comp->printKeyValue("index", index);
     componentsStack.push(comp);
 }
 
-void JsonStrategy::pr_title_n(const std::string title, int n)
+void JsonStrategy::pr_title_n(const std::string title, [[maybe_unused]] const int n)
 {
     JsonDumpComponent* comp = componentsStack.top()->addJsonArray(gmx::formatString("%ss", title.c_str()));
     componentsStack.push(comp);
@@ -98,12 +99,17 @@ void JsonStrategy::pr_title_all_lambdas(std::string title)
 
 void JsonStrategy::close_section()
 {
+    JsonDumpComponent* comp = componentsStack.top();
     componentsStack.pop();
+    if (componentsStack.empty())
+    {
+        delete comp;
+    }
 }
 
 void JsonStrategy::close_list()
 {
-    componentsStack.pop();
+    close_section();
 }
 
 void JsonStrategy::pr_named_value(const std::string name, const Value& value)
@@ -136,11 +142,10 @@ void JsonStrategy::pr_attribute_quoted(const std::string name, const std::string
     pr_named_value(name, value);
 }
 
-void JsonStrategy::pr_vec_attributes(const std::string title, int i, const char** names, char** values, int n)
+void JsonStrategy::pr_vec_attributes([[maybe_unused]] const std::string title, int index, const char** names, char** values, int n)
 {
-    // pr_title(title);
     JsonDumpComponent* comp = componentsStack.top()->addJsonObject();
-    comp->printKeyValue("index", i);
+    comp->printKeyValue("index", index);
 
     for (int j = 0; j < n; j++)
     {
@@ -148,7 +153,7 @@ void JsonStrategy::pr_vec_attributes(const std::string title, int i, const char*
     }
 }
 
-void JsonStrategy::pr_residue(const t_resinfo* resinfo, int n)
+void JsonStrategy::pr_residue(const t_resinfo* resinfo, [[maybe_unused]] const int index)
 {
     JsonDumpComponent* comp = componentsStack.top()->addJsonObject();
     comp->printKeyValue("name", *(resinfo->name));
@@ -191,11 +196,10 @@ void JsonStrategy::pr_ivecs(const std::string title, const ivec vec[], int n)
 
         for (i = 0; i < n; i++)
         {
-            // TODO: change to normal array and refactor component
-            JsonInlineArray* inlineArray = componentsStack.top()->addInlineArray();
+            JsonArrayComponent* array = componentsStack.top()->addJsonArray();
             for (j = 0; j < DIM; j++)
             {
-                inlineArray->printValue(vec[i][j]);
+                array->printValue(vec[i][j]);
             }
         }
 
@@ -216,11 +220,10 @@ void JsonStrategy::pr_rvecs(const std::string title, const rvec vec[], int n)
 
         for (i = 0; i < n; i++)
         {
-            // TODO: change to normal array and refactor component
-            JsonInlineArray* inlineArray = componentsStack.top()->addInlineArray();
+            JsonArrayComponent* array = componentsStack.top()->addJsonArray();
             for (j = 0; j < DIM; j++)
             {
-                inlineArray->printValue(vec[i][j]);
+                array->printValue(vec[i][j]);
             }
         }
 
@@ -282,7 +285,7 @@ void JsonStrategy::pr_sa_vec_row(const std::string title, const SimulatedAnneali
     }
 }
 
-void JsonStrategy::pr_ap_vec_row(const std::string title, const float vec[], int n, int index)
+void JsonStrategy::pr_ap_vec_row(const std::string title, const float vec[], const int n, [[maybe_unused]] const int index)
 {
     JsonArrayComponent* array = componentsStack.top()->addJsonArray(title);
     for (int i = 0; i < n; i++)
@@ -299,8 +302,14 @@ void JsonStrategy::pr_posrec_vec_row(const std::string title, const real vec[])
     array->printValue(vec[ZZ]);
 }
 
-void JsonStrategy::pr_ivec_block(const std::string title, const int vec[], int n)
+
+void JsonStrategy::pr_block([[maybe_unused]] std::string title, [[maybe_unused]] const t_block* block)
 {
+}
+
+void JsonStrategy::pr_ivec_block(const std::string title, const int vec[], const int n, [[maybe_unused]] gmx_bool bShowNumbers)
+{
+    pr_ivec(title, vec, n);
 }
 
 void JsonStrategy::pr_matrix(const std::string title, const rvec* m) {
@@ -325,7 +334,7 @@ void JsonStrategy::pr_kvtree(const gmx::KeyValueTreeObject kvTree)
         const auto& value = prop.value();
         if (value.isObject())
         {
-            pr_title(prop.key().c_str());
+            pr_title(prop.key());
             pr_kvtree(value.asObject());
             close_section();
         }
@@ -334,7 +343,7 @@ void JsonStrategy::pr_kvtree(const gmx::KeyValueTreeObject kvTree)
                                 value.asArray().values().end(),
                                 [](const auto& elem) { return elem.isObject(); }))
         {
-            pr_title(prop.key().c_str());
+            pr_title(prop.key());
             for (const auto& elem : value.asArray().values())
             {
                 pr_kvtree(elem.asObject());
@@ -345,7 +354,7 @@ void JsonStrategy::pr_kvtree(const gmx::KeyValueTreeObject kvTree)
         {
             if (value.isArray())
             {
-                JsonArrayComponent* array =  componentsStack.top()->addJsonArray(prop.key().c_str());
+                JsonArrayComponent* array =  componentsStack.top()->addJsonArray(prop.key());
                 for (const auto& elem : value.asArray().values())
                 {
                     GMX_RELEASE_ASSERT(
@@ -378,7 +387,7 @@ void JsonStrategy::pr_moltype(const int moltype, const std::string moltypeName)
     componentsStack.top()->printKeyValue("moltypeName", moltypeName.c_str());
 }
     
-void JsonStrategy::pr_atom(const t_atom* atom, const int i)
+void JsonStrategy::pr_atom(const t_atom* atom, [[maybe_unused]] const int index)
 {
     JsonObjectComponent* comp = componentsStack.top()->addJsonObject();
     comp->printKeyValue("type", atom->type);
@@ -509,7 +518,7 @@ void JsonStrategy::pr_group_stats(gmx::EnumerationArray<SimulationAtomGroupType,
     close_section();
 }
 
-void JsonStrategy::pr_list_i(const std::string title, const int index, gmx::ArrayRef<const int> list)
+void JsonStrategy::pr_list_i([[maybe_unused]] const std::string title, [[maybe_unused]] const int index, gmx::ArrayRef<const int> list)
 {
     JsonArrayComponent* array = componentsStack.top()->addJsonArray();
     for (const int item : list)
@@ -518,30 +527,28 @@ void JsonStrategy::pr_list_i(const std::string title, const int index, gmx::Arra
     }
 }
     
-void JsonStrategy::pr_iparams(t_functype ftype, const t_iparams& iparams)
+void JsonStrategy::pr_iparam(std::string name, [[maybe_unused]] std::string format, IParamValue value)
 {
-    JsonDumpComponent* comp = componentsStack.top();
-    std::vector<KeyFormatValue> kfvs = getInteractionParameters(ftype, iparams);
-
-    for (size_t j = 0; j < kfvs.size(); j++)
+    if (std::holds_alternative<int>(value))
     {
-        if (std::holds_alternative<std::array<real, 3>>(kfvs[j].value))
-        {
-            JsonArrayComponent* array = comp->addJsonArray(kfvs[j].key);
-            std::array<real, 3> arr = std::get<std::array<real, 3>>(kfvs[j].value);
-            for (int k = 0; k < DIM; k++)
-            {
-                array->printValue(arr[k]);
-            }
-        }
-        else
-        {
-            comp->printKeyValue(kfvs[j].key, kfvs[j].value);
-        }
+        componentsStack.top()->printKeyValue(name, std::get<int>(value));
+    }
+    else if (std::holds_alternative<real>(value))
+    {
+        componentsStack.top()->printKeyValue(name, std::get<real>(value));
     }
 }
 
-void JsonStrategy::pr_functypes(const std::vector<int>& functype, const int n, const std::vector<t_iparams>& iparams)
+void JsonStrategy::pr_iparam_reals_of_dim(std::string name, [[maybe_unused]] std::string format, real vec[3])
+{
+    JsonArrayComponent* array = componentsStack.top()->addJsonArray(name);
+    for (int i = 0; i < DIM; i++)
+    {
+        array->printValue(vec[i]);
+    }
+}
+
+void JsonStrategy::pr_functypes(const t_functype* functypes, const int n, const t_iparams* iparams)
 {
     pr_title_list("functypes");
 
@@ -555,16 +562,16 @@ void JsonStrategy::pr_functypes(const std::vector<int>& functype, const int n, c
         {
             pr_title("functype");
         }
-        pr_iparams(functype[i], iparams[i]);
+        printInteractionParameters(functypes[i], iparams[i], this);
         close_section();
     }
 
     close_list();
 }
     
-void JsonStrategy::pr_interaction_list(const std::string& title, const t_functype* functypes, const InteractionList& ilist, const t_iparams* iparams)
+void JsonStrategy::pr_interaction_list(const std::string title, const t_functype* functypes, const InteractionList& ilist, const t_iparams* iparams)
 {
-    pr_title(title.c_str());
+    pr_title(title);
     componentsStack.top()->printKeyValue("nr", ilist.size());
 
     if (ilist.empty())
@@ -595,7 +602,7 @@ void JsonStrategy::pr_interaction_list(const std::string& title, const t_functyp
         }
         if (bShowParameters)
         {
-            pr_iparams(ftype, iparams[type]);
+            printInteractionParameters(ftype, iparams[type], this);
         }
         i += 1 + interaction_function[ftype].nratoms;
     }

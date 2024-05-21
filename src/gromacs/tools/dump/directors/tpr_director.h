@@ -1,19 +1,11 @@
 #ifndef GMX_TOOLS_DUMP_BUILDER_TPR_H
 #define GMX_TOOLS_DUMP_BUILDER_TPR_H
 
-#include "gromacs/fileio/gmxfio.h"
 #include "gromacs/mdrun/mdmodules.h"
 #include "gromacs/mdtypes/state.h"
 
 #include "gromacs/tools/dump/dump_builder.h"
 #include "gromacs/tools/dump/dump_strategy.h"
-
-#include "gromacs/tools/dump/builders/grp_opts.h"
-#include "gromacs/tools/dump/builders/grp_stats.h"
-#include "gromacs/tools/dump/builders/inputrec.h"
-#include "gromacs/tools/dump/builders/qm_opts.h"
-#include "gromacs/tools/dump/builders/topology.h"
-#include "gromacs/tools/dump/builders/tpx_header.h"
 
 enum class TprSection : int
 {
@@ -53,10 +45,15 @@ const gmx::EnumerationArray<TprSection, const char*> c_tprSectionNames = {
     "group_statistics"
 };
 
+//! Director for building TPR (Trajectory Parameter) files.
+/*!
+ * This class is responsible for orchestrating the construction of TPR files using a specified
+ * build strategy.
+ */
 class TprDirector : public DumpBuilder {
 private:
-    const char* fileName;
-    const char* mdpFileName;
+    const char* filename;
+    const char* mdpFilename;
     gmx_bool bOriginalInputrec;
     std::vector<TprSection> sections;
 
@@ -66,7 +63,7 @@ private:
     t_inputrec ir;
 
 public:
-    TprDirector(const char* fn, const char* mdpfn, gmx_bool bOriginalInputrec, std::vector<TprSection> sections);
+    TprDirector(const char* filename, const char* mdpFilename, gmx_bool bOriginalInputrec, std::vector<TprSection> sections);
     void build(DumpStrategy* strategy) override;
 
 private:

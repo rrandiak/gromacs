@@ -1,12 +1,10 @@
 #include "topology.h"
-
+#include "gromacs/topology/idef.h"
 
 
 void TopologyBuilder::build(DumpStrategy* strategy)
 {
-    // TODO: bSysTop to settings
-    bool bSysTop = false;
-    if (!bSysTop)
+    if (!strategy->bSysTop)
     {
         MTopBuilder(mtop).build(strategy);
     }
@@ -25,40 +23,25 @@ void MTopBuilder::build(DumpStrategy* strategy)
     }
 
     strategy->pr_title("topology");
-    // fprintf(fp, "name=\"%s\"\n", *(mtop->name));
-    // strategy->pr_name(*(mtop->name));
     strategy->pr_attribute_quoted("name", *(mtop->name));
     strategy->pr_count("atoms", mtop->natoms);
+
     MolblockBuilder(mtop->molblock, mtop->moltype).build(strategy);
+
     strategy->pr_named_value("bIntermolecularInteractions", gmx::boolToString(mtop->bIntermolecularInteractions));
-    // if (mtop->bIntermolecularInteractions)
-    // {
-    //     for (int j = 0; j < F_NRE; j++)
-    //     {
-    //         pr_ilist(fp,
-    //                     indent,
-    //                     interaction_function[j].longname,
-    //                     mtop->ffparams.functype.data(),
-    //                     (*mtop->intermolecular_ilist)[j],
-    //                     bShowNumbers,
-    //                     bShowParameters,
-    //                     mtop->ffparams.iparams.data());
-    //     }
-    // }
+
     FFParamsBuilder(mtop->ffparams).build(strategy);
-    // pr_ffparams(fp, indent, "ffparams", &(mtop->ffparams), bShowNumbers);
-    // for (size_t mt = 0; mt < mtop->moltype.size(); mt++)
+
     if (mtop->moltype.size() > 0)
     {
         strategy->pr_title_list("moltype");
         for (size_t mt = 0; mt < mtop->moltype.size(); mt++)
         {
             MoltypeBuilder(&(mtop->moltype[mt]), mt, mtop->ffparams).build(strategy);
-            // pr_moltype(fp, indent, "moltype", &mtop->moltype[mt], mt, &mtop->ffparams, bShowNumbers, bShowParameters);
         }
         strategy->close_list();
     }
-    // pr_groups(fp, indent, mtop->groups, bShowNumbers);
+
     SimulationGroupsBuilder(mtop->groups).build(strategy);
     strategy->close_section();
 }
@@ -71,9 +54,27 @@ void TopBuilder::build(DumpStrategy* strategy)
     }
 
     strategy->pr_title("topology");
-    // fprintf(fp, "name=\"%s\"\n", *(top->name));
-    // pr_atoms(fp, indent, "atoms", &(top->atoms), bShowNumbers);
-    // pr_block(fp, indent, "mols", &top->mols, bShowNumbers);
+    strategy->pr_attribute_quoted("name", *(top->name));
+    AtomsBuilder(&(top->atoms)).build(strategy);
+    strategy->pr_block("mols", &top->mols);
     strategy->pr_named_value("bIntermolecularInteractions", gmx::boolToString(top->bIntermolecularInteractions));
-    // pr_idef(fp, indent, "idef", &top->idef, bShowNumbers, bShowParameters);
+    if (strategy->available(&top->idef, "idef"))
+    {
+        strategy->pr_attribute("atnr=%d", top->idef.atnr);
+        strategy->pr_attribute("ntypes=%d", top->idef.ntypes);
+        strategy->pr_functypes(top->idef.functype, top->idef.ntypes, top->idef.iparams);
+        strategy->pr_named_value("fudgeQQ", top->idef.fudgeQQ);
+
+        for (int j = 0; (j < F_NRE); j++)
+        {
+            InteractionList iList = InteractionList();
+            iList.push_back(top->idef.il[j].nalloc, top->idef.il[j].nr, top->idef.il[j].iatoms);
+            strategy->pr_interaction_list(
+                interaction_function[j].longname,
+                top->idef.functype,
+                iList,
+                top->idef.iparams
+            );
+        }
+    }
 }

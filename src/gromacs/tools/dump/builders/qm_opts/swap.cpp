@@ -22,7 +22,8 @@ void SwapBuilder::build(DumpStrategy* strategy)
         strategy->pr_ivec_block(
             gmx::formatString("split atoms group %d", j),
             swap->grp[j].ind,
-            swap->grp[j].nat
+            swap->grp[j].nat,
+            TRUE
         );
     }
 
@@ -30,7 +31,8 @@ void SwapBuilder::build(DumpStrategy* strategy)
     strategy->pr_ivec_block(
         gmx::formatString("solvent group %s", swap->grp[static_cast<int>(SwapGroupSplittingType::Solvent)].molname),
         swap->grp[static_cast<int>(SwapGroupSplittingType::Solvent)].ind,
-        swap->grp[static_cast<int>(SwapGroupSplittingType::Solvent)].nat
+        swap->grp[static_cast<int>(SwapGroupSplittingType::Solvent)].nat,
+        TRUE
     );
 
     /* Now print the indices for all the ion groups: */
@@ -39,7 +41,8 @@ void SwapBuilder::build(DumpStrategy* strategy)
         strategy->pr_ivec_block(
             gmx::formatString("ion group %s", swap->grp[ig].molname),
             swap->grp[ig].ind,
-            swap->grp[ig].nat
+            swap->grp[ig].nat,
+            TRUE
         );
     }
 

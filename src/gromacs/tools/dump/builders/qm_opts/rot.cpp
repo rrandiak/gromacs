@@ -18,7 +18,7 @@ void RotGroupBuilder::build(DumpStrategy* strategy)
     strategy->pr_title_rot_group("rot-group", index);
     strategy->pr_named_value("rot-type", enumValueToString(rotg->eType));
     strategy->pr_named_value("rot-massw", gmx::boolToString(rotg->bMassW));
-    strategy->pr_ivec_block("atom", rotg->ind, rotg->nat);
+    strategy->pr_ivec_block("atom", rotg->ind, rotg->nat, TRUE);
     strategy->pr_rvecs("x-ref", as_vec_array(rotg->x_ref_original.data()), rotg->x_ref_original.size());
     strategy->pr_rvec("rot-vec", rotg->inputVec, DIM);
     strategy->pr_rvec("rot-pivot", rotg->pivot, DIM);

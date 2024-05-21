@@ -2,7 +2,6 @@
 #define GMX_TOOLS_DUMP_COMPONENT_VALUE_H
 
 #include <cstdio>
-#include <cstdarg>
 #include <string>
 
 #include "gromacs/utility/cstringutil.h"

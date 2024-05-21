@@ -92,25 +92,26 @@ namespace
 
 enum class OutputFormat : int
 {
-    PlainText,
+    OldText,
+    Text,
     Json,
     Yaml,
     Count
 };
 
 const gmx::EnumerationArray<OutputFormat, const char*> c_outputFormatNames = {
-    { "text", "json", "yaml" }
+    { "old_text", "text", "json", "yaml" }
 };
 
 //! Dump a TPR file
-void list_tpr(const char* fn,
+void list_tpr_new(const char* fn,
               gmx_bool    bShowNumbers,
               gmx_bool    bShowParameters,
               const char* mdpfn,
               gmx_bool    bSysTop,
               gmx_bool    bOriginalInputrec,
               OutputFormat outputFormat_,
-              std::string outputFilename_,
+              std::string& outputFilename_,
               std::vector<TprSection> tprSections_)
 {
     FILE* fp = outputFilename_.empty() ? stdout : fopen(outputFilename_.c_str(), "w");
@@ -119,7 +120,7 @@ void list_tpr(const char* fn,
     );
 
     DumpStrategy* strategy = nullptr;
-    if (outputFormat_ == OutputFormat::PlainText) {
+    if (outputFormat_ == OutputFormat::Text) {
         strategy = new TextStrategy(fp);
     } else if (outputFormat_ == OutputFormat::Json) {
         strategy = new JsonStrategy(fp);
@@ -128,7 +129,9 @@ void list_tpr(const char* fn,
     }
 
     if (strategy != nullptr) {
+        strategy->bSysTop = bSysTop;
         strategy->bShowNumbers = bShowNumbers;
+        strategy->bShowParameters = bShowParameters;
         tprDirector.build(strategy);
         delete strategy;
     }
@@ -583,7 +586,7 @@ private:
     bool bShowParams_       = false;
     bool bSysTop_           = false;
     bool bOriginalInputrec_ = false;
-    OutputFormat outputFormat_ = OutputFormat::PlainText;
+    OutputFormat outputFormat_ = OutputFormat::OldText;
     std::vector<TprSection> tprSections_ = {};
     //! \}
     //! Commandline file options
@@ -654,7 +657,7 @@ void Dump::initOptions(IOptionsContainer* options, ICommandLineOptionsModuleSett
     options->addOption(
             BooleanOption("orgir").store(&bShowParams_).defaultValue(false).description("Show input parameters from tpr as they were written by the version that produced the file, instead of how the current version reads them"));
     options->addOption(
-            EnumOption<OutputFormat>("format").enumValue(c_outputFormatNames).store(&outputFormat_).defaultValue(OutputFormat::PlainText).description("Output format"));
+            EnumOption<OutputFormat>("format").enumValue(c_outputFormatNames).store(&outputFormat_).defaultValue(OutputFormat::OldText).description("Output format"));
     options->addOption(
             FileNameOption("output").outputFile().store(&outputFilename_).description("Output file to write dump to (if omitted, dumps to stdout)"));
     options->addOption(
@@ -672,7 +675,7 @@ int Dump::run()
 {
     if (!inputTprFilename_.empty())
     {
-        list_tpr(inputTprFilename_.c_str(),
+        list_tpr_new(inputTprFilename_.c_str(),
                  bShowNumbers_,
                  bShowParams_,
                  outputMdpFilename_.empty() ? nullptr : outputMdpFilename_.c_str(),

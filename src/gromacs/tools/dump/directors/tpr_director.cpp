@@ -1,11 +1,22 @@
 #include "tpr_director.h"
 
-TprDirector::TprDirector(const char* fn, const char* mdpfn, gmx_bool bOriginalInputrec, std::vector<TprSection> sections)
-    : fileName(fn), mdpFileName(mdpfn), bOriginalInputrec(bOriginalInputrec), sections(sections)
-{
-    tpx = readTpxHeader(fileName, true);
+#include <utility>
 
-    read_tpx_state(fileName, tpx.bIr ? &ir : nullptr, &state, tpx.bTop ? &mtop : nullptr);
+#include "gromacs/fileio/gmxfio.h"
+
+#include "gromacs/tools/dump/builders/grp_opts.h"
+#include "gromacs/tools/dump/builders/grp_stats.h"
+#include "gromacs/tools/dump/builders/inputrec.h"
+#include "gromacs/tools/dump/builders/qm_opts.h"
+#include "gromacs/tools/dump/builders/topology.h"
+#include "gromacs/tools/dump/builders/tpx_header.h"
+
+TprDirector::TprDirector(const char* filename, const char* mdpFilename, gmx_bool bOriginalInputrec, std::vector<TprSection> sections)
+    : filename(filename), mdpFilename(mdpFilename), bOriginalInputrec(bOriginalInputrec), sections(std::move(sections))
+{
+    tpx = readTpxHeader(filename, true);
+
+    read_tpx_state(filename, tpx.bIr ? &ir : nullptr, &state, tpx.bTop ? &mtop : nullptr);
     if (tpx.bIr && !bOriginalInputrec) {
         gmx::MDModules().adjustInputrecBasedOnModules(&ir);
     }
@@ -13,16 +24,16 @@ TprDirector::TprDirector(const char* fn, const char* mdpfn, gmx_bool bOriginalIn
 
 void TprDirector::build(DumpStrategy* strategy) {
 
-    if (mdpFileName && tpx.bIr) {
-        FILE* gp = gmx_fio_fopen(mdpFileName, "w");
+    if (mdpFilename && tpx.bIr) {
+        FILE* gp = gmx_fio_fopen(mdpFilename, "w");
         pr_inputrec(gp, 0, nullptr, &ir, TRUE);
         gmx_fio_fclose(gp);
         return;
     }
 
-    if (strategy->available(&tpx, fileName))
+    if (strategy->available(&tpx, filename))
     {
-        strategy->pr_filename(fileName);
+        strategy->pr_filename(filename);
 
         buildSection(TprSection::InputRec, strategy);
 
@@ -49,14 +60,19 @@ void TprDirector::build(DumpStrategy* strategy) {
     }
 
     buildSection(TprSection::GroupStats, strategy);
+
+    if (strategy->available(&tpx, filename))
+    {
+        strategy->close_section();
+    }
 }
 
 void TprDirector::buildSection(TprSection section, DumpStrategy* strategy)
 {
     if (!sections.empty())
     {
-        auto it = std::find(sections.begin(), sections.end(), section);
-        if (it == sections.end())
+        auto found = std::find(sections.begin(), sections.end(), section);
+        if (found == sections.end())
         {
             return;
         }

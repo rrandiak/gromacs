@@ -15,17 +15,5 @@ void MoltypeBuilder::build(DumpStrategy* strategy)
             ffparams.iparams.data()
         );
     }
-    // pr_listoflists(fp, indent, "excls", &molt->excls, bShowNumbers);
-    // for (int j = 0; (j < F_NRE); j++)
-    // {
-    //     pr_ilist(fp,
-    //              indent,
-    //              interaction_function[j].longname,
-    //              ffparams->functype.data(),
-    //              molt->ilist[j],
-    //              bShowNumbers,
-    //              bShowParameters,
-    //              ffparams->iparams.data());
-    // }
     strategy->close_section();
 }

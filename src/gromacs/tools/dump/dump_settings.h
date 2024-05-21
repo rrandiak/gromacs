@@ -11,6 +11,7 @@
 
 // using Value = std::variant<std::string, int, int64_t, long unsigned int, double, real, gmx_bool, std::array<real, DIM>>;
 using AtomGroupIndices = std::vector<int>;
+using IParamValue = std::variant<int, real>;
 using Value = std::variant<std::string, int, int64_t, long unsigned int, double, real, gmx_bool, std::array<real, 3>>;
 
 #endif

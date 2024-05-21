@@ -1,11 +1,8 @@
 #include "fep.h"
 #include "gromacs/mdtypes/md_enums.h"
-#include "gromacs/topology/symtab.h"
 
 void FepBuilder::build(DumpStrategy* strategy)
 {
-    int j;
-
     strategy->pr_named_value("init-lambda", fep->init_lambda);
     strategy->pr_named_value("init-lambda-state", fep->init_fep_state);
     strategy->pr_named_value("delta-lambda", fep->delta_lambda);
@@ -17,7 +14,6 @@ void FepBuilder::build(DumpStrategy* strategy)
     }
     if (fep->n_lambda > 0)
     {
-        // TODO: bMDPformat
         strategy->pr_title("separate-dvdl");
         for (auto i : gmx::EnumerationArray<FreeEnergyPerturbationCouplingType, bool>::keys())
         {
@@ -25,7 +21,6 @@ void FepBuilder::build(DumpStrategy* strategy)
         }
         strategy->close_section();
 
-        // TODO: bMDPformat
         strategy->pr_title_all_lambdas("all-lambdas");
         for (auto key : gmx::EnumerationArray<FreeEnergyPerturbationCouplingType, bool>::keys())
         {

@@ -1,27 +1,28 @@
 #include "text_strategy.h"
-#include "gromacs/tools/dump/components/dump_components_text.h"
-#include "gromacs/tools/dump/dump_component.h"
+
+#include <cstdio>
+
+#include "gromacs/topology/block.h"
+#include "gromacs/topology/idef.h"
 #include "gromacs/topology/ifunc.h"
+#include "gromacs/utility/basedefinitions.h"
 #include "gromacs/utility/stringutil.h"
 
-TextStrategy::TextStrategy(FILE* fp)
+#include "gromacs/tools/dump/components/iparams_component.h"
+#include "gromacs/tools/dump/components/text_components.h"
+
+TextStrategy::TextStrategy(FILE* file_pointer)
 {
-    TextComponent* root = new TextRootComponent(fp);
+    TextComponent* root = new TextRootComponent(file_pointer);
     componentsStack.push(root);
 }
 
 TextStrategy::~TextStrategy()
 {
-    while (componentsStack.size() > 1)
-    {
-        componentsStack.pop();
-    }
-    if (!componentsStack.empty())
-    {
-        TextComponent* comp = componentsStack.top();
-        componentsStack.pop();
-        delete comp;
-    }
+    GMX_RELEASE_ASSERT(
+            componentsStack.empty(),
+            "Components stack of strategies should be empty at the end. "
+            "Some dump section is not being closed properly.");
 }
 
 bool TextStrategy::available(const void* p, const std::string title)
@@ -64,7 +65,7 @@ void TextStrategy::pr_title_nxm(const std::string title, int n, int m)
     componentsStack.push(comp);
 }
 
-void TextStrategy::pr_title_list(const std::string title)
+void TextStrategy::pr_title_list([[maybe_unused]] const std::string title)
 {
     // Intetionally left blank
 }
@@ -106,6 +107,7 @@ void TextStrategy::pr_title_all_lambdas(std::string title)
 
 void TextStrategy::close_section()
 {
+    delete componentsStack.top();
     componentsStack.pop();
 }
 
@@ -144,10 +146,10 @@ void TextStrategy::pr_attribute_quoted(const std::string name, const std::string
     pr_attribute(name, "\"" + value + "\"");
 }
     
-void TextStrategy::pr_vec_attributes(const std::string title, int i, const char** names, char** values, int n)
+void TextStrategy::pr_vec_attributes(const std::string title, int index, const char** names, char** values, int n)
 {
     componentsStack.top()->addFormattedTextLeaf(
-        "%s[%d]={", title.c_str(), bShowNumbers ? i : -1
+        "%s[%d]={", title.c_str(), bShowNumbers ? index : -1
     );
     for (int j = 0; j < n - 1; j++)
     {
@@ -156,11 +158,11 @@ void TextStrategy::pr_vec_attributes(const std::string title, int i, const char*
     componentsStack.top()->printFormattedText("%s=\"%s\"}", names[n - 1], values[n - 1]);
 }
 
-void TextStrategy::pr_residue(const t_resinfo* resinfo, int i)
+void TextStrategy::pr_residue(const t_resinfo* resinfo, int index)
 {
     componentsStack.top()->addFormattedTextLeaf(
         "residue[%d]={name=\"%s\", nr=%d, ic='%c'}",
-        bShowNumbers ? i : -1,
+        bShowNumbers ? index : -1,
         *(resinfo->name),
         resinfo->nr,
         (resinfo->ic == '\0') ? ' ' : resinfo->ic
@@ -215,7 +217,7 @@ void TextStrategy::pr_ivecs(const std::string title, const ivec vec[], int n)
             comp->printFormattedText("}");
         }
 
-        componentsStack.pop();
+        close_section();
     }
 }
 
@@ -243,7 +245,7 @@ void TextStrategy::pr_rvecs(const std::string title, const rvec vec[], int n)
             comp->printFormattedText("}");
         }
 
-        componentsStack.pop();
+        close_section();
     }
 }
 
@@ -273,7 +275,7 @@ void TextStrategy::pr_dvec_row(const std::string title, const double vec[], int 
     if (available(vec, title))
     {
         TextComponent* comp = componentsStack.top();
-        comp->addFormattedTextLeaf("%s%s", title, bMDPformat ? " = " : ":");
+        comp->addFormattedTextLeaf("%s%s", title.c_str(), bMDPformat ? " = " : ":");
         for (int i = 0; i < n; i++)
         {
             comp->printFormattedText("  %10g", vec[i]);
@@ -286,7 +288,7 @@ void TextStrategy::pr_svec_row(const std::string title, const char* vec[], int n
     if (available(vec, title))
     {
         TextComponent* comp = componentsStack.top();
-        comp->addFormattedTextLeaf("%s%s", title, bMDPformat ? " = " : ":");
+        comp->addFormattedTextLeaf("%s%s", title.c_str(), bMDPformat ? " = " : ":");
         for (int i = 0; i < n; i++)
         {
             comp->printFormattedText("  %10s", vec[i]);
@@ -320,7 +322,41 @@ void TextStrategy::pr_posrec_vec_row(const std::string title, const real vec[])
     comp->printFormattedText("%g %g %g", vec[XX], vec[YY], vec[ZZ]);
 }
 
-void TextStrategy::pr_ivec_block(const std::string title, const int vec[], int n)
+void TextStrategy::pr_block(const std::string title, const t_block* block)
+{
+    if (available(block, title))
+    {
+        pr_title(title);
+        pr_attribute("nr=%d\n", block->nr);
+        int start = 0;
+        if (block->index[start] != 0)
+        {
+            componentsStack.top()->addFormattedTextLeaf("block->index[%d] should be 0\n", start);
+        }
+        else
+        {
+            for (int i = 0; i < block->nr; i++)
+            {
+                int end = block->index[i + 1];
+                if (end <= start)
+                {
+                    componentsStack.top()->addFormattedTextLeaf("%s[%d]={}\n", title.c_str(), i);
+                }
+                else
+                {
+                    componentsStack.top()->addFormattedTextLeaf("%s[%d]={%d..%d}\n",
+                            title.c_str(),
+                            bShowNumbers ? i : -1,
+                            bShowNumbers ? start : -1,
+                            bShowNumbers ? end - 1 : -1);
+                }
+                start = end;
+            }
+        }
+    }
+}
+
+void TextStrategy::pr_ivec_block(const std::string title, const int vec[], int n, gmx_bool bShowNumbers)
 {
     int i, j;
 
@@ -364,7 +400,7 @@ void TextStrategy::pr_matrix(const std::string title, const rvec* m) {
     if (bMDPformat)
     {
         TextComponent* comp = componentsStack.top();
-        comp->addFormattedTextLeaf("%-10s   ", title);
+        comp->addFormattedTextLeaf("%-10s   ", title.c_str());
         comp->printFormattedText("%g %g %g %g %g %g\n",
             m[XX][XX], m[YY][YY], m[ZZ][ZZ],
             m[XX][YY], m[XX][ZZ], m[YY][ZZ]
@@ -383,9 +419,8 @@ void TextStrategy::pr_kvtree(const gmx::KeyValueTreeObject kvTree)
         const auto& value = prop.value();
         if (value.isObject())
         {
-            TextComponent* comp = componentsStack.top()->addSection(prop.key().c_str(), 2);
+            TextComponent* comp = componentsStack.top()->addSection(prop.key(), 2);
             componentsStack.push(comp);
-            // pr_title(prop.key().c_str());
             pr_kvtree(value.asObject());
             close_section();
         }
@@ -394,7 +429,6 @@ void TextStrategy::pr_kvtree(const gmx::KeyValueTreeObject kvTree)
                                 value.asArray().values().end(),
                                 [](const auto& elem) { return elem.isObject(); }))
         {
-            // pr_title(prop.key().c_str());
             TextComponent* comp = componentsStack.top()->addSection(prop.key().c_str(), 2);
             componentsStack.push(comp);
             for (const auto& elem : value.asArray().values())
@@ -405,9 +439,10 @@ void TextStrategy::pr_kvtree(const gmx::KeyValueTreeObject kvTree)
         }
         else
         {
+            int spacing = 33 - componentsStack.top()->getIndent();
             if (value.isArray())
             {
-                componentsStack.top()->printFormattedText("[");
+                componentsStack.top()->printFormattedText("%s%s = [", spacing, prop.key().c_str());
                 for (const auto& elem : value.asArray().values())
                 {
                     GMX_RELEASE_ASSERT(
@@ -421,10 +456,8 @@ void TextStrategy::pr_kvtree(const gmx::KeyValueTreeObject kvTree)
             }
             else
             {
-                int spacing = 33 - componentsStack.top()->getIndent();
-                componentsStack.top()->printLeaf(prop.key().c_str(), simpleValueToString(value), spacing);
+                componentsStack.top()->printLeaf(prop.key(), simpleValueToString(value), spacing);
             }
-
         }
     }
 }
@@ -507,6 +540,7 @@ void TextStrategy::pr_grp_opt_agg(
             comp->printFormattedText(" %d", egp_flags[ngener * i + m]);
         }
     }
+    delete comp;
 }
 
 void TextStrategy::pr_groups(const SimulationGroups& groups)
@@ -577,71 +611,61 @@ void TextStrategy::pr_list_i(const std::string title, const int index, gmx::Arra
         return;
     }
 
-    comp->printList(
-        gmx::formatString("%s[%d][num=%zu]", title.c_str(), bShowNumbers ? index : -1, list.size()),
-        list
-    );
+    std::string row_title = gmx::formatString("%s[%d][num=%zu]", title.c_str(), bShowNumbers ? index : -1, list.size());
+    comp->printList(row_title, list);
 }
 
-void TextStrategy::pr_iparams(t_functype ftype, const t_iparams& iparams)
+void TextStrategy::pr_iparam(std::string name, std::string format, IParamValue value)
 {
     TextComponent* comp = componentsStack.top();
-    std::vector<KeyFormatValue> kfvs = getInteractionParameters(ftype, iparams);
-
-    if (kfvs.empty())
+    if (prefixIParamWithComma)
     {
-        comp->printFormattedText("\n");
-        return;
+        comp->printFormattedText(", ");
     }
-
-    for (size_t j = 0; j < kfvs.size(); j++)
+    else
     {
-        // Temporary hack to make line break in text format
-        if (kfvs[j].key == nullptr)
-        {
-            comp->printFormattedText("\n%s=", kfvs[++j].key);
-        }
-        else
-        {
-            comp->printFormattedText(", %s=", kfvs[j].key);
-        }
-
-        if (std::holds_alternative<int>(kfvs[j].value))
-        {
-            comp->printFormattedText(kfvs[j].format, std::get<int>(kfvs[j].value));
-        }
-        else if (std::holds_alternative<float>(kfvs[j].value))
-        {
-            comp->printFormattedText(kfvs[j].format, std::get<float>(kfvs[j].value));
-        }
-        else if (std::holds_alternative<double>(kfvs[j].value))
-        {
-            comp->printFormattedText(kfvs[j].format, std::get<double>(kfvs[j].value));
-        }
-        else if (std::holds_alternative<int64_t>(kfvs[j].value))
-        {
-            comp->printFormattedText(kfvs[j].format, std::get<int64_t>(kfvs[j].value));
-        }
-        else if (std::holds_alternative<real>(kfvs[j].value))
-        {
-            comp->printFormattedText(kfvs[j].format, std::get<real>(kfvs[j].value));
-        }
-        else if (std::holds_alternative<std::array<real, 3>>(kfvs[j].value))
-        {
-            std::array<real, 3> arr = std::get<std::array<real, 3>>(kfvs[j].value);
-            comp->printFormattedText("(");
-            for (int k = 0; k < DIM - 1; k++)
-            {
-                comp->printFormattedText(kfvs[j].format, arr[k]);
-                comp->printFormattedText(",");
-            }
-            comp->printFormattedText(kfvs[j].format, arr[DIM - 1]);
-            comp->printFormattedText(")");
-        }
+        prefixIParamWithComma = true;
+    }
+    comp->printFormattedText("%s=", name.c_str());
+    if (std::holds_alternative<int>(value))
+    {
+        comp->printFormattedText(format.c_str(), std::get<int>(value));
+    }
+    else if (std::holds_alternative<real>(value))
+    {
+        comp->printFormattedText(format.c_str(), std::get<real>(value));
     }
 }
 
-void TextStrategy::pr_functypes(const std::vector<int>& functype, const int n, const std::vector<t_iparams>& iparams)
+void TextStrategy::pr_iparam_reals_of_dim(std::string name, std::string format, real vec[DIM])
+{
+    TextComponent* comp = componentsStack.top();
+    if (prefixIParamWithComma)
+    {
+        comp->printFormattedText(", ");
+    }
+    else
+    {
+        prefixIParamWithComma = true;
+    }
+    comp->printFormattedText("%s=", name.c_str());
+    comp->printFormattedText("(");
+    for (int i = 0; i < DIM - 1; i++)
+    {
+        comp->printFormattedText(format.c_str(), vec[i]);
+        comp->printFormattedText(",");
+    }
+    comp->printFormattedText(format.c_str(), vec[DIM - 1]);
+    comp->printFormattedText(")");
+}
+    
+void TextStrategy::pr_iparam_ensure_line_break()
+{
+    componentsStack.top()->printFormattedText("\n");
+    prefixIParamWithComma = false;
+}
+
+void TextStrategy::pr_functypes(const t_functype* functypes, const int n, const t_iparams* iparams)
 {
     TextComponent* comp = componentsStack.top()->addEmptySection();
     for (int i = 0; i < n; i++)
@@ -649,15 +673,17 @@ void TextStrategy::pr_functypes(const std::vector<int>& functype, const int n, c
         comp->addFormattedTextLeaf(
             "functype[%d]=%s",
             bShowNumbers ? i : -1,
-            interaction_function[functype[i]].name
+            interaction_function[functypes[i]].name
         );
-        pr_iparams(functype[i], iparams[i]);
+        prefixIParamWithComma = true;
+        printInteractionParameters(functypes[i], iparams[i], this);
     }
+    delete comp;
 }
 
-void TextStrategy::pr_interaction_list(const std::string& title, const t_functype* functypes, const InteractionList& ilist, const t_iparams* iparams)
+void TextStrategy::pr_interaction_list(const std::string title, const t_functype* functypes, const InteractionList& ilist, const t_iparams* iparams)
 {
-    pr_title(title.c_str());
+    pr_title(title);
     componentsStack.top()->addFormattedTextLeaf("nr: %d", ilist.size());
 
     if (ilist.empty())
@@ -691,7 +717,8 @@ void TextStrategy::pr_interaction_list(const std::string& title, const t_functyp
         if (bShowParameters)
         {
             comp->printFormattedText("  ");
-            pr_iparams(ftype, iparams[type]);
+            prefixIParamWithComma = false;
+            printInteractionParameters(ftype, iparams[type], this);
         }
         i += 1 + interaction_function[ftype].nratoms;
     }

@@ -6,8 +6,6 @@ void AtomsBuilder::build(DumpStrategy* strategy)
 
     if (strategy->available(atoms->atom, "atom"))
     {
-        // TODO:
-        // strategy->pr_atoms(atoms->atom, atoms->nr);
         strategy->pr_title_n("atom", atoms->nr);
         for (int i = 0; (i < atoms->nr); i++)
         {
@@ -15,8 +13,6 @@ void AtomsBuilder::build(DumpStrategy* strategy)
         }
         strategy->close_section();
 
-        // TODO:
-        // strategy->pr_atoms(atoms->atom, atoms->nr);
         strategy->pr_title_atom_names(atoms->nr);
         const char* atomAttributeNames[] = {"name"};
         for (int i = 0; (i < atoms->nr); i++)

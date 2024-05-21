@@ -1,4 +1,6 @@
-#include "gromacs/tools/dump/components/dump_components_text.h"
+#include "gromacs/tools/dump/components/text_components.h"
+
+#include <cstdarg>
 
 TextComponent* TextComponent::addSection(const std::string& name, const int withNextIndent) {
     fprintf(fp, "\n%*s%s:", indent, "", name.c_str());
@@ -25,7 +27,7 @@ void TextComponent::printLeaf(const std::string& key, const Value& value, const 
     valueComponent.printValue(value);
 }
 
-void TextComponent::printAttribute(const std::string name, const Value& value)
+void TextComponent::printAttribute(const std::string& name, const Value& value)
 {
     fprintf(fp, "\n%*s%s=", indent, "", name.c_str());
     valueComponent.printValue(value);
@@ -51,7 +53,7 @@ void TextComponent::printFormattedText(const char* format, ...) {
     va_end(args);
 }
 
-void TextComponent::printList(std::string title, gmx::ArrayRef<const int> list)
+void TextComponent::printList(std::string& title, gmx::ArrayRef<const int> list)
 {
     int size = fprintf(fp, "\n%*s%s={", indent, "", title.c_str()) - 1;
 

@@ -112,7 +112,7 @@ void QmOptionsBuilder::build(DumpStrategy* strategy) {
 void ImdBuilder::build(DumpStrategy* strategy)
 {
     strategy->pr_named_value("IMD-atoms", imd->nat);
-    strategy->pr_ivec_block("atom", imd->ind, imd->nat);
+    strategy->pr_ivec_block("atom", imd->ind, imd->nat, TRUE);
 }
 
 void SimTempBuilder::build(DumpStrategy* strategy)
