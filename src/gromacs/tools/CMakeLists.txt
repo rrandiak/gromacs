@@ -73,4 +73,5 @@ target_link_libraries(tools INTERFACE
 
 if (BUILD_TESTING)
     add_subdirectory(tests)
+    add_subdirectory(dump/tests)
 endif()

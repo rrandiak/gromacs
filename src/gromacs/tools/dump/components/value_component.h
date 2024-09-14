@@ -42,7 +42,6 @@ public:
             fprintf(fp, "%g", std::get<real>(value));
         }
     }
-    
 };
 
 #endif

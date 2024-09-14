@@ -20,14 +20,18 @@ public:
     YamlComponent(FILE* fp, int indent) : DumpComponent(fp, indent), valueComponent(fp) {}
     virtual ~YamlComponent() = default;
 
+    YamlObjectComponent* addYamlObject(const std::string& name, const std::string& param);
     virtual YamlObjectComponent* addYamlObject(const std::string& name);
     virtual YamlObjectComponent* addYamlObject(const std::string& name, int index);
-    YamlObjectComponent* addYamlObject(const std::string& name, const std::string& param);
-    YamlArrayComponent* addYamlArray(const std::string& name);
-    YamlInlineArrayComponent* addYamlInlineArray();
-    YamlInlineArrayComponent* addYamlInlineArray(const std::string& name);
+
     virtual YamlInlineObjectComponent* addYamlInlineObject();
     virtual YamlInlineObjectComponent* addYamlInlineObject(const std::string& name);
+
+    YamlArrayComponent* addYamlArray(const std::string& name);
+
+    YamlInlineArrayComponent* addYamlInlineArray();
+    YamlInlineArrayComponent* addYamlInlineArray(const std::string& name);
+
     void printKeyValue(const std::string& key, const Value& value);
     void printArrayValue(const Value& value);
 };
@@ -36,30 +40,6 @@ class YamlObjectComponent : public YamlComponent {
 public:
     YamlObjectComponent(FILE* fp, int indent) : YamlComponent(fp, indent) {}
     virtual ~YamlObjectComponent() = default;
-};
-
-class YamlArrayComponent : public YamlComponent {
-public:
-    YamlArrayComponent(FILE* fp, int indent) : YamlComponent(fp, indent) {}
-    virtual ~YamlArrayComponent() = default;
-
-    YamlObjectComponent* addYamlObject(const std::string& name) override;
-    YamlObjectComponent* addYamlObject(const std::string& name, int index) override;
-    YamlInlineObjectComponent* addYamlInlineObject() override;
-    YamlInlineObjectComponent* addYamlInlineObject(const std::string& name) override;
-};
-
-class YamlInlineArrayComponent : public YamlComponent {
-private:
-    bool isEmpty = true;
-public:
-    YamlInlineArrayComponent(FILE* fp, int indent) : YamlComponent(fp, indent) {}
-    virtual ~YamlInlineArrayComponent()
-    {
-        fprintf(fp, "]");
-    }
-
-    void printValue(const Value& value);
 };
 
 class YamlInlineObjectComponent : public YamlComponent {
@@ -78,10 +58,34 @@ public:
     void printKeyValue(const std::string& name, const Value& value);
 };
 
+class YamlArrayComponent : public YamlComponent {
+public:
+    YamlArrayComponent(FILE* fp, int indent) : YamlComponent(fp, indent) {}
+    virtual ~YamlArrayComponent() = default;
+
+    YamlObjectComponent* addYamlObject(const std::string& name) override;
+    YamlObjectComponent* addYamlObject(const std::string& name, int index) override;
+
+    YamlInlineObjectComponent* addYamlInlineObject() override;
+    YamlInlineObjectComponent* addYamlInlineObject(const std::string& name) override;
+};
+
+class YamlInlineArrayComponent : public YamlComponent {
+private:
+    bool isEmpty = true;
+public:
+    YamlInlineArrayComponent(FILE* fp, int indent) : YamlComponent(fp, indent) {}
+    virtual ~YamlInlineArrayComponent()
+    {
+        fprintf(fp, "]");
+    }
+
+    void printValue(const Value& value);
+};
+
 class YamlRootComponent : public YamlComponent {
 public:
-    YamlRootComponent(FILE* fp)
-            : YamlComponent(fp, 0) {
+    YamlRootComponent(FILE* fp) : YamlComponent(fp, 0) {
         fprintf(fp, "---");
     }
 
