@@ -1,6 +1,9 @@
 #include "gromacs/tools/dump/components/json_components.h"
+#include "gromacs/tools/dump/dump_settings.h"
 
 #include <variant>
+
+#include "gromacs/utility/gmxassert.h"
 
 // JSONDumpComponent implementation
 void JsonDumpComponent::closeLastChild() {
@@ -29,7 +32,14 @@ void JsonDumpComponent::printFormattedValue(const Value& value) {
 
 JsonObjectComponent* JsonDumpComponent::addJsonObject(const std::string& name) {
     printSeparator();
-    fprintf(fp, "\n%*s\"%s\": {", indent + JSON_INDENT, "", name.c_str());
+    if (dumpSettings.bJsonPrettyPrint)
+    {
+        fprintf(fp, "\n%*s\"%s\": {", indent + JSON_INDENT, "", name.c_str());
+    }
+    else
+    {
+        fprintf(fp, "\"%s\":{", name.c_str());
+    }
     JsonObjectComponent* jsonObject = new JsonObjectComponent(fp, indent + JSON_INDENT);
     lastChild = jsonObject;
     return jsonObject;

@@ -6,15 +6,10 @@ YamlObjectComponent* YamlComponent::addYamlObject(const std::string& name)
     return new YamlObjectComponent(fp, indent + YAML_INDENT);
 }
 
-YamlObjectComponent* YamlComponent::addYamlObject(const std::string& name, const int index)
+YamlObjectComponent* YamlComponent::addYamlObject(const std::string& name, const Value& value)
 {
-    fprintf(fp, "\n%*s%s: %d", indent, "", name.c_str(), index);
-    return new YamlObjectComponent(fp, indent + YAML_INDENT);
-}
-
-YamlObjectComponent* YamlComponent::addYamlObject(const std::string& name, const std::string& param)
-{
-    fprintf(fp, "\n%*s%s: %s", indent, "", name.c_str(), param.c_str());
+    fprintf(fp, "\n%*s%s: ", indent, "", name.c_str());
+    valueComponent.printValue(value);
     return new YamlObjectComponent(fp, indent + YAML_INDENT);
 }
 
@@ -54,21 +49,16 @@ void YamlComponent::printKeyValue(const std::string& key, const Value& value)
     valueComponent.printValue(value);
 }
 
-void YamlComponent::printArrayValue(const Value& value)
-{
-    fprintf(fp, "\n%*s- ", indent + YAML_INDENT, "");
-    valueComponent.printValue(value);
-}
-
 YamlObjectComponent* YamlArrayComponent::addYamlObject(const std::string& name)
 {
     fprintf(fp, "\n%*s- %s:", indent, "", name.c_str());
     return new YamlObjectComponent(fp, indent + YAML_INDENT);
 }
 
-YamlObjectComponent* YamlArrayComponent::addYamlObject(const std::string& name, const int index)
+YamlObjectComponent* YamlArrayComponent::addYamlObject(const std::string& name, const Value& value)
 {
-    fprintf(fp, "\n%*s- %s: %d", indent, "", name.c_str(), index);
+    fprintf(fp, "\n%*s- %s: ", indent, "", name.c_str());
+    valueComponent.printValue(value);
     return new YamlObjectComponent(fp, indent + YAML_INDENT);
 }
 

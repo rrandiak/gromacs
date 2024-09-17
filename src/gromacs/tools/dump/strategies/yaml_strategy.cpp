@@ -7,9 +7,9 @@
 
 #include "gromacs/tools/dump/components/iparams_component.h"
     
-YamlStrategy::YamlStrategy(FILE* file_pointer)
+YamlStrategy::YamlStrategy(FILE* fp)
 {
-    YamlComponent* root = new YamlRootComponent(file_pointer);
+    YamlComponent* root = new YamlRootComponent(fp);
     componentsStack.push(root);
 }
 
@@ -18,16 +18,17 @@ YamlStrategy::~YamlStrategy()
     GMX_RELEASE_ASSERT(
             componentsStack.empty(),
             "Components stack of strategies should be empty at the end. "
-            "Some dump section is not being closed properly.");
+            "Some dump section is not being closed properly."
+    );
 }
 
-bool YamlStrategy::available(const void* pointer, const std::string title)
+bool YamlStrategy::available(const void* p, const std::string title)
 {
-    if (!pointer)
+    if (!p)
     {
         componentsStack.top()->printKeyValue(title, "Not available");
     }
-    return (pointer != nullptr);
+    return (p!= nullptr);
 }
 
 void YamlStrategy::pr_filename(const std::string filename)
@@ -427,10 +428,11 @@ void YamlStrategy::pr_grps(gmx::ArrayRef<const AtomGroupIndices> grps, const cha
     int index = 0;
     for (const auto& group : grps)
     {
-        YamlComponent* comp = componentsStack.top()->addYamlObject("grp");
-        comp->printKeyValue("type", shortName(static_cast<SimulationAtomGroupType>(index)));
+        YamlComponent* comp = componentsStack.top()->addYamlObject(
+            "type", shortName(static_cast<SimulationAtomGroupType>(index))
+        );
         comp->printKeyValue("nr", group.size());
-        YamlInlineArrayComponent* arrayComp = comp->addYamlInlineArray("name");
+        YamlInlineArrayComponent* arrayComp = comp->addYamlInlineArray("names");
         for (const auto& entry : group)
         {
             arrayComp->printValue(*(grpname[entry]));

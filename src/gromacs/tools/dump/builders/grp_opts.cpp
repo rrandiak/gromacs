@@ -33,5 +33,9 @@ void GroupOptionsBuilder::build(DumpStrategy* strategy) {
         }
     }
 
-    strategy->pr_grp_opt_agg(opts->acceleration, opts->ngacc, opts->nFreeze, opts->ngfrz, opts->egp_flags, opts->ngener);
+    strategy->pr_grp_opt_agg(
+        opts->acceleration, opts->ngacc,
+        opts->nFreeze, opts->ngfrz,
+        opts->egp_flags, opts->ngener
+    );
 }

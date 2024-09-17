@@ -4,6 +4,7 @@
 #include <cstdio>
 #include "gromacs/tools/dump/dump_component.h"
 #include "gromacs/tools/dump/components/value_component.h"
+#include "gromacs/tools/dump/dump_settings.h"
 
 #define YAML_INDENT 2
     
@@ -20,9 +21,8 @@ public:
     YamlComponent(FILE* fp, int indent) : DumpComponent(fp, indent), valueComponent(fp) {}
     virtual ~YamlComponent() = default;
 
-    YamlObjectComponent* addYamlObject(const std::string& name, const std::string& param);
     virtual YamlObjectComponent* addYamlObject(const std::string& name);
-    virtual YamlObjectComponent* addYamlObject(const std::string& name, int index);
+    virtual YamlObjectComponent* addYamlObject(const std::string& name, const Value& value);
 
     virtual YamlInlineObjectComponent* addYamlInlineObject();
     virtual YamlInlineObjectComponent* addYamlInlineObject(const std::string& name);
@@ -33,7 +33,6 @@ public:
     YamlInlineArrayComponent* addYamlInlineArray(const std::string& name);
 
     void printKeyValue(const std::string& key, const Value& value);
-    void printArrayValue(const Value& value);
 };
 
 class YamlObjectComponent : public YamlComponent {
@@ -64,7 +63,7 @@ public:
     virtual ~YamlArrayComponent() = default;
 
     YamlObjectComponent* addYamlObject(const std::string& name) override;
-    YamlObjectComponent* addYamlObject(const std::string& name, int index) override;
+    YamlObjectComponent* addYamlObject(const std::string& name, const Value& value) override;
 
     YamlInlineObjectComponent* addYamlInlineObject() override;
     YamlInlineObjectComponent* addYamlInlineObject(const std::string& name) override;

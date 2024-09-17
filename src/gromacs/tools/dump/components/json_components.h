@@ -3,7 +3,6 @@
 
 #include "gromacs/tools/dump/dump_component.h"
 #include "gromacs/tools/dump/components/value_component.h"
-#include "gromacs/utility/gmxassert.h"
 
 #define JSON_INDENT 2
     

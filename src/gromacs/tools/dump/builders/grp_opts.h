@@ -5,7 +5,8 @@
 
 #include "gromacs/tools/dump/dump_builder.h"
 
-class GroupOptionsBuilder : public DumpBuilder {
+class GroupOptionsBuilder : public DumpBuilder
+{
 private:
     const t_grpopts* opts;
 
