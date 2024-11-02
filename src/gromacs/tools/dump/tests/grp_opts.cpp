@@ -5,7 +5,7 @@
 #include "gromacs/mdtypes/md_enums.h"
 #include "gromacs/utility/real.h"
 
-#include "builder_test.h"
+#include "test_base_builder.h"
 
 namespace gmx
 {
