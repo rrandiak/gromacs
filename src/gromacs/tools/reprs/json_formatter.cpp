@@ -1,8 +1,8 @@
 #include "json_formatter.h"
 
-#include "gromacs/tools/reprs/components/iparams_component.h"
 #include "gromacs/tools/reprs/components/json_components.h"
 #include "gromacs/tools/reprs/repr_formatter.h"
+#include "gromacs/tools/reprs/reprs/iparams.h"
 #include "gromacs/utility/basedefinitions.h"
 #include "gromacs/utility/stringutil.h"
 
@@ -577,7 +577,7 @@ void JsonFormatter::pr_functypes(const t_functype* functypes, const int n, const
         {
             pr_title("functype");
         }
-        printInteractionParameters(functypes[i], iparams[i], this);
+        InteractionParamsRepr(functypes[i], iparams[i]).build(this);
         close_section();
     }
 
@@ -620,7 +620,7 @@ void JsonFormatter::pr_interaction_list(const std::string      title,
         }
         if (bShowParameters)
         {
-            printInteractionParameters(ftype, iparams[type], this);
+            InteractionParamsRepr(ftype, iparams[type]).build(this);
         }
         i += 1 + interaction_function[ftype].nratoms;
     }

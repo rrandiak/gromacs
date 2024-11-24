@@ -1,8 +1,8 @@
-#include "gromacs/tools/reprs/components/iparams_component.h"
+#include "gromacs/tools/reprs/reprs/iparams.h"
 
 #include "gromacs/utility/fatalerror.h"
 
-void printInteractionParameters(t_functype ftype, const t_iparams& iparams, ReprFormatter* strategy)
+void InteractionParamsRepr::build(ReprFormatter* strategy)
 {
     switch (ftype)
     {

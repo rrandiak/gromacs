@@ -2,8 +2,8 @@
 
 #include <cstdio>
 
-#include "gromacs/tools/reprs/components/iparams_component.h"
 #include "gromacs/tools/reprs/components/text_components.h"
+#include "gromacs/tools/reprs/reprs/iparams.h"
 #include "gromacs/topology/block.h"
 #include "gromacs/topology/idef.h"
 #include "gromacs/topology/ifunc.h"
@@ -669,7 +669,7 @@ void TextFormatter::pr_functypes(const t_functype* functypes, const int n, const
         comp->addFormattedTextLeaf(
                 "functype[%d]=%s", bShowNumbers ? i : -1, interaction_function[functypes[i]].name);
         prefixIParamWithComma = true;
-        printInteractionParameters(functypes[i], iparams[i], this);
+        InteractionParamsRepr(functypes[i], iparams[i]).build(this);
     }
     delete comp;
 }
@@ -714,7 +714,7 @@ void TextFormatter::pr_interaction_list(const std::string      title,
         {
             comp->printFormattedText("  ");
             prefixIParamWithComma = false;
-            printInteractionParameters(ftype, iparams[type], this);
+            InteractionParamsRepr(ftype, iparams[type]).build(this);
         }
         i += 1 + interaction_function[ftype].nratoms;
     }

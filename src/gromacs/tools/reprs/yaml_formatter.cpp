@@ -2,7 +2,7 @@
 
 #include <cstdio>
 
-#include "gromacs/tools/reprs/components/iparams_component.h"
+#include "gromacs/tools/reprs/reprs/iparams.h"
 #include "gromacs/topology/idef.h"
 #include "gromacs/utility/basedefinitions.h"
 #include "gromacs/utility/stringutil.h"
@@ -617,7 +617,7 @@ void YamlFormatter::pr_functypes(const t_functype* functypes, const int n, const
         }
         componentsStack.push(object);
 
-        printInteractionParameters(functypes[i], iparams[i], this);
+        InteractionParamsRepr(functypes[i], iparams[i]).build(this);
 
         close_section();
     }
@@ -661,7 +661,7 @@ void YamlFormatter::pr_interaction_list(const std::string      title,
         delete inlineArray;
         if (bShowParameters)
         {
-            printInteractionParameters(ftype, iparams[type], this);
+            InteractionParamsRepr(ftype, iparams[type]).build(this);
         }
         delete inlineObject;
         i += 1 + interaction_function[ftype].nratoms;
