@@ -1,6 +1,11 @@
-#include <gtest/gtest.h>
+#include <cstdio>
 
-#include "testutils/testfilemanager.h"
+#include <algorithm>
+#include <fstream>
+#include <iostream>
+#include <sstream>
+
+#include <gtest/gtest.h>
 
 #include "gromacs/tools/dump/dump_builder.h"
 #include "gromacs/tools/dump/dump_strategy.h"
@@ -8,37 +13,36 @@
 #include "gromacs/tools/dump/strategies/text_strategy.h"
 #include "gromacs/tools/dump/strategies/yaml_strategy.h"
 
+#include "testutils/testfilemanager.h"
+
 namespace gmx
 {
 
 namespace test
 {
 
-class DumpBuilderTest : public ::testing::Test
+class RepresentationTest : public ::testing::Test
 {
 protected:
-    FILE* fp;
+    TestFileManager fileManager;
+    FILE*           fp;
 
     // Set up resources before each test
     void SetUp() override
     {
         // Initialize the file
-        TestFileManager fileManager;
-        fp = fopen(
-            fileManager.getTemporaryFilePath("output.tmp").string().c_str(),
-            "w+"
-        );
+        fp = fopen(fileManager.getTemporaryFilePath("output.tmp").string().c_str(), "w+");
     }
 
     // Clean up resources after each test
-    void TearDown() override
-    {
-        fclose(fp);
-    }
+    void TearDown() override { fclose(fp); }
 
 public:
     // Utility function to run the test, take a builder and strategy, and verify output
-    void runTest(DumpStrategy* strategy, DumpBuilder* builder, const std::string& expectedOutput)
+    void runTest(DumpStrategy*      strategy,
+                 DumpBuilder*       builder,
+                 const std::string& expectedOutputPath,
+                 const std::string& prefix = "")
     {
         // Build the text dump
         builder->build(strategy);
@@ -50,7 +54,7 @@ public:
 
         // Read the file content into a string
         std::ostringstream buffer;
-        char readBuffer[256];
+        char               readBuffer[256];
         while (fgets(readBuffer, sizeof(readBuffer), fp) != nullptr)
         {
             buffer << readBuffer;
@@ -59,80 +63,92 @@ public:
         // Store the file content in a string
         std::string output = buffer.str();
 
+        // // Open the expected output file
+        std::string   filename = fileManager.getInputFilePath(expectedOutputPath).string();
+        std::ifstream file(filename);
+        if (!file.is_open())
+        {
+            throw std::runtime_error("Could not open file: " + filename);
+        }
+
+        // Read the expected output into a string
+        buffer.str("");
+        buffer << prefix << file.rdbuf();
+
         // Verify the output
-        EXPECT_EQ(output, expectedOutput);
+        EXPECT_EQ(output, buffer.str());
     }
 };
 
-class DumpBuilderTextTest : public DumpBuilderTest
+class TextRepresentationTest : public RepresentationTest
 {
 protected:
     TextStrategy* textStrategy;
 
     void SetUp() override
     {
-        DumpBuilderTest::SetUp();
+        RepresentationTest::SetUp();
         textStrategy = new TextStrategy(fp);
     }
 
     void TearDown() override
     {
         delete textStrategy;
-        DumpBuilderTest::TearDown();
+        RepresentationTest::TearDown();
     }
 
 public:
     void runTest(DumpBuilder* builder, const std::string& expectedOutput)
     {
-        DumpBuilderTest::runTest(textStrategy, builder, expectedOutput);
+        RepresentationTest::runTest(textStrategy, builder, expectedOutput, "\n");
     }
 };
 
-class DumpBuilderJsonTest : public DumpBuilderTest
+class JsonRepresentationTest : public RepresentationTest
 {
 protected:
     JsonStrategy* jsonStrategy;
 
     void SetUp() override
     {
-        DumpBuilderTest::SetUp();
+        RepresentationTest::SetUp();
         jsonStrategy = new JsonStrategy(fp);
     }
 
     void TearDown() override
     {
         delete jsonStrategy;
-        DumpBuilderTest::TearDown();
+        RepresentationTest::TearDown();
     }
 
 public:
     void runTest(DumpBuilder* builder, const std::string& expectedOutput)
     {
-        DumpBuilderTest::runTest(jsonStrategy, builder, expectedOutput);
+        RepresentationTest::runTest(jsonStrategy, builder, expectedOutput);
     }
 };
 
-class DumpBuilderYamlTest : public DumpBuilderTest
+class YamlRepresentationTest : public RepresentationTest
 {
 protected:
     YamlStrategy* yamlStrategy;
 
     void SetUp() override
     {
-        DumpBuilderTest::SetUp();
+        RepresentationTest::SetUp();
         yamlStrategy = new YamlStrategy(fp);
     }
 
     void TearDown() override
     {
         delete yamlStrategy;
-        DumpBuilderTest::TearDown();
+        RepresentationTest::TearDown();
     }
 
 public:
     void runTest(DumpBuilder* builder, const std::string& expectedOutput)
     {
-        DumpBuilderTest::runTest(yamlStrategy, builder, expectedOutput);
+        RepresentationTest::runTest(yamlStrategy, builder, expectedOutput);
     }
 };
 

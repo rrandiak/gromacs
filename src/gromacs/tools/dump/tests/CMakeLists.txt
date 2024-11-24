@@ -34,7 +34,6 @@
 gmx_add_gtest_executable(dump-test
     CPP_SOURCE_FILES
         components.cpp
-        grp_opts.cpp
         inputrec.cpp
         )
 gmx_register_gtest_test(ToolUnitTests dump-test SLOW_TEST)
