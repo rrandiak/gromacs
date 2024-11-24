@@ -36,13 +36,9 @@ add_library(tools INTERFACE)
 # file(GLOB TOOLS_SOURCES *.cpp)
 file(GLOB TOOLS_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/dump/builders/*.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/dump/builders/common/*.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/dump/builders/qm_opts/*.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/dump/builders/topology/*.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/dump/directors/*.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/dump/strategies/*.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/dump/components/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/reprs/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/reprs/components/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/reprs/reprs/*.cpp
 )
 set(LIBGROMACS_SOURCES ${LIBGROMACS_SOURCES} ${TOOLS_SOURCES} PARENT_SCOPE)
 
@@ -73,5 +69,5 @@ target_link_libraries(tools INTERFACE
 
 if (BUILD_TESTING)
     add_subdirectory(tests)
-    add_subdirectory(dump/tests)
+    add_subdirectory(reprs/tests)
 endif()
