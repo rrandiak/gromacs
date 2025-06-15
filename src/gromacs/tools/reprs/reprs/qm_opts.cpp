@@ -222,6 +222,8 @@ void ExpandedRepr::build(ReprFormatter* strategy)
     strategy->pr_key_value("wl-oneovert", gmx::boolToString(expanded->bWLoneovert));
 
     strategy->pr_init_lambda_weights("init-lambda-weights", expanded->initLambdaWeights.data(), n_lambda);
+    strategy->pr_rvec("init-lambda-counts", expanded->initLambdaCounts.data(), n_lambda);
+    strategy->pr_rvec("init-wl-histogram-counts", expanded->initWlHistogramCounts.data(), n_lambda);
 }
 
 void FepRepr::build(ReprFormatter* strategy)
