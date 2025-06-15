@@ -110,34 +110,34 @@ void JsonFormatter::close_list()
     close_section();
 }
 
-void JsonFormatter::pr_named_value(const std::string name, const Value& value)
+void JsonFormatter::pr_key_value(const std::string name, const Value& value)
 {
     componentsStack.top()->printKeyValue(name, value);
 }
 
-void JsonFormatter::pr_named_value_short_format(const std::string name, const Value& value)
+void JsonFormatter::pr_key_value_short_format(const std::string name, const Value& value)
 {
-    pr_named_value(name, value);
+    pr_key_value(name, value);
 }
 
-void JsonFormatter::pr_named_value_scientific(const std::string name, const real& value)
+void JsonFormatter::pr_key_value_scientific(const std::string name, const real& value)
 {
-    pr_named_value(name, gmx::formatString("%e", value));
+    pr_key_value(name, gmx::formatString("%e", value));
 }
 
 void JsonFormatter::pr_count(const std::string name, const Value& value)
 {
-    pr_named_value(gmx::formatString("%s.count", name.c_str()), value);
+    pr_key_value(gmx::formatString("%s.count", name.c_str()), value);
 }
 
 void JsonFormatter::pr_attribute(const std::string name, const Value& value)
 {
-    pr_named_value(name, value);
+    pr_key_value(name, value);
 }
 
 void JsonFormatter::pr_attribute_quoted(const std::string name, const std::string& value)
 {
-    pr_named_value(name, value);
+    pr_key_value(name, value);
 }
 
 void JsonFormatter::pr_vec_attributes([[maybe_unused]] const std::string title,
@@ -325,12 +325,12 @@ void JsonFormatter::pr_matrix(const std::string title, const rvec* m)
     if (bMDPformat)
     {
         pr_title(title);
-        pr_named_value("x_x", m[XX][XX]);
-        pr_named_value("y_y", m[YY][YY]);
-        pr_named_value("z_z", m[ZZ][ZZ]);
-        pr_named_value("x_y", m[XX][YY]);
-        pr_named_value("x_z", m[XX][ZZ]);
-        pr_named_value("y_z", m[YY][ZZ]);
+        pr_key_value("x_x", m[XX][XX]);
+        pr_key_value("y_y", m[YY][YY]);
+        pr_key_value("z_z", m[ZZ][ZZ]);
+        pr_key_value("x_y", m[XX][YY]);
+        pr_key_value("x_z", m[XX][ZZ]);
+        pr_key_value("y_z", m[YY][ZZ]);
         close_section();
     }
     else
@@ -381,11 +381,11 @@ void JsonFormatter::pr_kvtree(const gmx::KeyValueTreeObject kvTree)
                 std::string strValue = simpleValueToString(value);
                 if (value.isType<std::string>() && strValue.empty())
                 {
-                    pr_named_value(prop.key(), "");
+                    pr_key_value(prop.key(), "");
                 }
                 else
                 {
-                    pr_named_value(prop.key(), strValue);
+                    pr_key_value(prop.key(), strValue);
                 }
             }
         }
@@ -666,7 +666,7 @@ void JsonFormatter::pr_cmap(const gmx_cmap_t* cmap_grid)
 
 void JsonFormatter::pr_separate_dvdl(const std::string title, bool value)
 {
-    pr_named_value(title, value);
+    pr_key_value(title, value);
 }
 
 void JsonFormatter::pr_all_lambda(const std::string title, const double vec[], const int n_lambda)

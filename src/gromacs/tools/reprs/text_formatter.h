@@ -37,9 +37,9 @@ public:
     void close_section() override;
     void close_list() override;
 
-    void pr_named_value(std::string name, const Value& value) override;
-    void pr_named_value_short_format(std::string name, const Value& value) override;
-    void pr_named_value_scientific(std::string name, const real& value) override;
+    void pr_key_value(std::string name, const Value& value) override;
+    void pr_key_value_short_format(std::string name, const Value& value) override;
+    void pr_key_value_scientific(std::string name, const real& value) override;
     void pr_count(std::string name, const Value& value) override;
 
     void pr_attribute(std::string name, const Value& value) override;

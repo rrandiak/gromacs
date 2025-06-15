@@ -29,8 +29,8 @@ void MTopRepr::build(ReprFormatter* strategy)
 
     MolblockRepr(mtop->molblock, mtop->moltype).build(strategy);
 
-    strategy->pr_named_value("bIntermolecularInteractions",
-                             gmx::boolToString(mtop->bIntermolecularInteractions));
+    strategy->pr_key_value("bIntermolecularInteractions",
+                           gmx::boolToString(mtop->bIntermolecularInteractions));
 
     FFParamsRepr(mtop->ffparams).build(strategy);
 
@@ -59,14 +59,14 @@ void TopRepr::build(ReprFormatter* strategy)
     strategy->pr_attribute_quoted("name", *(top->name));
     AtomsRepr(&(top->atoms)).build(strategy);
     strategy->pr_block("mols", &top->mols);
-    strategy->pr_named_value("bIntermolecularInteractions",
-                             gmx::boolToString(top->bIntermolecularInteractions));
+    strategy->pr_key_value("bIntermolecularInteractions",
+                           gmx::boolToString(top->bIntermolecularInteractions));
     if (strategy->available(&top->idef, "idef"))
     {
         strategy->pr_attribute("atnr=%d", top->idef.atnr);
         strategy->pr_attribute("ntypes=%d", top->idef.ntypes);
         strategy->pr_functypes(top->idef.functype, top->idef.ntypes, top->idef.iparams);
-        strategy->pr_named_value("fudgeQQ", top->idef.fudgeQQ);
+        strategy->pr_key_value("fudgeQQ", top->idef.fudgeQQ);
 
         for (int j = 0; (j < F_NRE); j++)
         {
@@ -128,8 +128,8 @@ void FFParamsRepr::build(ReprFormatter* strategy)
     strategy->pr_attribute("atnr", ffparams.atnr);
     strategy->pr_attribute("ntypes", ffparams.numTypes());
     strategy->pr_functypes(ffparams.functype.data(), ffparams.numTypes(), ffparams.iparams.data());
-    strategy->pr_named_value("reppow", ffparams.reppow);
-    strategy->pr_named_value("fudgeQQ", ffparams.fudgeQQ);
+    strategy->pr_key_value("reppow", ffparams.reppow);
+    strategy->pr_key_value("fudgeQQ", ffparams.fudgeQQ);
     strategy->pr_cmap(&(ffparams.cmap_grid));
     strategy->close_section();
 }

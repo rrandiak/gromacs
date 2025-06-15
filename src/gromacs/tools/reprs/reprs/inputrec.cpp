@@ -17,122 +17,121 @@ void InputRecRepr::build(ReprFormatter* strategy)
          * options are written in the default mdout.mdp, and with
          * the same user-exposed names to facilitate debugging.
          */
-        strategy->pr_named_value("integrator", enumValueToString(ir->eI));
-        strategy->pr_named_value("tinit", (real)(ir->init_t));
-        strategy->pr_named_value("dt", ir->delta_t);
-        strategy->pr_named_value("nsteps", ir->nsteps);
-        strategy->pr_named_value("init-step", ir->init_step);
-        strategy->pr_named_value("simulation-part", ir->simulation_part);
+        strategy->pr_key_value("integrator", enumValueToString(ir->eI));
+        strategy->pr_key_value("tinit", (real)(ir->init_t));
+        strategy->pr_key_value("dt", ir->delta_t);
+        strategy->pr_key_value("nsteps", ir->nsteps);
+        strategy->pr_key_value("init-step", ir->init_step);
+        strategy->pr_key_value("simulation-part", ir->simulation_part);
         MtsRepr(ir->useMts, ir->mtsLevels).build(strategy);
-        strategy->pr_named_value("mass-repartition-factor", ir->massRepartitionFactor);
-        strategy->pr_named_value("comm-mode", enumValueToString(ir->comm_mode));
-        strategy->pr_named_value("nstcomm", ir->nstcomm);
+        strategy->pr_key_value("mass-repartition-factor", ir->massRepartitionFactor);
+        strategy->pr_key_value("comm-mode", enumValueToString(ir->comm_mode));
+        strategy->pr_key_value("nstcomm", ir->nstcomm);
 
         /* Langevin dynamics */
-        strategy->pr_named_value("bd-fric", ir->bd_fric);
-        strategy->pr_named_value("ld-seed", ir->ld_seed);
+        strategy->pr_key_value("bd-fric", ir->bd_fric);
+        strategy->pr_key_value("ld-seed", ir->ld_seed);
 
         /* Energy minimization */
-        strategy->pr_named_value("emtol", ir->em_tol);
-        strategy->pr_named_value("emstep", ir->em_stepsize);
-        strategy->pr_named_value("niter", ir->niter);
-        strategy->pr_named_value("fcstep", ir->fc_stepsize);
-        strategy->pr_named_value("nstcgsteep", ir->nstcgsteep);
-        strategy->pr_named_value("nbfgscorr", ir->nbfgscorr);
+        strategy->pr_key_value("emtol", ir->em_tol);
+        strategy->pr_key_value("emstep", ir->em_stepsize);
+        strategy->pr_key_value("niter", ir->niter);
+        strategy->pr_key_value("fcstep", ir->fc_stepsize);
+        strategy->pr_key_value("nstcgsteep", ir->nstcgsteep);
+        strategy->pr_key_value("nbfgscorr", ir->nbfgscorr);
 
         /* Test particle insertion */
-        strategy->pr_named_value("rtpi", ir->rtpi);
+        strategy->pr_key_value("rtpi", ir->rtpi);
 
         /* Output control */
-        strategy->pr_named_value("nstxout", ir->nstxout);
-        strategy->pr_named_value("nstvout", ir->nstvout);
-        strategy->pr_named_value("nstfout", ir->nstfout);
-        strategy->pr_named_value("nstlog", ir->nstlog);
-        strategy->pr_named_value("nstcalcenergy", ir->nstcalcenergy);
-        strategy->pr_named_value("nstenergy", ir->nstenergy);
-        strategy->pr_named_value("nstxout-compressed", ir->nstxout_compressed);
-        strategy->pr_named_value("compressed-x-precision", ir->x_compression_precision);
+        strategy->pr_key_value("nstxout", ir->nstxout);
+        strategy->pr_key_value("nstvout", ir->nstvout);
+        strategy->pr_key_value("nstfout", ir->nstfout);
+        strategy->pr_key_value("nstlog", ir->nstlog);
+        strategy->pr_key_value("nstcalcenergy", ir->nstcalcenergy);
+        strategy->pr_key_value("nstenergy", ir->nstenergy);
+        strategy->pr_key_value("nstxout-compressed", ir->nstxout_compressed);
+        strategy->pr_key_value("compressed-x-precision", ir->x_compression_precision);
 
         /* Neighborsearching parameters */
-        strategy->pr_named_value("cutoff-scheme", enumValueToString(ir->cutoff_scheme));
-        strategy->pr_named_value("nstlist", ir->nstlist);
-        strategy->pr_named_value("pbc", c_pbcTypeNames[ir->pbcType].c_str());
-        strategy->pr_named_value("periodic-molecules", gmx::boolToString(ir->bPeriodicMols));
-        strategy->pr_named_value("verlet-buffer-tolerance", ir->verletbuf_tol);
-        strategy->pr_named_value("verlet-buffer-pressure-tolerance", ir->verletBufferPressureTolerance);
-        strategy->pr_named_value("rlist", ir->rlist);
+        strategy->pr_key_value("cutoff-scheme", enumValueToString(ir->cutoff_scheme));
+        strategy->pr_key_value("nstlist", ir->nstlist);
+        strategy->pr_key_value("pbc", c_pbcTypeNames[ir->pbcType].c_str());
+        strategy->pr_key_value("periodic-molecules", gmx::boolToString(ir->bPeriodicMols));
+        strategy->pr_key_value("verlet-buffer-tolerance", ir->verletbuf_tol);
+        strategy->pr_key_value("verlet-buffer-pressure-tolerance", ir->verletBufferPressureTolerance);
+        strategy->pr_key_value("rlist", ir->rlist);
 
         /* Options for electrostatics and VdW */
-        strategy->pr_named_value("coulombtype", enumValueToString(ir->coulombtype));
-        strategy->pr_named_value("coulomb-modifier", enumValueToString(ir->coulomb_modifier));
-        strategy->pr_named_value("rcoulomb-switch", ir->rcoulomb_switch);
-        strategy->pr_named_value("rcoulomb", ir->rcoulomb);
+        strategy->pr_key_value("coulombtype", enumValueToString(ir->coulombtype));
+        strategy->pr_key_value("coulomb-modifier", enumValueToString(ir->coulomb_modifier));
+        strategy->pr_key_value("rcoulomb-switch", ir->rcoulomb_switch);
+        strategy->pr_key_value("rcoulomb", ir->rcoulomb);
         if (ir->epsilon_r != 0)
         {
-            strategy->pr_named_value("epsilon-r", ir->epsilon_r);
+            strategy->pr_key_value("epsilon-r", ir->epsilon_r);
         }
         else
         {
-            strategy->pr_named_value("epsilon-r", infbuf);
+            strategy->pr_key_value("epsilon-r", infbuf);
         }
         if (ir->epsilon_rf != 0)
         {
-            strategy->pr_named_value("epsilon-rf", ir->epsilon_rf);
+            strategy->pr_key_value("epsilon-rf", ir->epsilon_rf);
         }
         else
         {
-            strategy->pr_named_value("epsilon-rf", infbuf);
+            strategy->pr_key_value("epsilon-rf", infbuf);
         }
-        strategy->pr_named_value("vdw-type", enumValueToString(ir->vdwtype));
-        strategy->pr_named_value("vdw-modifier", enumValueToString(ir->vdw_modifier));
-        strategy->pr_named_value("rvdw-switch", ir->rvdw_switch);
-        strategy->pr_named_value("rvdw", ir->rvdw);
-        strategy->pr_named_value("DispCorr", enumValueToString(ir->eDispCorr));
-        strategy->pr_named_value("table-extension", ir->tabext);
+        strategy->pr_key_value("vdw-type", enumValueToString(ir->vdwtype));
+        strategy->pr_key_value("vdw-modifier", enumValueToString(ir->vdw_modifier));
+        strategy->pr_key_value("rvdw-switch", ir->rvdw_switch);
+        strategy->pr_key_value("rvdw", ir->rvdw);
+        strategy->pr_key_value("DispCorr", enumValueToString(ir->eDispCorr));
+        strategy->pr_key_value("table-extension", ir->tabext);
 
-        strategy->pr_named_value("fourierspacing", ir->fourier_spacing);
-        strategy->pr_named_value("fourier-nx", ir->nkx);
-        strategy->pr_named_value("fourier-ny", ir->nky);
-        strategy->pr_named_value("fourier-nz", ir->nkz);
-        strategy->pr_named_value("pme-order", ir->pme_order);
-        strategy->pr_named_value("ewald-rtol", ir->ewald_rtol);
-        strategy->pr_named_value("ewald-rtol-lj", ir->ewald_rtol_lj);
-        strategy->pr_named_value("lj-pme-comb-rule", enumValueToString(ir->ljpme_combination_rule));
-        strategy->pr_named_value("ewald-geometry", enumValueToString(ir->ewald_geometry));
-        strategy->pr_named_value("epsilon-surface", ir->epsilon_surface);
+        strategy->pr_key_value("fourierspacing", ir->fourier_spacing);
+        strategy->pr_key_value("fourier-nx", ir->nkx);
+        strategy->pr_key_value("fourier-ny", ir->nky);
+        strategy->pr_key_value("fourier-nz", ir->nkz);
+        strategy->pr_key_value("pme-order", ir->pme_order);
+        strategy->pr_key_value("ewald-rtol", ir->ewald_rtol);
+        strategy->pr_key_value("ewald-rtol-lj", ir->ewald_rtol_lj);
+        strategy->pr_key_value("lj-pme-comb-rule", enumValueToString(ir->ljpme_combination_rule));
+        strategy->pr_key_value("ewald-geometry", enumValueToString(ir->ewald_geometry));
+        strategy->pr_key_value("epsilon-surface", ir->epsilon_surface);
 
         /* Options for weak coupling algorithms */
-        strategy->pr_named_value("ensemble-temperature-setting",
-                                 enumValueToString(ir->ensembleTemperatureSetting));
+        strategy->pr_key_value("ensemble-temperature-setting",
+                               enumValueToString(ir->ensembleTemperatureSetting));
         if (ir->ensembleTemperatureSetting == EnsembleTemperatureSetting::Constant)
         {
-            strategy->pr_named_value("ensemble-temperature", ir->ensembleTemperature);
+            strategy->pr_key_value("ensemble-temperature", ir->ensembleTemperature);
         }
-        strategy->pr_named_value("tcoupl", enumValueToString(ir->etc));
-        strategy->pr_named_value("nsttcouple", ir->nsttcouple);
-        strategy->pr_named_value("nh-chain-length", ir->opts.nhchainlength);
-        strategy->pr_named_value("print-nose-hoover-chain-variables",
-                                 gmx::boolToString(ir->bPrintNHChains));
+        strategy->pr_key_value("tcoupl", enumValueToString(ir->etc));
+        strategy->pr_key_value("nsttcouple", ir->nsttcouple);
+        strategy->pr_key_value("nh-chain-length", ir->opts.nhchainlength);
+        strategy->pr_key_value("print-nose-hoover-chain-variables", gmx::boolToString(ir->bPrintNHChains));
 
-        strategy->pr_named_value("pcoupl", enumValueToString(ir->pressureCouplingOptions.epc));
+        strategy->pr_key_value("pcoupl", enumValueToString(ir->pressureCouplingOptions.epc));
         if (ir->pressureCouplingOptions.epc != PressureCoupling::No)
         {
-            strategy->pr_named_value("pcoupltype", enumValueToString(ir->pressureCouplingOptions.epct));
-            strategy->pr_named_value("nstpcouple", ir->pressureCouplingOptions.nstpcouple);
-            strategy->pr_named_value("tau-p", ir->pressureCouplingOptions.tau_p);
+            strategy->pr_key_value("pcoupltype", enumValueToString(ir->pressureCouplingOptions.epct));
+            strategy->pr_key_value("nstpcouple", ir->pressureCouplingOptions.nstpcouple);
+            strategy->pr_key_value("tau-p", ir->pressureCouplingOptions.tau_p);
             strategy->pr_matrix("compressibility", ir->pressureCouplingOptions.compress);
             strategy->pr_matrix("ref-p", ir->pressureCouplingOptions.ref_p);
         }
         // Refcoord-scaling is also needed for other algorithms that affect the box
-        strategy->pr_named_value("refcoord-scaling",
-                                 enumValueToString(ir->pressureCouplingOptions.refcoord_scaling));
+        strategy->pr_key_value("refcoord-scaling",
+                               enumValueToString(ir->pressureCouplingOptions.refcoord_scaling));
 
         strategy->pr_rvecs("posres-com", gmx::as_rvec_array(ir->posresCom.data()), ir->posresCom.size());
         strategy->pr_rvecs(
                 "posres-comB", gmx::as_rvec_array(ir->posresComB.data()), ir->posresComB.size());
 
         // /* QMMM */
-        strategy->pr_named_value("QMMM", gmx::boolToString(ir->bQMMM));
+        strategy->pr_key_value("QMMM", gmx::boolToString(ir->bQMMM));
 
         if (!strategy->bMDPformat)
         {
@@ -143,7 +142,7 @@ void InputRecRepr::build(ReprFormatter* strategy)
 
 void MtsRepr::build(ReprFormatter* strategy)
 {
-    strategy->pr_named_value("mts", gmx::boolToString(useMts));
+    strategy->pr_key_value("mts", gmx::boolToString(useMts));
 
     if (useMts)
     {
@@ -165,9 +164,9 @@ void MtsRepr::build(ReprFormatter* strategy)
                 }
             }
 
-            strategy->pr_named_value(forceKey.c_str(), forceGroups.c_str());
+            strategy->pr_key_value(forceKey.c_str(), forceGroups.c_str());
             const std::string factorKey = gmx::formatString("mts-level%d-factor", mtsIndex + 1);
-            strategy->pr_named_value(factorKey.c_str(), mtsLevel.stepFactor);
+            strategy->pr_key_value(factorKey.c_str(), mtsLevel.stepFactor);
         }
     }
 }

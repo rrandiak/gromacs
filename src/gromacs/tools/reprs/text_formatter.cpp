@@ -116,24 +116,24 @@ void TextFormatter::close_list()
     // Intetionally left blank
 }
 
-void TextFormatter::pr_named_value(const std::string name, const Value& value)
+void TextFormatter::pr_key_value(const std::string name, const Value& value)
 {
     componentsStack.top()->printLeaf(name, value, 30);
 }
 
-void TextFormatter::pr_named_value_short_format(const std::string name, const Value& value)
+void TextFormatter::pr_key_value_short_format(const std::string name, const Value& value)
 {
     componentsStack.top()->printLeaf(name, value, 6);
 }
 
-void TextFormatter::pr_named_value_scientific(const std::string name, const real& value)
+void TextFormatter::pr_key_value_scientific(const std::string name, const real& value)
 {
     componentsStack.top()->addFormattedTextLeaf("%-*s = %e", 6, name.c_str(), value);
 }
 
 void TextFormatter::pr_count(const std::string name, const Value& value)
 {
-    pr_named_value(gmx::formatString("#%s", name.c_str()), value);
+    pr_key_value(gmx::formatString("#%s", name.c_str()), value);
 }
 
 void TextFormatter::pr_attribute(const std::string name, const Value& value)

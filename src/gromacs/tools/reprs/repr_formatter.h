@@ -91,13 +91,13 @@ public:
     virtual void close_list() = 0;
 
     //! Prints a named value.
-    virtual void pr_named_value(std::string name, const Value& value) = 0;
+    virtual void pr_key_value(std::string name, const Value& value) = 0;
 
     //! Prints a named value in short format (Text specific function).
-    virtual void pr_named_value_short_format(std::string name, const Value& value) = 0;
+    virtual void pr_key_value_short_format(std::string name, const Value& value) = 0;
 
     //! Prints a named value in real scientific notation (Text specific function).
-    virtual void pr_named_value_scientific(std::string name, const real& value) = 0;
+    virtual void pr_key_value_scientific(std::string name, const real& value) = 0;
 
     //! Prints number format as count (Specific for each format).
     virtual void pr_count(std::string name, const Value& value) = 0;

@@ -107,34 +107,34 @@ void YamlFormatter::close_list()
     componentsStack.pop();
 }
 
-void YamlFormatter::pr_named_value(const std::string name, const Value& value)
+void YamlFormatter::pr_key_value(const std::string name, const Value& value)
 {
     componentsStack.top()->printKeyValue(name, value);
 }
 
-void YamlFormatter::pr_named_value_short_format(const std::string name, const Value& value)
+void YamlFormatter::pr_key_value_short_format(const std::string name, const Value& value)
 {
-    pr_named_value(name, value);
+    pr_key_value(name, value);
 }
 
-void YamlFormatter::pr_named_value_scientific(const std::string name, const real& value)
+void YamlFormatter::pr_key_value_scientific(const std::string name, const real& value)
 {
-    pr_named_value(name, value);
+    pr_key_value(name, value);
 }
 
 void YamlFormatter::pr_count(const std::string name, const Value& value)
 {
-    pr_named_value(gmx::formatString("%s-count", name.c_str()), value);
+    pr_key_value(gmx::formatString("%s-count", name.c_str()), value);
 }
 
 void YamlFormatter::pr_attribute(const std::string name, const Value& value)
 {
-    pr_named_value(name, value);
+    pr_key_value(name, value);
 }
 
 void YamlFormatter::pr_attribute_quoted(const std::string name, const std::string& value)
 {
-    pr_named_value(name, "\"" + value + "\"");
+    pr_key_value(name, "\"" + value + "\"");
 }
 
 void YamlFormatter::pr_vec_attributes(const std::string title, int index, const char** names, char** values, int n)
@@ -395,11 +395,11 @@ void YamlFormatter::pr_kvtree(const gmx::KeyValueTreeObject kvTree)
                 std::string strValue = simpleValueToString(value);
                 if (value.isType<std::string>() && strValue.empty())
                 {
-                    pr_named_value(prop.key(), "\"\"");
+                    pr_key_value(prop.key(), "\"\"");
                 }
                 else
                 {
-                    pr_named_value(prop.key(), strValue);
+                    pr_key_value(prop.key(), strValue);
                 }
             }
         }
@@ -711,7 +711,7 @@ void YamlFormatter::pr_cmap(const gmx_cmap_t* cmap_grid)
 
 void YamlFormatter::pr_separate_dvdl(const std::string title, bool value)
 {
-    pr_named_value(title, value);
+    pr_key_value(title, value);
 }
 
 void YamlFormatter::pr_all_lambda(const std::string title, const double vec[], const int n_lambda)
