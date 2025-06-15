@@ -1,0 +1,15 @@
+---
+grpopts:
+  nrdf: [1, 2]
+  ref-t: [300, 400]
+  tau-t: [10, 20]
+annealing: [No, Periodic]
+annealing-npoints: [2, 2]
+annealing-time: [0, 1]
+annealing-temp: [295, 305]
+annealing-time: [0, 1]
+annealing-temp: [295, 305]
+acc: [0.2, 0.3, 0.5]
+nfreeze: [Y, Y, Y]
+energygrp-flags:
+  - [1]
