@@ -43,15 +43,9 @@
 #include "config.h"
 
 #include <cassert>
-#include <cinttypes>
 #include <cmath>
 #include <cstdio>
 #include <cstring>
-
-#include <filesystem>
-#include <memory>
-#include <string>
-#include <vector>
 
 #include "gromacs/commandline/cmdlineoptionsmodule.h"
 #include "gromacs/fileio/checkpoint.h"
@@ -62,12 +56,9 @@
 #include "gromacs/fileio/tngio.h"
 #include "gromacs/fileio/tpxio.h"
 #include "gromacs/fileio/trrio.h"
-#include "gromacs/fileio/xdr_datatype.h"
 #include "gromacs/fileio/xtcio.h"
 #include "gromacs/gmxpreprocess/gmxcpp.h"
-#include "gromacs/linearalgebra/sparsematrix.h"
 #include "gromacs/math/vecdump.h"
-#include "gromacs/math/vectypes.h"
 #include "gromacs/mdrun/mdmodules.h"
 #include "gromacs/mdtypes/forcerec.h"
 #include "gromacs/mdtypes/inputrec.h"
@@ -76,29 +67,83 @@
 #include "gromacs/options/basicoptions.h"
 #include "gromacs/options/filenameoption.h"
 #include "gromacs/options/ioptionscontainer.h"
-#include "gromacs/options/optionfiletype.h"
+#include "gromacs/tools/reprs/json_formatter.h"
+#include "gromacs/tools/reprs/repr_formatter.h"
+#include "gromacs/tools/reprs/text_formatter.h"
+#include "gromacs/tools/reprs/tpr_repr.h"
+#include "gromacs/tools/reprs/yaml_formatter.h"
 #include "gromacs/topology/mtop_util.h"
 #include "gromacs/topology/topology.h"
-#include "gromacs/topology/topology_enums.h"
 #include "gromacs/trajectory/energyframe.h"
 #include "gromacs/trajectory/trajectoryframe.h"
-#include "gromacs/utility/arrayref.h"
 #include "gromacs/utility/arraysize.h"
 #include "gromacs/utility/basedefinitions.h"
-#include "gromacs/utility/cstringutil.h"
-#include "gromacs/utility/enumerationhelpers.h"
 #include "gromacs/utility/fatalerror.h"
 #include "gromacs/utility/futil.h"
-#include "gromacs/utility/real.h"
 #include "gromacs/utility/smalloc.h"
 #include "gromacs/utility/txtdump.h"
 
 namespace gmx
 {
-class CommandLineModuleSettings;
 
 namespace
 {
+
+enum class OutputFormat : int
+{
+    OldText,
+    Text,
+    Json,
+    Yaml,
+    Count
+};
+
+const gmx::EnumerationArray<OutputFormat, const char*> c_outputFormatNames = {
+    { "old_text", "text", "json", "yaml" }
+};
+
+//! Dump a TPR file
+void list_tpr_new(const char*             fn,
+                  gmx_bool                bShowNumbers,
+                  gmx_bool                bShowParameters,
+                  const char*             mdpfn,
+                  gmx_bool                bSysTop,
+                  gmx_bool                bOriginalInputrec,
+                  OutputFormat            outputFormat_,
+                  std::string&            outputFilename_,
+                  std::vector<TprSection> tprSections_)
+{
+    FILE*   fp      = outputFilename_.empty() ? stdout : fopen(outputFilename_.c_str(), "w");
+    TprRepr tprRepr = TprRepr(fn, mdpfn, bOriginalInputrec, tprSections_);
+
+    ReprFormatter* strategy = nullptr;
+    if (outputFormat_ == OutputFormat::Text)
+    {
+        strategy = new TextFormatter(fp);
+    }
+    else if (outputFormat_ == OutputFormat::Json)
+    {
+        strategy = new JsonFormatter(fp);
+    }
+    else if (outputFormat_ == OutputFormat::Yaml)
+    {
+        strategy = new YamlFormatter(fp);
+    }
+
+    if (strategy != nullptr)
+    {
+        strategy->bSysTop         = bSysTop;
+        strategy->bShowNumbers    = bShowNumbers;
+        strategy->bShowParameters = bShowParameters;
+        tprRepr.build(strategy);
+        delete strategy;
+    }
+
+    if (!outputFilename_.empty())
+    {
+        fclose(fp);
+    }
+}
 
 //! Dump a TPR file
 void list_tpr(const char* fn,
@@ -639,10 +684,12 @@ public:
 private:
     //! Commandline options
     //! \{
-    bool bShowNumbers_      = true;
-    bool bShowParams_       = false;
-    bool bSysTop_           = false;
-    bool bOriginalInputrec_ = false;
+    bool                    bShowNumbers_      = true;
+    bool                    bShowParams_       = false;
+    bool                    bSysTop_           = false;
+    bool                    bOriginalInputrec_ = false;
+    OutputFormat            outputFormat_      = OutputFormat::OldText;
+    std::vector<TprSection> tprSections_       = {};
     //! \}
     //! Commandline file options
     //! \{
@@ -653,6 +700,7 @@ private:
     std::string inputTopologyFilename_;
     std::string inputMatrixFilename_;
     std::string outputMdpFilename_;
+    std::string outputFilename_;
     //! \}
 };
 
@@ -706,11 +754,25 @@ void Dump::initOptions(IOptionsContainer* options, ICommandLineOptionsModuleSett
             BooleanOption("nr").store(&bShowNumbers_).defaultValue(true).description("Show index numbers in output (leaving them out makes comparison easier, but creates a useless topology)"));
     options->addOption(
             BooleanOption("param").store(&bShowParams_).defaultValue(false).description("Show parameters for each bonded interaction (for comparing dumps, it is useful to combine this with -nonr)"));
-    options->addOption(BooleanOption("sys").store(&bSysTop_).defaultValue(false).description(
-            "List the atoms and bonded interactions for the whole system instead of for each "
-            "molecule type"));
     options->addOption(
-            BooleanOption("orgir").store(&bOriginalInputrec_).defaultValue(false).description("Show input parameters from tpr as they were written by the version that produced the file, instead of how the current version reads them"));
+            BooleanOption("sys").store(&bShowParams_).defaultValue(false).description("List the atoms and bonded interactions for the whole system instead of for each molecule type"));
+    options->addOption(
+            BooleanOption("orgir").store(&bShowParams_).defaultValue(false).description("Show input parameters from tpr as they were written by the version that produced the file, instead of how the current version reads them"));
+    options->addOption(EnumOption<OutputFormat>("format")
+                               .enumValue(c_outputFormatNames)
+                               .store(&outputFormat_)
+                               .defaultValue(OutputFormat::OldText)
+                               .description("Output format"));
+    options->addOption(
+            FileNameOption("output")
+                    .outputFile()
+                    .store(&outputFilename_)
+                    .description("Output file to write dump to (if omitted, dumps to stdout)"));
+    options->addOption(EnumOption<TprSection>("section")
+                               .enumValue(c_tprSectionNames)
+                               .storeVector(&tprSections_)
+                               .allowMultiple()
+                               .description("Dump section to be built"));
 }
 
 void Dump::optionsFinished()
@@ -724,12 +786,27 @@ int Dump::run()
 {
     if (!inputTprFilename_.empty())
     {
-        list_tpr(inputTprFilename_.c_str(),
-                 bShowNumbers_,
-                 bShowParams_,
-                 outputMdpFilename_.empty() ? nullptr : outputMdpFilename_.c_str(),
-                 bSysTop_,
-                 bOriginalInputrec_);
+        if (outputFormat_ == OutputFormat::OldText)
+        {
+            list_tpr(inputTprFilename_.c_str(),
+                     bShowNumbers_,
+                     bShowParams_,
+                     outputMdpFilename_.empty() ? nullptr : outputMdpFilename_.c_str(),
+                     bSysTop_,
+                     bOriginalInputrec_);
+        }
+        else
+        {
+            list_tpr_new(inputTprFilename_.c_str(),
+                         bShowNumbers_,
+                         bShowParams_,
+                         outputMdpFilename_.empty() ? nullptr : outputMdpFilename_.c_str(),
+                         bSysTop_,
+                         bOriginalInputrec_,
+                         outputFormat_,
+                         outputFilename_,
+                         tprSections_);
+        }
     }
     else if (!inputTrajectoryFilename_.empty())
     {

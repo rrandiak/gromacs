@@ -1,0 +1,83 @@
+---
+inputrec:
+  integrator: md
+  tinit: 0
+  dt: 0
+  nsteps: 0
+  init-step: 0
+  simulation-part: 0
+  mts: true
+  mts-level2-forces: pull
+  mts-level2-factor: 2
+  mass-repartition-factor: 1
+  comm-mode: Linear
+  nstcomm: 0
+  bd-fric: 0
+  ld-seed: 0
+  emtol: 0
+  emstep: 0
+  niter: 0
+  fcstep: 0
+  nstcgsteep: 0
+  nbfgscorr: 0
+  rtpi: 0
+  nstxout: 0
+  nstvout: 0
+  nstfout: 0
+  nstlog: 0
+  nstcalcenergy: 0
+  nstenergy: 0
+  nstxout-compressed: 0
+  compressed-x-precision: 0
+  cutoff-scheme: Verlet
+  nstlist: 0
+  pbc: xyz
+  periodic-molecules: false
+  verlet-buffer-tolerance: 0
+  verlet-buffer-pressure-tolerance: 0
+  rlist: 0
+  coulombtype: Cut-off
+  coulomb-modifier: Potential-shift-Verlet
+  rcoulomb-switch: 0
+  rcoulomb: 0
+  epsilon-r: inf
+  epsilon-rf: inf
+  vdw-type: Cut-off
+  vdw-modifier: Potential-shift-Verlet
+  rvdw-switch: 0
+  rvdw: 0
+  DispCorr: No
+  table-extension: 0
+  fourierspacing: 0
+  fourier-nx: 0
+  fourier-ny: 0
+  fourier-nz: 0
+  pme-order: 0
+  ewald-rtol: 0
+  ewald-rtol-lj: 0
+  lj-pme-comb-rule: Geometric
+  ewald-geometry: 3d
+  epsilon-surface: 0
+  ensemble-temperature-setting: not available
+  tcoupl: No
+  nsttcouple: 0
+  nh-chain-length: 0
+  print-nose-hoover-chain-variables: false
+  pcoupl: MTTK
+  pcoupltype: Isotropic
+  nstpcouple: 0
+  tau-p: 0
+  compressibility (3x3):
+    - [0, 0, 0]
+    - [0, 0, 0]
+    - [0, 0, 0]
+  ref-p (3x3):
+    - [0, 0, 0]
+    - [0, 0, 0]
+    - [0, 0, 0]
+  refcoord-scaling: No
+  posres-coms:
+    - [0, 0, 0]
+  posres-comBs:
+    - [0, 0, 0]
+  QMMM: false
